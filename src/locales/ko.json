@@ -1,0 +1,105 @@
+{
+    "tabs": {
+        "timeline": "타임라인",
+        "scanner": "스캐너",
+        "myFlow": "마이 플로우",
+        "settings": "설정"
+    },
+    "timeline": {
+        "greeting": "안녕하세요, {{name}}님",
+        "today": "오늘",
+        "upcoming": "예정",
+        "history": "기록",
+        "noUpcoming": "예정된 약 복용이나 예약이 없습니다",
+        "noHistory": "아직 기록이 없습니다. 약을 추가해 보세요!",
+        "noData": "추적을 시작하면 통계를 볼 수 있습니다"
+    },
+    "scanner": {
+        "title": "약 스캔",
+        "description": "카메라를 사용하여 처방전 라벨을 스캔하고 약 정보를 자동으로 입력하세요"
+    },
+    "myFlow": {
+        "title": "마이 플로우",
+        "adherence": "복용 준수율",
+        "medicationAdherence": "약 복용 준수율",
+        "activities": "활동",
+        "activitiesLogged": "이번 주 기록된 활동",
+        "streak": "현재 연속 기록",
+        "days": "일"
+    },
+    "settings": {
+        "title": "설정",
+        "language": "언어",
+        "useKorean": "한국어 사용",
+        "notifications": "알림",
+        "notificationMode": "알림 모드",
+        "homeMode": "홈 모드",
+        "heavySleeperMode": "헤비 슬리퍼 모드",
+        "export": "내보내기",
+        "exportData": "건강 데이터 내보내기",
+        "emergency": "응급",
+        "emergencyId": "응급 신분증",
+        "dangerZone": "위험 구역",
+        "deleteAllData": "모든 데이터 삭제"
+    },
+    "common": {
+        "save": "저장",
+        "cancel": "취소",
+        "delete": "삭제",
+        "edit": "수정",
+        "add": "추가",
+        "loading": "로딩 중...",
+        "error": "문제가 발생했습니다",
+        "retry": "다시 시도"
+    },
+    "medication": {
+        "name": "약 이름",
+        "dosage": "용량",
+        "form": "형태",
+        "frequency": "복용 빈도",
+        "time": "시간",
+        "notes": "메모",
+        "refillThreshold": "리필 알림",
+        "currentQuantity": "현재 수량",
+        "forms": {
+            "tablet": "알약",
+            "capsule": "캡슐",
+            "liquid": "액체",
+            "injection": "주사",
+            "patch": "패치",
+            "cream": "크림",
+            "drops": "점안액"
+        },
+        "frequencies": {
+            "daily": "매일",
+            "twiceDaily": "하루 두 번",
+            "weekly": "매주",
+            "asNeeded": "필요시"
+        },
+        "status": {
+            "taken": "복용 완료",
+            "missed": "미복용",
+            "skipped": "건너뜀",
+            "postponed": "연기됨"
+        }
+    },
+    "appointment": {
+        "title": "제목",
+        "doctorName": "의사 이름",
+        "specialty": "전문 분야",
+        "location": "위치",
+        "datetime": "날짜 및 시간",
+        "duration": "소요 시간",
+        "reason": "방문 목적",
+        "notes": "메모"
+    },
+    "onboarding": {
+        "welcome": "Follo에 오신 것을 환영합니다",
+        "tagline": "당신의 개인 건강 동반자",
+        "getStarted": "시작하기",
+        "createProfile": "프로필 만들기",
+        "profileName": "프로필 이름",
+        "birthDate": "생년월일 (선택사항)",
+        "continue": "계속"
+    }
+}

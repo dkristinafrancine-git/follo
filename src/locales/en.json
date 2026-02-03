@@ -1,0 +1,105 @@
+{
+    "tabs": {
+        "timeline": "Timeline",
+        "scanner": "Scanner",
+        "myFlow": "My Flow",
+        "settings": "Settings"
+    },
+    "timeline": {
+        "greeting": "Hi, {{name}}",
+        "today": "Today",
+        "upcoming": "Upcoming",
+        "history": "History",
+        "noUpcoming": "No upcoming medications or appointments",
+        "noHistory": "No history yet. Start by adding a medication!",
+        "noData": "Start tracking to see your stats"
+    },
+    "scanner": {
+        "title": "Scan Medication",
+        "description": "Use your camera to scan prescription labels and automatically fill in medication details"
+    },
+    "myFlow": {
+        "title": "My Flow",
+        "adherence": "Adherence",
+        "medicationAdherence": "Medication Adherence",
+        "activities": "Activities",
+        "activitiesLogged": "Activities Logged This Week",
+        "streak": "Current Streak",
+        "days": "Days"
+    },
+    "settings": {
+        "title": "Settings",
+        "language": "Language",
+        "useKorean": "Use Korean",
+        "notifications": "Notifications",
+        "notificationMode": "Notification Mode",
+        "homeMode": "Home Mode",
+        "heavySleeperMode": "Heavy Sleeper Mode",
+        "export": "Export",
+        "exportData": "Export Health Data",
+        "emergency": "Emergency",
+        "emergencyId": "Emergency ID",
+        "dangerZone": "Danger Zone",
+        "deleteAllData": "Delete All Data"
+    },
+    "common": {
+        "save": "Save",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "edit": "Edit",
+        "add": "Add",
+        "loading": "Loading...",
+        "error": "Something went wrong",
+        "retry": "Retry"
+    },
+    "medication": {
+        "name": "Medication Name",
+        "dosage": "Dosage",
+        "form": "Form",
+        "frequency": "Frequency",
+        "time": "Time",
+        "notes": "Notes",
+        "refillThreshold": "Refill Reminder",
+        "currentQuantity": "Current Quantity",
+        "forms": {
+            "tablet": "Tablet",
+            "capsule": "Capsule",
+            "liquid": "Liquid",
+            "injection": "Injection",
+            "patch": "Patch",
+            "cream": "Cream",
+            "drops": "Drops"
+        },
+        "frequencies": {
+            "daily": "Daily",
+            "twiceDaily": "Twice Daily",
+            "weekly": "Weekly",
+            "asNeeded": "As Needed"
+        },
+        "status": {
+            "taken": "Taken",
+            "missed": "Missed",
+            "skipped": "Skipped",
+            "postponed": "Postponed"
+        }
+    },
+    "appointment": {
+        "title": "Title",
+        "doctorName": "Doctor Name",
+        "specialty": "Specialty",
+        "location": "Location",
+        "datetime": "Date & Time",
+        "duration": "Duration",
+        "reason": "Reason for Visit",
+        "notes": "Notes"
+    },
+    "onboarding": {
+        "welcome": "Welcome to Follo",
+        "tagline": "Your personal health companion",
+        "getStarted": "Get Started",
+        "createProfile": "Create Your Profile",
+        "profileName": "Profile Name",
+        "birthDate": "Birth Date (Optional)",
+        "continue": "Continue"
+    }
+}
