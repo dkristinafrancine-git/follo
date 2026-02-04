@@ -27,6 +27,13 @@
         "streak": "Current Streak",
         "days": "Days"
     },
+    "stats": {
+        "last7Days": "Last 7 days",
+        "thisWeek": "This week",
+        "keepItUp": "Keep it up!",
+        "upcomingMeds": "Upcoming Medications",
+        "next4Hours": "Next 4 hours"
+    },
     "settings": {
         "title": "Settings",
         "language": "Language",
@@ -48,40 +55,10 @@
         "delete": "Delete",
         "edit": "Edit",
         "add": "Add",
+        "skip": "Skip",
         "loading": "Loading...",
         "error": "Something went wrong",
         "retry": "Retry"
-    },
-    "medication": {
-        "name": "Medication Name",
-        "dosage": "Dosage",
-        "form": "Form",
-        "frequency": "Frequency",
-        "time": "Time",
-        "notes": "Notes",
-        "refillThreshold": "Refill Reminder",
-        "currentQuantity": "Current Quantity",
-        "forms": {
-            "tablet": "Tablet",
-            "capsule": "Capsule",
-            "liquid": "Liquid",
-            "injection": "Injection",
-            "patch": "Patch",
-            "cream": "Cream",
-            "drops": "Drops"
-        },
-        "frequencies": {
-            "daily": "Daily",
-            "twiceDaily": "Twice Daily",
-            "weekly": "Weekly",
-            "asNeeded": "As Needed"
-        },
-        "status": {
-            "taken": "Taken",
-            "missed": "Missed",
-            "skipped": "Skipped",
-            "postponed": "Postponed"
-        }
     },
     "appointment": {
         "title": "Title",
@@ -107,6 +84,75 @@
         "createProfile": "Create Your Profile",
         "profileName": "Profile Name",
         "birthDate": "Birth Date (Optional)",
-        "continue": "Continue"
+        "continue": "Continue",
+        "skip": "Skip",
+        "next": "Next",
+        "step": "Step {{current}} of {{total}}",
+        "profileDescription": "Create a profile to start tracking your health. You can add more profiles later for family members.",
+        "avatarHint": "Your avatar is generated automatically",
+        "namePlaceholder": "Enter your name",
+        "nameRequired": "Please enter a name",
+        "nameTooShort": "Name must be at least 2 characters",
+        "birthDateHint": "Used for age-appropriate health insights",
+        "addFirstMedication": "Add Your First Medication",
+        "medicationDescription": "Let's set up your first medication to track. This helps Follo remind you at the right times.",
+        "startTracking": "Start Tracking",
+        "slides": {
+            "medications": {
+                "title": "Never Miss a Dose",
+                "description": "Track all your medications with smart reminders that adapt to your schedule"
+            },
+            "appointments": {
+                "title": "Stay on Top of Appointments",
+                "description": "Manage doctor visits and get timely reminders so you're always prepared"
+            },
+            "insights": {
+                "title": "Understand Your Health",
+                "description": "View trends, track adherence, and share reports with your healthcare providers"
+            },
+            "privacy": {
+                "title": "Your Data, Your Control",
+                "description": "All data stays on your device. Export anytime, delete whenever you want"
+            }
+        }
+    },
+    "medication": {
+        "name": "Medication Name",
+        "namePlaceholder": "e.g., Aspirin, Vitamin D",
+        "nameRequired": "Please enter medication name",
+        "dosage": "Dosage",
+        "form": "Form",
+        "frequency": "Frequency",
+        "time": "Time",
+        "notes": "Notes",
+        "refillThreshold": "Refill Reminder",
+        "currentQuantity": "Current Quantity",
+        "forms": {
+            "tablet": "Tablet",
+            "capsule": "Capsule",
+            "liquid": "Liquid",
+            "injection": "Injection",
+            "patch": "Patch",
+            "cream": "Cream",
+            "drops": "Drops"
+        },
+        "times": {
+            "morning": "Morning",
+            "afternoon": "Afternoon",
+            "evening": "Evening",
+            "night": "Night"
+        },
+        "frequencies": {
+            "daily": "Daily",
+            "twiceDaily": "Twice Daily",
+            "weekly": "Weekly",
+            "asNeeded": "As Needed"
+        },
+        "status": {
+            "taken": "Taken",
+            "missed": "Missed",
+            "skipped": "Skipped",
+            "postponed": "Postponed"
+        }
     }
 }
