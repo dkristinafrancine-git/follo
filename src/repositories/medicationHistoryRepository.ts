@@ -139,6 +139,26 @@ export const medicationHistoryRepository = {
     },
 
     /**
+     * Record a dose status generic method
+     */
+    async recordStatus(
+        profileId: string,
+        medicationId: string,
+        scheduledTime: string,
+        status: MedicationStatus,
+        notes?: string
+    ): Promise<MedicationHistory> {
+        return this.create({
+            profileId,
+            medicationId,
+            scheduledTime,
+            actualTime: status === 'taken' ? new Date().toISOString() : undefined,
+            status,
+            notes,
+        });
+    },
+
+    /**
      * Record a dose as missed (system-generated)
      */
     async recordMissed(

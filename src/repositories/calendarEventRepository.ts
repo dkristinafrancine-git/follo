@@ -215,6 +215,27 @@ export const calendarEventRepository = {
     },
 
     /**
+     * Postpone an event by N minutes
+     */
+    async postponeEvent(id: string, minutes: number): Promise<boolean> {
+        const db = await getDatabase();
+        const event = await this.getById(id);
+        if (!event) return false;
+
+        const currentScheduled = new Date(event.scheduledTime);
+        const newScheduled = new Date(currentScheduled.getTime() + minutes * 60000).toISOString();
+        const now = new Date().toISOString();
+
+        const result = await db.runAsync(
+            `UPDATE calendar_events 
+       SET scheduled_time = ?, status = 'pending', updated_at = ? 
+       WHERE id = ?`,
+            [newScheduled, now, id]
+        );
+        return result.changes > 0;
+    },
+
+    /**
      * Update an existing event
      */
     async update(id: string, input: UpdateCalendarEventInput): Promise<CalendarEvent | null> {

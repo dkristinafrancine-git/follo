@@ -17,7 +17,10 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Medication, CreateMedicationInput, RecurrenceRule } from '../../types';
+import * as ImagePicker from 'expo-image-picker';
+import { Image } from 'react-native';
+import { Medication, CreateMedicationInput, RecurrenceRule, MedicationReference } from '../../types';
+import { medicationReferenceRepository } from '../../repositories';
 
 // Medication form options per PRD
 const MEDICATION_FORMS = [
@@ -54,6 +57,7 @@ interface FormData {
     refillThreshold: number;
     currentQuantity: string;
     notes: string;
+    photoUri?: string;
     hideName: boolean;
 }
 
@@ -76,8 +80,13 @@ export function MedicationForm({
         refillThreshold: initialValues?.refillThreshold ?? 7,
         currentQuantity: initialValues?.currentQuantity?.toString() || '',
         notes: initialValues?.notes || '',
+        photoUri: initialValues?.photoUri,
         hideName: initialValues?.hideName ?? false,
     });
+
+    // Autocomplete state
+    const [suggestions, setSuggestions] = useState<MedicationReference[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
 
     // Validation state
     const [errors, setErrors] = useState<{ name?: string }>({});
@@ -165,6 +174,46 @@ export function MedicationForm({
         }
     };
 
+    // Autocomplete logic
+    const handleNameChange = async (text: string) => {
+        updateField('name', text);
+        if (text.length > 1) {
+            try {
+                const results = await medicationReferenceRepository.search(text);
+                setSuggestions(results);
+                setShowSuggestions(results.length > 0);
+            } catch (err) {
+                console.warn('Failed to search medications', err);
+            }
+        } else {
+            setSuggestions([]);
+            setShowSuggestions(false);
+        }
+    };
+
+    const selectSuggestion = (med: MedicationReference) => {
+        updateField('name', med.name);
+        // Pre-fill form if available (simple mapping)
+        if (med.dosageForms && med.dosageForms.length > 0) {
+            updateField('form', med.dosageForms[0]);
+        }
+        setShowSuggestions(false);
+    };
+
+    // Photo logic
+    const pickImage = async () => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.8,
+        });
+
+        if (!result.canceled) {
+            updateField('photoUri', result.assets[0].uri);
+        }
+    };
+
     // Get current time as Date for picker
     const getTimeAsDate = (timeStr: string) => {
         const [hours, minutes] = timeStr.split(':').map(Number);
@@ -175,19 +224,55 @@ export function MedicationForm({
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-            {/* Medication Name */}
-            <View style={styles.field}>
+            {/* Medication Name with Autocomplete */}
+            <View style={[styles.field, { zIndex: 10 }]}>
                 <Text style={styles.label}>{t('medication.name')} *</Text>
                 <TextInput
                     style={[styles.input, errors.name && styles.inputError]}
                     value={formData.name}
-                    onChangeText={v => updateField('name', v)}
+                    onChangeText={handleNameChange}
+                    onFocus={() => formData.name.length > 1 && setShowSuggestions(true)}
                     placeholder={t('medication.namePlaceholder')}
                     placeholderTextColor="#6b7280"
                     autoCapitalize="words"
                     autoFocus={mode === 'add'}
                 />
                 {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+
+                {/* Suggestions Dropdown */}
+                {showSuggestions && suggestions.length > 0 && (
+                    <View style={styles.suggestionsContainer}>
+                        <ScrollView style={styles.suggestionsList} keyboardShouldPersistTaps="handled">
+                            {suggestions.map((item) => (
+                                <TouchableOpacity
+                                    key={item.id}
+                                    style={styles.suggestionItem}
+                                    onPress={() => selectSuggestion(item)}
+                                >
+                                    <Text style={styles.suggestionText}>{item.name}</Text>
+                                    {item.genericName && (
+                                        <Text style={styles.suggestionSubText}>{item.genericName}</Text>
+                                    )}
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    </View>
+                )}
+            </View>
+
+            {/* Photo Attachment */}
+            <View style={styles.field}>
+                <Text style={styles.label}>Medication Photo</Text>
+                <TouchableOpacity style={styles.photoButton} onPress={pickImage}>
+                    {formData.photoUri ? (
+                        <Image source={{ uri: formData.photoUri }} style={styles.previewImage} />
+                    ) : (
+                        <View style={styles.photoPlaceholder}>
+                            <Text style={styles.photoPlaceholderText}>+ Add Photo</Text>
+                        </View>
+                    )}
+                </TouchableOpacity>
+                <Text style={styles.hint}>Optional: Add photo for visual reference</Text>
             </View>
 
             {/* Dosage */}
@@ -675,5 +760,67 @@ const styles = StyleSheet.create({
     pickerOptionTextActive: {
         color: '#4A90D9',
         fontWeight: '600',
+    },
+    // Autocomplete Styles
+    suggestionsContainer: {
+        position: 'absolute',
+        top: 86,
+        left: 0,
+        right: 0,
+        backgroundColor: '#252542',
+        borderRadius: 12,
+        maxHeight: 200,
+        zIndex: 1000,
+        borderWidth: 1,
+        borderColor: '#3f3f5a',
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+    },
+    suggestionsList: {
+        maxHeight: 200,
+    },
+    suggestionItem: {
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#3f3f5a',
+    },
+    suggestionText: {
+        fontSize: 16,
+        color: '#ffffff',
+    },
+    suggestionSubText: {
+        fontSize: 12,
+        color: '#9ca3af',
+        marginTop: 2,
+    },
+    // Photo Styles
+    photoButton: {
+        width: 120,
+        height: 120,
+        backgroundColor: '#252542',
+        borderRadius: 12,
+        overflow: 'hidden',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#3f3f5a',
+        borderStyle: 'dashed',
+    },
+    photoPlaceholder: {
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    photoPlaceholderText: {
+        color: '#4A90D9',
+        fontSize: 14,
+        fontWeight: '600',
+    },
+    previewImage: {
+        width: '100%',
+        height: '100%',
     },
 });

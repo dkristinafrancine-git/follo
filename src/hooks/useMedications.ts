@@ -350,7 +350,57 @@ export function useMedicationActions(profileId: string | null): UseMedicationAct
         [profileId]
     );
 
-    return { markTaken, markSkipped, isLoading, error };
+    const markPostponed = useCallback(
+        async (medicationId: string, scheduledTime: string, minutes: number, notes?: string): Promise<void> => {
+            if (!profileId) return;
+
+            setIsLoading(true);
+            setError(null);
+
+            try {
+                // 1. Log postponement in history (optional, currently not logging postpones in history as they are just reschedules)
+                // However, user story 4.3 mentions "postpone frequency tracking", so we might want to log it.
+                // For now, we'll just reschedule the event.
+                // Ideally, we should add a 'postponed' status to medication_history or a separate log. 
+                // Let's record it as 'postponed' in history for tracking.
+
+                await medicationHistoryRepository.recordStatus(
+                    profileId,
+                    medicationId,
+                    scheduledTime,
+                    'postponed',
+                    notes
+                );
+
+                // 2. Update calendar_event time
+                const events = await calendarEventRepository.getBySourceAndTime(medicationId, scheduledTime);
+                if (events.length > 0) {
+                    await calendarEventRepository.postponeEvent(events[0].id, minutes);
+                }
+
+                // 3. TODO: Update widget/notification
+                // await notificationService.cancelNotification(events[0].id);
+                // await notificationService.scheduleNotification(events[0].id, newTime);
+            } catch (err) {
+                const error = err instanceof Error ? err : new Error('Failed to postpone medication');
+                setError(error);
+                throw error;
+            } finally {
+                setIsLoading(false);
+            }
+        },
+        [profileId]
+    );
+
+    return { markTaken, markSkipped, markPostponed, isLoading, error };
+}
+
+interface UseMedicationActionsResult {
+    markTaken: (medicationId: string, scheduledTime: string, notes?: string) => Promise<void>;
+    markSkipped: (medicationId: string, scheduledTime: string, notes?: string) => Promise<void>;
+    markPostponed: (medicationId: string, scheduledTime: string, minutes: number, notes?: string) => Promise<void>;
+    isLoading: boolean;
+    error: Error | null;
 }
 
 /**
