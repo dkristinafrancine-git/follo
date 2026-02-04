@@ -111,6 +111,20 @@ export const calendarEventRepository = {
     },
 
     /**
+     * Get events by source and scheduled time (for marking specific doses)
+     */
+    async getBySourceAndTime(sourceId: string, scheduledTime: string): Promise<CalendarEvent[]> {
+        const db = await getDatabase();
+        const result = await db.getAllAsync<Record<string, unknown>>(
+            `SELECT * FROM calendar_events 
+       WHERE source_id = ?
+       AND scheduled_time = ?`,
+            [sourceId, scheduledTime]
+        );
+        return result.map(rowToCalendarEvent);
+    },
+
+    /**
      * Get a single event by ID
      */
     async getById(id: string): Promise<CalendarEvent | null> {
