@@ -100,6 +100,17 @@
         "createProfile": "프로필 만들기",
         "profileName": "프로필 이름",
         "birthDate": "생년월일 (선택사항)",
-        "continue": "계속"
+        "continue": "계속",
+        "namePlaceholder": "이름을 입력하세요",
+        "nameRequired": "이름을 입력해 주세요",
+        "nameTooShort": "이름은 최소 2자 이상이어야 합니다",
+        "hint": "나중에 설정에서 더 많은 프로필을 추가할 수 있습니다"
+    },
+    "profile": {
+        "tapToSwitch": "탭하여 프로필 전환",
+        "yourProfile": "내 프로필",
+        "selectProfile": "프로필 선택",
+        "primary": "기본",
+        "addProfile": "프로필 추가"
     }
 }

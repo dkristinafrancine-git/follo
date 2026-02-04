@@ -1,0 +1,58 @@
+/**
+ * Service Layer Exports
+ */
+
+export { calendarService } from './calendarService';
+export { exportService } from './exportService';
+export { notificationService, NOTIFICATION_CHANNELS } from './notificationService';
+export { getAvatarUrl, getProfileAvatarUrl, getAvatarOptions, AVATAR_STYLES } from './avatarService';
+
+// Stubs for native-dependent services
+// These will be implemented after native build setup
+
+/**
+ * Widget Service (stub)
+ * Requires: Kotlin MedicationWidgetProvider native module
+ */
+export const widgetService = {
+    async updateWidget(): Promise<void> {
+        console.log('[WidgetService] updateWidget called (stub - requires native build)');
+    },
+    async getWidgetData(): Promise<null> {
+        console.log('[WidgetService] getWidgetData called (stub)');
+        return null;
+    },
+};
+
+/**
+ * Health Connect Service (stub)
+ * Requires: HealthConnectModule.kt native module
+ */
+export const healthConnectService = {
+    async isAvailable(): Promise<boolean> {
+        console.log('[HealthConnectService] isAvailable called (stub)');
+        return false;
+    },
+    async requestPermissions(): Promise<boolean> {
+        console.log('[HealthConnectService] requestPermissions called (stub)');
+        return false;
+    },
+    async syncData(): Promise<void> {
+        console.log('[HealthConnectService] syncData called (stub)');
+    },
+};
+
+/**
+ * OCR Service (stub)
+ * Requires: ML Kit Text Recognition + react-native-vision-camera
+ */
+export const ocrService = {
+    async scanPrescriptionLabel(_imageUri: string): Promise<null> {
+        console.log('[OCRService] scanPrescriptionLabel called (stub - requires native build)');
+        return null;
+    },
+    async extractMedicationInfo(_text: string): Promise<null> {
+        console.log('[OCRService] extractMedicationInfo called (stub)');
+        return null;
+    },
+};

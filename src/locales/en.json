@@ -93,6 +93,13 @@
         "reason": "Reason for Visit",
         "notes": "Notes"
     },
+    "profile": {
+        "tapToSwitch": "Tap to switch profiles",
+        "yourProfile": "Your profile",
+        "selectProfile": "Select Profile",
+        "primary": "Primary",
+        "addProfile": "Add Profile"
+    },
     "onboarding": {
         "welcome": "Welcome to Follo",
         "tagline": "Your personal health companion",

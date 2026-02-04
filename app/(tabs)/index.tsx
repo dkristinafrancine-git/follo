@@ -1,17 +1,30 @@
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router, Href } from 'expo-router';
+import { useProfiles, useActiveProfile } from '../../src/hooks/useProfiles';
+import { ProfileSelector } from '../../src/components/common/ProfileSelector';
 
 export default function TimelineScreen() {
     const { t } = useTranslation();
+    const { profiles } = useProfiles();
+    const { activeProfile, setActiveProfile } = useActiveProfile();
+
+    const handleAddProfile = () => {
+        // Navigate to profile creation (can add dedicated screen later)
+        router.push('/onboarding' as Href);
+    };
 
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView style={styles.content}>
-                {/* Profile Selector - will be implemented */}
-                <View style={styles.header}>
-                    <Text style={styles.greeting}>{t('timeline.greeting', { name: 'User' })}</Text>
-                </View>
+                {/* Profile Selector */}
+                <ProfileSelector
+                    profiles={profiles}
+                    activeProfile={activeProfile}
+                    onSelectProfile={setActiveProfile}
+                    onAddProfile={handleAddProfile}
+                />
 
                 {/* Date Carousel placeholder */}
                 <View style={styles.section}>
@@ -51,14 +64,6 @@ const styles = StyleSheet.create({
     content: {
         flex: 1,
         paddingHorizontal: 16,
-    },
-    header: {
-        paddingVertical: 16,
-    },
-    greeting: {
-        fontSize: 24,
-        fontWeight: '700',
-        color: '#ffffff',
     },
     section: {
         marginTop: 24,

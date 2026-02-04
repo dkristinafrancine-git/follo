@@ -1,29 +1,45 @@
-import { Stack } from 'expo-router';
+import { Stack, router, Href } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import '../src/locales/i18n';
-import { initDatabase } from '../src/database';
+import { initDatabase } from '../src/database/index';
+import { useProfileStore } from '../src/hooks/useProfiles';
 
 export default function RootLayout() {
-    const [isReady, setIsReady] = useState(false);
+    const [isDbReady, setIsDbReady] = useState(false);
+    const loadProfiles = useProfileStore(state => state.loadProfiles);
+    const hasCompletedOnboarding = useProfileStore(state => state.hasCompletedOnboarding);
+    const isLoadingProfiles = useProfileStore(state => state.isLoading);
 
     useEffect(() => {
         async function initialize() {
             try {
+                // Initialize database first
                 await initDatabase();
-                setIsReady(true);
+                setIsDbReady(true);
+
+                // Then load profiles
+                await loadProfiles();
             } catch (error) {
                 console.error('Failed to initialize app:', error);
-                setIsReady(true); // Still proceed to show error state
+                setIsDbReady(true); // Still proceed to show error state
             }
         }
         initialize();
     }, []);
 
-    if (!isReady) {
+    // Redirect to onboarding if no profiles exist
+    useEffect(() => {
+        if (isDbReady && !isLoadingProfiles && !hasCompletedOnboarding) {
+            router.replace('/onboarding' as Href);
+        }
+    }, [isDbReady, isLoadingProfiles, hasCompletedOnboarding]);
+
+    // Show loading while initializing
+    if (!isDbReady || isLoadingProfiles) {
         return (
             <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#6366f1" />
