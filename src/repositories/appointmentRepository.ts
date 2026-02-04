@@ -18,6 +18,7 @@ function rowToAppointment(row: Record<string, unknown>): Appointment {
         scheduledTime: row.scheduled_time as string,
         duration: (row.duration as number) ?? 30,
         reason: row.reason as string | undefined,
+        checklist: row.checklist ? JSON.parse(row.checklist as string) : [],
         photoUri: row.photo_uri as string | undefined,
         notes: row.notes as string | undefined,
         createdAt: row.created_at as string,
@@ -99,8 +100,8 @@ export const appointmentRepository = {
         await db.runAsync(
             `INSERT INTO appointments (
         id, profile_id, title, doctor_name, specialty, location,
-        scheduled_time, duration, reason, photo_uri, notes, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        scheduled_time, duration, reason, checklist, photo_uri, notes, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 id,
                 input.profileId,
@@ -111,6 +112,7 @@ export const appointmentRepository = {
                 input.scheduledTime,
                 input.duration,
                 input.reason ?? null,
+                input.checklist ? JSON.stringify(input.checklist) : null,
                 input.photoUri ?? null,
                 input.notes ?? null,
                 now,
@@ -165,6 +167,10 @@ export const appointmentRepository = {
         if (input.reason !== undefined) {
             updates.push('reason = ?');
             values.push(input.reason ?? null);
+        }
+        if (input.checklist !== undefined) {
+            updates.push('checklist = ?');
+            values.push(input.checklist ? JSON.stringify(input.checklist) : null);
         }
         if (input.photoUri !== undefined) {
             updates.push('photo_uri = ?');

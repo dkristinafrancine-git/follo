@@ -42,17 +42,4 @@ export const healthConnectService = {
     },
 };
 
-/**
- * OCR Service (stub)
- * Requires: ML Kit Text Recognition + react-native-vision-camera
- */
-export const ocrService = {
-    async scanPrescriptionLabel(_imageUri: string): Promise<null> {
-        console.log('[OCRService] scanPrescriptionLabel called (stub - requires native build)');
-        return null;
-    },
-    async extractMedicationInfo(_text: string): Promise<null> {
-        console.log('[OCRService] extractMedicationInfo called (stub)');
-        return null;
-    },
-};
+export { OCRService } from './ocrService';

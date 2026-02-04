@@ -3,20 +3,20 @@ import * as SQLite from 'expo-sqlite';
 let db: SQLite.SQLiteDatabase | null = null;
 
 export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
-    if (db) return db;
+  if (db) return db;
 
-    db = await SQLite.openDatabaseAsync('follo.db');
-    return db;
+  db = await SQLite.openDatabaseAsync('follo.db');
+  return db;
 }
 
 export async function initDatabase(): Promise<void> {
-    const database = await getDatabase();
+  const database = await getDatabase();
 
-    // Enable foreign keys
-    await database.execAsync('PRAGMA foreign_keys = ON;');
+  // Enable foreign keys
+  await database.execAsync('PRAGMA foreign_keys = ON;');
 
-    // Create all tables
-    await database.execAsync(`
+  // Create all tables
+  await database.execAsync(`
     -- Profiles table (multi-user support)
     CREATE TABLE IF NOT EXISTS profiles (
       id TEXT PRIMARY KEY,
@@ -106,6 +106,7 @@ export async function initDatabase(): Promise<void> {
       scheduled_time TEXT NOT NULL,
       duration INTEGER DEFAULT 30,
       reason TEXT,
+      checklist TEXT,
       photo_uri TEXT,
       notes TEXT,
       created_at TEXT NOT NULL,
@@ -184,14 +185,14 @@ export async function initDatabase(): Promise<void> {
       ON appointments(profile_id, scheduled_time);
   `);
 
-    console.log('Database initialized successfully');
+  console.log('Database initialized successfully');
 }
 
 export async function closeDatabase(): Promise<void> {
-    if (db) {
-        await db.closeAsync();
-        db = null;
-    }
+  if (db) {
+    await db.closeAsync();
+    db = null;
+  }
 }
 
 export { db };

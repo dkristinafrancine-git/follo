@@ -5,6 +5,7 @@
 
 import { getDatabase } from '../database';
 import { MedicationReference } from '../types';
+import additionalMeds from '../data/medicationReference.json';
 
 // Convert database row to MedicationReference entity
 function rowToMedicationReference(row: Record<string, unknown>): MedicationReference {
@@ -143,10 +144,26 @@ export const medicationReferenceRepository = {
             { name: 'Furosemide', genericName: 'Furosemide', brandNames: ['Lasix'], dosageForms: ['Tablet'], commonStrengths: ['20mg', '40mg', '80mg'], category: 'Diuretic', interactions: [] },
         ];
 
-        for (const med of commonMeds) {
+        // Merge internal detailed list with simple name list from JSON
+        const specializedNames = new Set(commonMeds.map(m => m.name));
+        const additionalMedsList = (additionalMeds as string[])
+            .filter((name: string) => !specializedNames.has(name))
+            .map((name: string) => ({
+                name,
+                genericName: name,
+                category: 'General',
+                dosageForms: ['Tablet', 'Capsule'],
+                commonStrengths: [],
+                brandNames: [],
+                interactions: [],
+            }));
+
+        const allMeds = [...commonMeds, ...additionalMedsList];
+
+        for (const med of allMeds) {
             await this.add(med);
         }
 
-        console.log('Medication reference database seeded with', commonMeds.length, 'medications');
+        console.log('Medication reference database seeded with', allMeds.length, 'medications');
     },
 };

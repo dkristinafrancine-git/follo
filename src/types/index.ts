@@ -101,6 +101,7 @@ export interface Appointment extends BaseEntity {
     scheduledTime: string; // UTC ISO
     duration: number; // Minutes
     reason?: string;
+    checklist?: string[]; // Array of strings for checklist items
     photoUri?: string;
     notes?: string;
 }

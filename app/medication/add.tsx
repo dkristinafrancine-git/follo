@@ -6,7 +6,7 @@
 import { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { MedicationForm } from '../../src/components/forms/MedicationForm';
 import { useCreateMedication } from '../../src/hooks/useMedications';
@@ -16,9 +16,20 @@ import { CreateMedicationInput } from '../../src/types';
 export default function AddMedicationScreen() {
     const { t } = useTranslation();
     const router = useRouter();
+    const params = useLocalSearchParams();
+
     const { activeProfile } = useActiveProfile();
     const { create, isLoading, error } = useCreateMedication(activeProfile?.id || null);
     const [showSuccess, setShowSuccess] = useState(false);
+
+    // Parse prefilled values from OCR Scan
+    const prefilledValues: Partial<CreateMedicationInput> | undefined = params.prefilledName ? {
+        name: params.prefilledName as string,
+        dosage: params.prefilledDosage as string,
+        form: params.prefilledForm as string,
+        // Map frequency string to RecurrenceRule if possible (simplified default)
+        frequencyRule: params.prefilledFrequency ? { frequency: 'daily' } : undefined,
+    } : undefined;
 
     const handleSubmit = useCallback(
         async (data: Partial<CreateMedicationInput>) => {
@@ -28,7 +39,12 @@ export default function AddMedicationScreen() {
 
                 // Show success briefly then navigate back
                 setTimeout(() => {
-                    router.back();
+                    // Navigate back to root or dismiss all modals
+                    if (router.canDismiss()) {
+                        router.dismissTo('/');
+                    } else {
+                        router.replace('/');
+                    }
                 }, 800);
             } catch (err) {
                 Alert.alert(
@@ -45,6 +61,10 @@ export default function AddMedicationScreen() {
         router.back();
     }, [router]);
 
+    const handleScan = () => {
+        router.push('/medication/scan' as any);
+    };
+
     // Loading state if no profile
     if (!activeProfile) {
         return (
@@ -56,6 +76,14 @@ export default function AddMedicationScreen() {
                         title: t('medication.addTitle') || 'Add Medication',
                         headerStyle: { backgroundColor: '#1a1a2e' },
                         headerTintColor: '#fff',
+                        headerRight: () => (
+                            <Text
+                                onPress={handleScan}
+                                style={{ color: '#4A90D9', fontSize: 16, fontWeight: '600' }}
+                            >
+                                Scan
+                            </Text>
+                        ),
                     }}
                 />
                 <SafeAreaView style={styles.container} edges={['bottom']}>
@@ -101,10 +129,20 @@ export default function AddMedicationScreen() {
                     title: t('medication.addTitle') || 'Add Medication',
                     headerStyle: { backgroundColor: '#1a1a2e' },
                     headerTintColor: '#fff',
+                    headerRight: () => (
+                        <Text
+                            onPress={handleScan}
+                            style={{ color: '#4A90D9', fontSize: 16, fontWeight: '600' }}
+                        >
+                            Scan Label
+                        </Text>
+                    ),
                 }}
             />
             <SafeAreaView style={styles.container} edges={['bottom']}>
                 <MedicationForm
+                    key={prefilledValues ? 'prefilled' : 'manual'}
+                    initialValues={prefilledValues}
                     onSubmit={handleSubmit}
                     onCancel={handleCancel}
                     isLoading={isLoading}
@@ -143,4 +181,3 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
 });
-
