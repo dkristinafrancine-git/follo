@@ -34,7 +34,8 @@ export const widgetService = {
                 stats: {
                     pending: events.filter(e => e.status === 'pending').length,
                     completed: events.filter(e => e.status === 'completed').length,
-                    nextEvent: events.find(e => e.status === 'pending')?.title || 'All done!'
+                    nextEvent: events.find(e => e.status === 'pending')?.title || 'All done!',
+                    nextEventId: events.find(e => e.status === 'pending')?.id || ''
                 }
             };
 

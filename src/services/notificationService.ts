@@ -198,6 +198,13 @@ export const notificationService = {
             console.log(`[NotificationService] Action ${pressAction.id} on event ${eventId}`);
 
             if (pressAction.id === 'TAKE') {
+                // update inventory if it's a medication
+                const event = await calendarEventRepository.getById(eventId);
+                if (event && event.eventType === 'medication_due') {
+                    const { medicationRepository } = await import('../repositories');
+                    await medicationRepository.decrementQuantity(event.sourceId);
+                }
+
                 await calendarEventRepository.update(eventId, {
                     status: 'completed',
                     completedTime: new Date().toISOString(),

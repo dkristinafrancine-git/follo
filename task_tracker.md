@@ -251,7 +251,7 @@
 - [x] Health Connect sync completes
 
 ### Architecture Verification
-- [ ] All queries go through repositories
-- [ ] All timeline data comes from calendar_events
-- [ ] Profile isolation is enforced
-- [ ] Native bridge data shapes match TypeScript
+- [x] All queries go through repositories
+- [x] All timeline data comes from calendar_events
+- [x] Profile isolation is enforced
+- [x] Native bridge data shapes match TypeScript
