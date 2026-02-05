@@ -134,6 +134,7 @@
 
 ### 3.1 Notification System (Story 12.1)
 - [x] Configure Notifee with notification channels (Replaced expo-notifications)
+- [x] Configure Notifee with notification channels (Replaced expo-notifications)
 - [x] Implement Home Mode notifications (gentle chime)
 - [x] Implement Heavy Sleeper Mode (High Priority Alarm via Notifee)
 - [x] Create notification action handlers (Take, Skip)

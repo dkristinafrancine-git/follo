@@ -43,9 +43,20 @@ export default function RootLayout() {
         }
         initialization();
 
+        // Check for initial launch from alarm
+        checkInitialNotification();
+
         // Listen for foreground events
         const unsubscribe = notifee.onForegroundEvent(async (event) => {
             await notificationService.handleNotificationEvent(event);
+
+            // Also check for alarm usage in foreground (if active)
+            if (event.type === EventType.PRESS && event.detail.notification?.android?.channelId === 'heavy_sleeper_alarm') {
+                router.replace({
+                    pathname: '/alarm',
+                    params: { eventId: String(event.detail.notification.data?.eventId) }
+                });
+            }
         });
 
         return () => {
@@ -128,10 +139,38 @@ function ThemedStack() {
                         headerTintColor: colors.text,
                     }}
                 />
+                <Stack.Screen
+                    name="alarm"
+                    options={{
+                        headerShown: false,
+                        gestureEnabled: false,
+                        animation: 'fade',
+                    }}
+                />
             </Stack>
         </AuthGuard>
     );
 }
+
+// Check for initial notification launch
+async function checkInitialNotification() {
+    const initialNotification = await notifee.getInitialNotification();
+    if (initialNotification) {
+        const { notification } = initialNotification;
+        if (notification.android?.channelId === 'heavy_sleeper_alarm' && notification.data?.eventId) {
+            // Give it a moment for navigation to mount
+            setTimeout(() => {
+                router.replace({
+                    pathname: '/alarm',
+                    params: { eventId: String(notification.data?.eventId) }
+                });
+            }, 500);
+        }
+    }
+}
+
+// Call this inside the main component initialization
+
 
 const styles = StyleSheet.create({
     loadingContainer: {
