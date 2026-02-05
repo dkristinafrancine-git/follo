@@ -243,12 +243,12 @@
 - [x] All native modules load correctly
 
 ### Feature Verification
-- [ ] Profile creation and switching works
-- [ ] Medication CRUD operations work
-- [ ] Notifications fire at scheduled times
-- [ ] Widget updates correctly
-- [ ] PDF export generates valid files
-- [ ] Health Connect sync completes
+- [x] Profile creation and switching works
+- [x] Medication CRUD operations work
+- [x] Notifications fire at scheduled times
+- [x] Widget updates correctly
+- [x] PDF export generates valid files
+- [x] Health Connect sync completes
 
 ### Architecture Verification
 - [ ] All queries go through repositories
