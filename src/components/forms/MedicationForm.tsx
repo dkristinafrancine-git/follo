@@ -21,6 +21,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Image } from 'react-native';
 import { Medication, CreateMedicationInput, RecurrenceRule, MedicationReference } from '../../types';
 import { medicationReferenceRepository } from '../../repositories';
+import { useTheme } from '../../context/ThemeContext';
 
 // Medication form options per PRD
 const MEDICATION_FORMS = [
@@ -69,6 +70,7 @@ export function MedicationForm({
     mode = 'add',
 }: MedicationFormProps) {
     const { t } = useTranslation();
+    const { colors } = useTheme();
 
     // Form state
     const [formData, setFormData] = useState<FormData>({
@@ -223,17 +225,17 @@ export function MedicationForm({
     };
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
             {/* Medication Name with Autocomplete */}
             <View style={[styles.field, { zIndex: 10 }]}>
-                <Text style={styles.label}>{t('medication.name')} *</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('medication.name')} *</Text>
                 <TextInput
-                    style={[styles.input, errors.name && styles.inputError]}
+                    style={[styles.input, { backgroundColor: colors.card, color: colors.text }, errors.name && styles.inputError]}
                     value={formData.name}
                     onChangeText={handleNameChange}
                     onFocus={() => formData.name.length > 1 && setShowSuggestions(true)}
                     placeholder={t('medication.namePlaceholder')}
-                    placeholderTextColor="#6b7280"
+                    placeholderTextColor={colors.subtext}
                     autoCapitalize="words"
                     autoFocus={mode === 'add'}
                 />
@@ -241,17 +243,17 @@ export function MedicationForm({
 
                 {/* Suggestions Dropdown */}
                 {showSuggestions && suggestions.length > 0 && (
-                    <View style={styles.suggestionsContainer}>
+                    <View style={[styles.suggestionsContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
                         <ScrollView style={styles.suggestionsList} keyboardShouldPersistTaps="handled">
                             {suggestions.map((item) => (
                                 <TouchableOpacity
                                     key={item.id}
-                                    style={styles.suggestionItem}
+                                    style={[styles.suggestionItem, { borderBottomColor: colors.border }]}
                                     onPress={() => selectSuggestion(item)}
                                 >
-                                    <Text style={styles.suggestionText}>{item.name}</Text>
+                                    <Text style={[styles.suggestionText, { color: colors.text }]}>{item.name}</Text>
                                     {item.genericName && (
-                                        <Text style={styles.suggestionSubText}>{item.genericName}</Text>
+                                        <Text style={[styles.suggestionSubText, { color: colors.subtext }]}>{item.genericName}</Text>
                                     )}
                                 </TouchableOpacity>
                             ))}
@@ -262,130 +264,130 @@ export function MedicationForm({
 
             {/* Photo Attachment */}
             <View style={styles.field}>
-                <Text style={styles.label}>Medication Photo</Text>
-                <TouchableOpacity style={styles.photoButton} onPress={pickImage}>
+                <Text style={[styles.label, { color: colors.subtext }]}>Medication Photo</Text>
+                <TouchableOpacity style={[styles.photoButton, { backgroundColor: colors.card }]} onPress={pickImage}>
                     {formData.photoUri ? (
                         <Image source={{ uri: formData.photoUri }} style={styles.previewImage} />
                     ) : (
                         <View style={styles.photoPlaceholder}>
-                            <Text style={styles.photoPlaceholderText}>+ Add Photo</Text>
+                            <Text style={[styles.photoPlaceholderText, { color: colors.primary }]}>+ Add Photo</Text>
                         </View>
                     )}
                 </TouchableOpacity>
-                <Text style={styles.hint}>Optional: Add photo for visual reference</Text>
+                <Text style={[styles.hint, { color: colors.subtext }]}>Optional: Add photo for visual reference</Text>
             </View>
 
             {/* Dosage */}
             <View style={styles.field}>
-                <Text style={styles.label}>{t('medication.dosage')}</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('medication.dosage')}</Text>
                 <TextInput
-                    style={styles.input}
+                    style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
                     value={formData.dosage}
                     onChangeText={v => updateField('dosage', v)}
                     placeholder={t('medication.dosagePlaceholder') || 'e.g., 500mg'}
-                    placeholderTextColor="#6b7280"
+                    placeholderTextColor={colors.subtext}
                 />
             </View>
 
             {/* Form (Tablet, Capsule, etc.) */}
             <View style={styles.field}>
-                <Text style={styles.label}>{t('medication.form')}</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('medication.form')}</Text>
                 <TouchableOpacity
-                    style={styles.pickerButton}
+                    style={[styles.pickerButton, { backgroundColor: colors.card }]}
                     onPress={() => setShowFormPicker(true)}
                 >
-                    <Text style={styles.pickerButtonText}>
+                    <Text style={[styles.pickerButtonText, { color: colors.text }]}>
                         {t(`medication.forms.${formData.form.toLowerCase()}`) || formData.form}
                     </Text>
-                    <Text style={styles.pickerArrow}>▼</Text>
+                    <Text style={[styles.pickerArrow, { color: colors.subtext }]}>▼</Text>
                 </TouchableOpacity>
             </View>
 
             {/* Frequency */}
             <View style={styles.field}>
-                <Text style={styles.label}>{t('medication.frequency')}</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('medication.frequency')}</Text>
                 <TouchableOpacity
-                    style={styles.pickerButton}
+                    style={[styles.pickerButton, { backgroundColor: colors.card }]}
                     onPress={() => setShowFrequencyPicker(true)}
                 >
-                    <Text style={styles.pickerButtonText}>
+                    <Text style={[styles.pickerButtonText, { color: colors.text }]}>
                         {t(`medication.frequencies.${formData.frequency.frequency === 'daily' && !formData.frequency.interval ? 'daily' : formData.frequency.frequency}`)}
                     </Text>
-                    <Text style={styles.pickerArrow}>▼</Text>
+                    <Text style={[styles.pickerArrow, { color: colors.subtext }]}>▼</Text>
                 </TouchableOpacity>
             </View>
 
             {/* Time of Day */}
             <View style={styles.field}>
-                <Text style={styles.label}>{t('medication.time')}</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('medication.time')}</Text>
                 {formData.timeOfDay.map((time, index) => (
                     <View key={index} style={styles.timeRow}>
                         <TouchableOpacity
-                            style={styles.timeButton}
+                            style={[styles.timeButton, { backgroundColor: colors.card }]}
                             onPress={() => openTimePicker(index)}
                         >
-                            <Text style={styles.timeButtonText}>{time}</Text>
+                            <Text style={[styles.timeButtonText, { color: colors.primary }]}>{time}</Text>
                         </TouchableOpacity>
                         {formData.timeOfDay.length > 1 && (
                             <TouchableOpacity
-                                style={styles.removeTimeButton}
+                                style={[styles.removeTimeButton, { backgroundColor: colors.border }]}
                                 onPress={() => removeTime(index)}
                             >
-                                <Text style={styles.removeTimeButtonText}>✕</Text>
+                                <Text style={[styles.removeTimeButtonText, { color: colors.danger }]}>✕</Text>
                             </TouchableOpacity>
                         )}
                     </View>
                 ))}
                 <TouchableOpacity style={styles.addTimeButton} onPress={addTime}>
-                    <Text style={styles.addTimeButtonText}>+ {t('medication.addTime') || 'Add Time'}</Text>
+                    <Text style={[styles.addTimeButtonText, { color: colors.primary }]}>+ {t('medication.addTime') || 'Add Time'}</Text>
                 </TouchableOpacity>
             </View>
 
             {/* Current Quantity */}
             <View style={styles.field}>
-                <Text style={styles.label}>{t('medication.currentQuantity')}</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('medication.currentQuantity')}</Text>
                 <TextInput
-                    style={styles.input}
+                    style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
                     value={formData.currentQuantity}
                     onChangeText={v => updateField('currentQuantity', v.replace(/[^0-9]/g, ''))}
                     placeholder={t('medication.quantityPlaceholder') || 'Number of pills/doses'}
-                    placeholderTextColor="#6b7280"
+                    placeholderTextColor={colors.subtext}
                     keyboardType="number-pad"
                 />
             </View>
 
             {/* Refill Threshold */}
             <View style={styles.field}>
-                <Text style={styles.label}>{t('medication.refillThreshold')}</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('medication.refillThreshold')}</Text>
                 <View style={styles.thresholdRow}>
                     <TouchableOpacity
-                        style={styles.thresholdButton}
+                        style={[styles.thresholdButton, { backgroundColor: colors.card }]}
                         onPress={() =>
                             updateField('refillThreshold', Math.max(1, formData.refillThreshold - 1))
                         }
                     >
-                        <Text style={styles.thresholdButtonText}>−</Text>
+                        <Text style={[styles.thresholdButtonText, { color: colors.primary }]}>−</Text>
                     </TouchableOpacity>
-                    <Text style={styles.thresholdValue}>{formData.refillThreshold} days</Text>
+                    <Text style={[styles.thresholdValue, { color: colors.text }]}>{formData.refillThreshold} days</Text>
                     <TouchableOpacity
-                        style={styles.thresholdButton}
+                        style={[styles.thresholdButton, { backgroundColor: colors.card }]}
                         onPress={() => updateField('refillThreshold', formData.refillThreshold + 1)}
                     >
-                        <Text style={styles.thresholdButtonText}>+</Text>
+                        <Text style={[styles.thresholdButtonText, { color: colors.primary }]}>+</Text>
                     </TouchableOpacity>
                 </View>
-                <Text style={styles.hint}>{t('medication.refillThresholdHint') || 'Days before reminder'}</Text>
+                <Text style={[styles.hint, { color: colors.subtext }]}>{t('medication.refillThresholdHint') || 'Days before reminder'}</Text>
             </View>
 
             {/* Notes */}
             <View style={styles.field}>
-                <Text style={styles.label}>{t('medication.notes')}</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('medication.notes')}</Text>
                 <TextInput
-                    style={[styles.input, styles.textArea]}
+                    style={[styles.input, styles.textArea, { backgroundColor: colors.card, color: colors.text }]}
                     value={formData.notes}
                     onChangeText={v => updateField('notes', v)}
                     placeholder={t('appointment.notes') || 'Add notes...'}
-                    placeholderTextColor="#6b7280"
+                    placeholderTextColor={colors.subtext}
                     multiline
                     numberOfLines={3}
                     textAlignVertical="top"
@@ -394,29 +396,29 @@ export function MedicationForm({
 
             {/* Hide Name Toggle */}
             <TouchableOpacity
-                style={styles.toggleRow}
+                style={[styles.toggleRow, { backgroundColor: colors.card }]}
                 onPress={() => updateField('hideName', !formData.hideName)}
             >
                 <View style={styles.toggleInfo}>
-                    <Text style={styles.toggleLabel}>Hide medication name</Text>
-                    <Text style={styles.toggleHint}>Shows "Medication" on widget for privacy</Text>
+                    <Text style={[styles.toggleLabel, { color: colors.text }]}>Hide medication name</Text>
+                    <Text style={[styles.toggleHint, { color: colors.subtext }]}>Shows "Medication" on widget for privacy</Text>
                 </View>
-                <View style={[styles.toggle, formData.hideName && styles.toggleActive]}>
-                    <View style={[styles.toggleDot, formData.hideName && styles.toggleDotActive]} />
+                <View style={[styles.toggle, { backgroundColor: colors.border }, formData.hideName && { backgroundColor: colors.primary }]}>
+                    <View style={[styles.toggleDot, { backgroundColor: '#ffffff' }, formData.hideName && styles.toggleDotActive]} />
                 </View>
             </TouchableOpacity>
 
             {/* Action Buttons */}
             <View style={styles.actions}>
                 <TouchableOpacity
-                    style={styles.cancelButton}
+                    style={[styles.cancelButton, { backgroundColor: colors.border }]}
                     onPress={onCancel}
                     disabled={isLoading}
                 >
-                    <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
+                    <Text style={[styles.cancelButtonText, { color: colors.text }]}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.submitButton, isLoading && styles.submitButtonDisabled]}
+                    style={[styles.submitButton, { backgroundColor: colors.primary }, isLoading && styles.submitButtonDisabled]}
                     onPress={handleSubmit}
                     disabled={isLoading}
                 >
@@ -444,14 +446,14 @@ export function MedicationForm({
                     activeOpacity={1}
                     onPress={() => setShowFormPicker(false)}
                 >
-                    <View style={styles.pickerModal}>
-                        <Text style={styles.pickerModalTitle}>{t('medication.form')}</Text>
+                    <View style={[styles.pickerModal, { backgroundColor: colors.card }]}>
+                        <Text style={[styles.pickerModalTitle, { color: colors.text }]}>{t('medication.form')}</Text>
                         {MEDICATION_FORMS.map(form => (
                             <TouchableOpacity
                                 key={form}
                                 style={[
                                     styles.pickerOption,
-                                    formData.form.toLowerCase() === form && styles.pickerOptionActive,
+                                    formData.form.toLowerCase() === form && { backgroundColor: `${colors.primary}20` },
                                 ]}
                                 onPress={() => {
                                     updateField('form', form.charAt(0).toUpperCase() + form.slice(1));
@@ -461,7 +463,8 @@ export function MedicationForm({
                                 <Text
                                     style={[
                                         styles.pickerOptionText,
-                                        formData.form.toLowerCase() === form && styles.pickerOptionTextActive,
+                                        { color: colors.text },
+                                        formData.form.toLowerCase() === form && { color: colors.primary, fontWeight: '600' },
                                     ]}
                                 >
                                     {t(`medication.forms.${form}`)}
@@ -479,15 +482,15 @@ export function MedicationForm({
                     activeOpacity={1}
                     onPress={() => setShowFrequencyPicker(false)}
                 >
-                    <View style={styles.pickerModal}>
-                        <Text style={styles.pickerModalTitle}>{t('medication.frequency')}</Text>
+                    <View style={[styles.pickerModal, { backgroundColor: colors.card }]}>
+                        <Text style={[styles.pickerModalTitle, { color: colors.text }]}>{t('medication.frequency')}</Text>
                         {FREQUENCIES.map(freq => (
                             <TouchableOpacity
                                 key={freq.key}
                                 style={[
                                     styles.pickerOption,
                                     formData.frequency.frequency === freq.value.frequency &&
-                                    styles.pickerOptionActive,
+                                    { backgroundColor: `${colors.primary}20` },
                                 ]}
                                 onPress={() => {
                                     updateField('frequency', freq.value);
@@ -497,8 +500,9 @@ export function MedicationForm({
                                 <Text
                                     style={[
                                         styles.pickerOptionText,
+                                        { color: colors.text },
                                         formData.frequency.frequency === freq.value.frequency &&
-                                        styles.pickerOptionTextActive,
+                                        { color: colors.primary, fontWeight: '600' },
                                     ]}
                                 >
                                     {t(`medication.frequencies.${freq.key}`)}

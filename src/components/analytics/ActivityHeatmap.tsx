@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { format, subDays, eachDayOfInterval, startOfWeek } from 'date-fns';
+import { useTheme } from '../../context/ThemeContext';
 
 // Constants
 const SQUARE_SIZE = 14;
@@ -23,6 +24,15 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
     onDayPress,
     endDate = new Date()
 }) => {
+    const { colors, themeMode } = useTheme();
+
+    // Helper to hex to rgb for opacity (simplified)
+    const getBaseColor = (count: number) => {
+        // We will just use opacity on the primary color for simplicity/consistency
+        // Or specific logic if needed
+        return colors.primary;
+    };
+
     const { weeks, monthLabels } = useMemo(() => {
         const end = endDate;
         const start = subDays(end, (WEEKS_TO_SHOW * 7) - 1);
@@ -67,14 +77,35 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
     }, [data, endDate]);
 
     const getIntensityColor = (count: number) => {
-        // Follo Dark Theme: Background #252542
-        // Empty: #3e3e5e
-        // Levels: Indigo/Purple based
+        if (count === 0) {
+            return themeMode === 'dark' ? '#3e3e5e' : '#e5e7eb';
+        }
 
-        if (count === 0) return '#3e3e5e';
-        if (count <= 1) return 'rgba(99, 102, 241, 0.4)'; // Light indigo
-        if (count <= 3) return 'rgba(99, 102, 241, 0.7)'; // Medium indigo
-        return '#6366f1'; // Full indigo
+        // Simple opacity based on count
+        // Note: colors.primary is usually a hex string. We need to handle opacity.
+        // For simplicity, we can fallback to hardcoded indigos if primary matches default, 
+        // or just use opacity if we had a hexToRgba utility. 
+        // Given the constraints, let's keep the indigo scale but map it to primary if possible?
+        // Actually, let's just stick to the indigo scale but with proper empty color for now, 
+        // OR simply rely on the fact that existing logic was hardcoded.
+        // Let's try to obey the theme primary color if possible.
+        // Since we don't have a color manipulator handy in imports, let's stick to the existing logic 
+        // but switch the 0 count color.
+
+        // However, if the user changes primary color in future, this breaks. 
+        // But for "Light/Dark" toggle of strict "DarkTheme/LightTheme", primary is same '#6366f1'.
+        // So we can largely keep it, just fix the empty slot.
+
+        if (themeMode === 'dark') {
+            if (count <= 1) return 'rgba(99, 102, 241, 0.4)';
+            if (count <= 3) return 'rgba(99, 102, 241, 0.7)';
+            return '#6366f1';
+        } else {
+            // Light mode: maybe slightly different opacities or just same?
+            if (count <= 1) return 'rgba(99, 102, 241, 0.4)';
+            if (count <= 3) return 'rgba(99, 102, 241, 0.7)';
+            return '#6366f1';
+        }
     };
 
     const getDayCount = (date: Date) => {
@@ -84,10 +115,10 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
     };
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: colors.card }]}>
             <View style={styles.header}>
-                <Text style={styles.title}>Consistency Map</Text>
-                <Text style={styles.subtitle}>Last {WEEKS_TO_SHOW} weeks</Text>
+                <Text style={[styles.title, { color: colors.text }]}>Consistency Map</Text>
+                <Text style={[styles.subtitle, { color: colors.subtext }]}>Last {WEEKS_TO_SHOW} weeks</Text>
             </View>
 
             <ScrollView
@@ -106,7 +137,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
                     {/* Month Labels */}
                     <View style={styles.monthRow}>
                         {monthLabels.map((label, idx) => (
-                            <Text key={idx} style={[styles.monthLabel, { left: label.offset }]}>
+                            <Text key={idx} style={[styles.monthLabel, { left: label.offset, color: colors.subtext }]}>
                                 {label.text}
                             </Text>
                         ))}

@@ -5,7 +5,7 @@ import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { SecurityProvider } from '../src/context/SecurityContext';
-import { ThemeProvider } from '../src/context/ThemeContext';
+import { ThemeProvider, useTheme } from '../src/context/ThemeContext';
 import { AuthGuard } from '../src/components/AuthGuard';
 import '../src/locales/i18n';
 import { initDatabase } from '../src/database/index';
@@ -57,52 +57,61 @@ export default function RootLayout() {
                 <SafeAreaProvider>
                     <SecurityProvider>
                         <ThemeProvider>
-                            <AuthGuard>
-                                <Stack
-                                    screenOptions={{
-                                        headerShown: false,
-                                        contentStyle: { backgroundColor: '#1a1a2e' },
-                                    }}
-                                >
-                                    <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                                    <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-                                    <Stack.Screen
-                                        name="medication/[id]"
-                                        options={{
-                                            headerShown: true,
-                                            title: 'Medication Details',
-                                            headerStyle: { backgroundColor: '#1a1a2e' },
-                                            headerTintColor: '#fff',
-                                        }}
-                                    />
-                                    <Stack.Screen
-                                        name="medication/add"
-                                        options={{
-                                            headerShown: true,
-                                            presentation: 'modal',
-                                            title: 'Add Medication',
-                                            headerStyle: { backgroundColor: '#1a1a2e' },
-                                            headerTintColor: '#fff',
-                                        }}
-                                    />
-                                    <Stack.Screen
-                                        name="appointment/add"
-                                        options={{
-                                            headerShown: true,
-                                            presentation: 'modal',
-                                            title: 'Add Appointment',
-                                            headerStyle: { backgroundColor: '#1a1a2e' },
-                                            headerTintColor: '#fff',
-                                        }}
-                                    />
-                                </Stack>
-                            </AuthGuard>
+                            <ThemedStack />
                         </ThemeProvider>
                     </SecurityProvider>
-                    <StatusBar style="light" />
                 </SafeAreaProvider>
             </GestureHandlerRootView>
         </ErrorBoundary>
+    );
+}
+
+// Separate component to access useTheme context
+function ThemedStack() {
+    const { colors, themeMode } = useTheme();
+
+    return (
+        <AuthGuard>
+            <StatusBar style={themeMode === 'dark' ? 'light' : 'dark'} />
+            <Stack
+                screenOptions={{
+                    headerShown: false,
+                    contentStyle: { backgroundColor: colors.background },
+                }}
+            >
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+                <Stack.Screen
+                    name="medication/[id]"
+                    options={{
+                        headerShown: true,
+                        title: 'Medication Details',
+                        headerStyle: { backgroundColor: colors.background },
+                        headerTintColor: colors.text,
+                    }}
+                />
+                <Stack.Screen
+                    name="medication/add"
+                    options={{
+                        headerShown: true,
+                        presentation: 'modal',
+                        title: 'Add Medication',
+                        headerStyle: { backgroundColor: colors.background },
+                        headerTintColor: colors.text,
+                    }}
+                />
+                <Stack.Screen
+                    name="appointment/add"
+                    options={{
+                        headerShown: true,
+                        presentation: 'modal',
+                        title: 'Add Appointment',
+                        headerStyle: { backgroundColor: colors.background },
+                        headerTintColor: colors.text,
+                    }}
+                />
+            </Stack>
+        </AuthGuard>
     );
 }
 

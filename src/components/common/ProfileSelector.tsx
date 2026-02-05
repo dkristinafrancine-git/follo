@@ -9,11 +9,15 @@ import {
     Image,
     Pressable,
     Animated,
+    Dimensions, // Added Dimensions import
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 import { Profile } from '../../types';
 import { getProfileAvatarUrl } from '../../services/avatarService';
+import { useTheme } from '../../context/ThemeContext';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window'); // Added this line
 
 interface ProfileSelectorProps {
     profiles: Profile[];
@@ -29,15 +33,28 @@ export function ProfileSelector({
     onAddProfile,
 }: ProfileSelectorProps) {
     const { t } = useTranslation();
+    const { colors } = useTheme();
     const [isOpen, setIsOpen] = useState(false);
+    const [isModalVisible, setIsModalVisible] = useState(false);
     const fadeAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
-        Animated.timing(fadeAnim, {
-            toValue: isOpen ? 1 : 0,
-            duration: 200,
-            useNativeDriver: true,
-        }).start();
+        if (isOpen) {
+            setIsModalVisible(true);
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 200,
+                useNativeDriver: true,
+            }).start();
+        } else {
+            Animated.timing(fadeAnim, {
+                toValue: 0,
+                duration: 200,
+                useNativeDriver: true,
+            }).start(() => {
+                setIsModalVisible(false);
+            });
+        }
     }, [isOpen]);
 
     const handleSelect = (profileId: string) => {
@@ -51,10 +68,10 @@ export function ProfileSelector({
         : null;
 
     return (
-        <View style={styles.container}>
-            {/* Trigger Button */}
+        <View style={[styles.container, { backgroundColor: colors.card }]}>
+            {/* Today button */}
             <TouchableOpacity
-                style={styles.trigger}
+                style={[styles.trigger, { backgroundColor: colors.card }]}
                 onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     setIsOpen(true);
@@ -69,19 +86,19 @@ export function ProfileSelector({
                     </View>
                 )}
                 <View style={styles.triggerContent}>
-                    <Text style={styles.greeting}>
+                    <Text style={[styles.greeting, { color: colors.text }]}>
                         {t('timeline.greeting', { name: activeProfile?.name ?? 'User' })}
                     </Text>
-                    <Text style={styles.hint}>
+                    <Text style={[styles.hint, { color: colors.subtext }]}>
                         {profiles.length > 1 ? t('profile.tapToSwitch') : t('profile.yourProfile')}
                     </Text>
                 </View>
-                <Text style={styles.chevron}>▼</Text>
+                <Text style={[styles.chevron, { color: colors.subtext }]}>▼</Text>
             </TouchableOpacity>
 
             {/* Dropdown Modal */}
             <Modal
-                visible={isOpen}
+                visible={isModalVisible}
                 transparent
                 animationType="none"
                 onRequestClose={() => setIsOpen(false)}
@@ -93,10 +110,10 @@ export function ProfileSelector({
                     <Animated.View
                         style={[
                             styles.dropdown,
-                            { opacity: fadeAnim }
+                            { opacity: fadeAnim, backgroundColor: colors.card }
                         ]}
                     >
-                        <Text style={styles.dropdownTitle}>{t('profile.selectProfile')}</Text>
+                        <Text style={[styles.dropdownTitle, { color: colors.subtext }]}>{t('profile.selectProfile')}</Text>
 
                         <FlatList
                             data={profiles}
@@ -105,7 +122,7 @@ export function ProfileSelector({
                                 <TouchableOpacity
                                     style={[
                                         styles.profileItem,
-                                        item.id === activeProfile?.id && styles.profileItemActive,
+                                        item.id === activeProfile?.id && { backgroundColor: `${colors.primary}20` },
                                     ]}
                                     onPress={() => handleSelect(item.id)}
                                 >
@@ -114,9 +131,9 @@ export function ProfileSelector({
                                         style={styles.profileAvatar}
                                     />
                                     <View style={styles.profileInfo}>
-                                        <Text style={styles.profileName}>{item.name}</Text>
+                                        <Text style={[styles.profileName, { color: colors.text }]}>{item.name}</Text>
                                         {item.isPrimary && (
-                                            <Text style={styles.primaryBadge}>{t('profile.primary')}</Text>
+                                            <Text style={[styles.primaryBadge, { color: colors.primary }]}>{t('profile.primary')}</Text>
                                         )}
                                     </View>
                                     {item.id === activeProfile?.id && (
@@ -129,14 +146,17 @@ export function ProfileSelector({
 
                         {onAddProfile && (
                             <TouchableOpacity
-                                style={styles.addButton}
+                                style={[styles.addButton, { borderColor: colors.border }]}
                                 onPress={() => {
                                     setIsOpen(false);
-                                    onAddProfile();
+                                    // Delay navigation to let animation start/finish smoothy
+                                    setTimeout(() => {
+                                        onAddProfile();
+                                    }, 200);
                                 }}
                             >
-                                <Text style={styles.addButtonIcon}>+</Text>
-                                <Text style={styles.addButtonText}>{t('profile.addProfile')}</Text>
+                                <Text style={[styles.addButtonIcon, { color: colors.primary }]}>+</Text>
+                                <Text style={[styles.addButtonText, { color: colors.primary }]}>{t('profile.addProfile')}</Text>
                             </TouchableOpacity>
                         )}
                     </Animated.View>

@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { addDays, format, isToday, isSameDay, startOfDay } from 'date-fns';
+import { useTheme } from '../../context/ThemeContext';
 import * as Haptics from 'expo-haptics';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -31,6 +32,7 @@ export function DateCarousel({
     daysRange = 7
 }: DateCarouselProps) {
     const { t, i18n } = useTranslation();
+    const { colors } = useTheme();
     const flatListRef = useRef<FlatList>(null);
 
     // Generate array of dates centered around today
@@ -80,30 +82,33 @@ export function DateCarousel({
             <TouchableOpacity
                 style={[
                     styles.dayContainer,
-                    isSelected && styles.daySelected,
-                    isTodayDate && !isSelected && styles.dayToday,
+                    isSelected && { backgroundColor: colors.primary },
+                    isTodayDate && !isSelected && { backgroundColor: `${colors.primary}20` },
                 ]}
                 onPress={() => handleSelectDate(item.date)}
                 activeOpacity={0.7}
             >
                 <Text style={[
                     styles.dayName,
-                    isSelected && styles.dayNameSelected,
-                    isTodayDate && !isSelected && styles.dayNameToday,
+                    { color: colors.subtext },
+                    isSelected && { color: '#ffffff' },
+                    isTodayDate && !isSelected && { color: colors.primary },
                 ]}>
                     {dayName}
                 </Text>
                 <Text style={[
                     styles.dayNumber,
-                    isSelected && styles.dayNumberSelected,
-                    isTodayDate && !isSelected && styles.dayNumberToday,
+                    { color: colors.text },
+                    isSelected && { color: '#ffffff' },
+                    isTodayDate && !isSelected && { color: colors.primary },
                 ]}>
                     {dayNumber}
                 </Text>
                 {isTodayDate && (
                     <View style={[
                         styles.todayDot,
-                        isSelected && styles.todayDotSelected,
+                        { backgroundColor: colors.primary },
+                        isSelected && { backgroundColor: '#ffffff' },
                     ]} />
                 )}
             </TouchableOpacity>
@@ -117,7 +122,7 @@ export function DateCarousel({
                 style={styles.todayButton}
                 onPress={scrollToToday}
             >
-                <Text style={styles.todayButtonText}>{t('timeline.today')}</Text>
+                <Text style={[styles.todayButtonText, { color: colors.primary }]}>{t('timeline.today')}</Text>
             </TouchableOpacity>
 
             {/* Date carousel */}
@@ -144,7 +149,7 @@ export function DateCarousel({
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: '#252542',
+        // backgroundColor: '#252542', // Handled by dynamic style
         borderRadius: 16,
         paddingVertical: 12,
         marginBottom: 16,

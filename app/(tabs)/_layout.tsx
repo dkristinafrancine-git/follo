@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { Tabs, router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
@@ -118,8 +118,15 @@ export default function TabLayout() {
             <Tabs.Screen
                 name="scanner"
                 options={{
-                    title: t('tabs.scanner'),
                     tabBarIcon: ({ color }) => <ScannerIcon color={color} />,
+                }}
+                listeners={{
+                    tabPress: (e) => {
+                        // Prevent default tab switch
+                        e.preventDefault();
+                        // Navigate to scan screen
+                        router.push('/medication/scan' as any);
+                    },
                 }}
             />
             <Tabs.Screen

@@ -9,9 +9,12 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import * as SecureStore from 'expo-secure-store';
 import { useProfileStore } from '../../src/hooks/useProfiles';
 import { resetDatabase } from '../../src/database/index';
+import { useTheme } from '../../src/context/ThemeContext';
+import { useSettings } from '../../src/hooks/useSettings';
 
 export default function SettingsScreen() {
     const { t, i18n } = useTranslation();
+    const { themeMode, toggleTheme, colors } = useTheme();
     const [isKorean, setIsKorean] = useState(i18n.language === 'ko');
     const [hcAvailable, setHcAvailable] = useState(false);
     const [hcConnected, setHcConnected] = useState(false);
@@ -26,7 +29,13 @@ export default function SettingsScreen() {
         setAutoLockTimeout
     } = useSecurity();
 
+    const { notificationMode, setNotificationMode, loadSettings } = useSettings();
+
     const loadProfiles = useProfileStore(state => state.loadProfiles);
+
+    useEffect(() => {
+        loadSettings();
+    }, []);
 
     useEffect(() => {
         const checkHardware = async () => {
@@ -104,31 +113,45 @@ export default function SettingsScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
             <ScrollView style={styles.content}>
                 <View style={styles.header}>
-                    <Text style={styles.title}>{t('settings.title')}</Text>
+                    <Text style={[styles.title, { color: colors.text }]}>{t('settings.title')}</Text>
+                </View>
+
+                {/* Appearance Section */}
+                <View style={[styles.section, { borderBottomColor: colors.border }]}>
+                    <Text style={[styles.sectionTitle, { color: colors.subtext }]}>{t('settings.appearance') || 'Appearance'}</Text>
+                    <View style={[styles.settingRow, { backgroundColor: colors.card }]}>
+                        <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.darkMode') || 'Dark Mode'}</Text>
+                        <Switch
+                            value={themeMode === 'dark'}
+                            onValueChange={toggleTheme}
+                            trackColor={{ false: '#d1d5db', true: colors.primary }}
+                            thumbColor="#ffffff"
+                        />
+                    </View>
                 </View>
 
                 {/* Profile Management Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('profile.yourProfile') || 'Profiles'}</Text>
+                    <Text style={[styles.sectionTitle, { color: colors.subtext }]}>{t('profile.yourProfile') || 'Profiles'}</Text>
                     <TouchableOpacity
-                        style={styles.settingRow}
+                        style={[styles.settingRow, { backgroundColor: colors.card }]}
                         onPress={() => router.push('/settings/profiles' as Href)}
                     >
-                        <Text style={styles.settingLabel}>{t('profile.manageProfiles') || 'Manage Profiles'}</Text>
-                        <Text style={styles.arrow}>→</Text>
+                        <Text style={[styles.settingLabel, { color: colors.text }]}>{t('profile.manageProfiles') || 'Manage Profiles'}</Text>
+                        <Text style={[styles.arrow, { color: colors.subtext }]}>→</Text>
                     </TouchableOpacity>
                 </View>
 
                 {/* Security Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('settings.security')}</Text>
+                    <Text style={[styles.sectionTitle, { color: colors.subtext }]}>{t('settings.security')}</Text>
 
                     {/* App Lock (PIN) */}
                     <TouchableOpacity
-                        style={styles.settingRow}
+                        style={[styles.settingRow, { backgroundColor: colors.card }]}
                         onPress={() => {
                             router.push({
                                 pathname: '/auth/pin',
@@ -136,9 +159,9 @@ export default function SettingsScreen() {
                             });
                         }}
                     >
-                        <Text style={styles.settingLabel}>{t('settings.appLock')}</Text>
+                        <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.appLock')}</Text>
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Text style={[styles.settingValue, { marginRight: 8 }]}>
+                            <Text style={[styles.settingValue, { marginRight: 8, color: colors.primary }]}>
                                 {hasPin ? t('common.on') : t('common.off')}
                             </Text>
                             <Switch
@@ -149,7 +172,7 @@ export default function SettingsScreen() {
                                         params: { mode: hasPin ? 'disable' : 'setup' }
                                     });
                                 }}
-                                trackColor={{ false: '#3e3e5e', true: '#6366f1' }}
+                                trackColor={{ false: '#d1d5db', true: colors.primary }}
                                 thumbColor="#ffffff"
                             />
                         </View>
@@ -158,7 +181,7 @@ export default function SettingsScreen() {
                     {/* Change PIN */}
                     {hasPin && (
                         <TouchableOpacity
-                            style={styles.settingRow}
+                            style={[styles.settingRow, { backgroundColor: colors.card }]}
                             onPress={() => {
                                 router.push({
                                     pathname: '/auth/pin',
@@ -166,19 +189,19 @@ export default function SettingsScreen() {
                                 });
                             }}
                         >
-                            <Text style={styles.settingLabel}>{t('settings.changePin')}</Text>
-                            <Text style={styles.arrow}>→</Text>
+                            <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.changePin')}</Text>
+                            <Text style={[styles.arrow, { color: colors.subtext }]}>→</Text>
                         </TouchableOpacity>
                     )}
 
                     {/* Biometrics */}
                     {hasPin && hasBiometrics && (
-                        <View style={styles.settingRow}>
-                            <Text style={styles.settingLabel}>{t('settings.biometrics')}</Text>
+                        <View style={[styles.settingRow, { backgroundColor: colors.card }]}>
+                            <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.biometrics')}</Text>
                             <Switch
                                 value={isBiometricsEnabled}
                                 onValueChange={toggleBiometrics}
-                                trackColor={{ false: '#3e3e5e', true: '#6366f1' }}
+                                trackColor={{ false: '#d1d5db', true: colors.primary }}
                                 thumbColor="#ffffff"
                             />
                         </View>
@@ -186,8 +209,8 @@ export default function SettingsScreen() {
 
                     {/* Auto-Lock Timeout */}
                     {hasPin && (
-                        <View style={styles.settingRow}>
-                            <Text style={styles.settingLabel}>{t('settings.autoLock')}</Text>
+                        <View style={[styles.settingRow, { backgroundColor: colors.card }]}>
+                            <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.autoLock')}</Text>
                             <View style={{ flexDirection: 'row', gap: 10 }}>
                                 {[1, 5, 15].map(min => (
                                     <TouchableOpacity
@@ -195,12 +218,14 @@ export default function SettingsScreen() {
                                         onPress={() => setAutoLockTimeout(min)}
                                         style={[
                                             styles.timeoutChip,
-                                            autoLockTimeout === min && styles.timeoutChipActive
+                                            { backgroundColor: colors.background }, // Use background for chip
+                                            autoLockTimeout === min && { backgroundColor: colors.primary }
                                         ]}
                                     >
                                         <Text style={[
                                             styles.timeoutText,
-                                            autoLockTimeout === min && styles.timeoutTextActive
+                                            { color: colors.text },
+                                            autoLockTimeout === min && { color: '#ffffff', fontWeight: 'bold' }
                                         ]}>{min}m</Text>
                                     </TouchableOpacity>
                                 ))}
@@ -211,13 +236,13 @@ export default function SettingsScreen() {
 
                 {/* Language Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('settings.language')}</Text>
-                    <View style={styles.settingRow}>
-                        <Text style={styles.settingLabel}>{t('settings.useKorean')}</Text>
+                    <Text style={[styles.sectionTitle, { color: colors.subtext }]}>{t('settings.language')}</Text>
+                    <View style={[styles.settingRow, { backgroundColor: colors.card }]}>
+                        <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.useKorean')}</Text>
                         <Switch
                             value={isKorean}
                             onValueChange={toggleLanguage}
-                            trackColor={{ false: '#3e3e5e', true: '#6366f1' }}
+                            trackColor={{ false: '#d1d5db', true: colors.primary }}
                             thumbColor="#ffffff"
                         />
                     </View>
@@ -226,62 +251,79 @@ export default function SettingsScreen() {
                 {/* Health Connect Section */}
                 {hcAvailable && (
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>{t('settings.healthConnect')}</Text>
-                        <View style={styles.settingRow}>
-                            <Text style={styles.settingLabel}>{t('settings.syncHealthConnect')}</Text>
+                        <Text style={[styles.sectionTitle, { color: colors.subtext }]}>{t('settings.healthConnect')}</Text>
+                        <View style={[styles.settingRow, { backgroundColor: colors.card }]}>
+                            <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.syncHealthConnect')}</Text>
                             <Switch
                                 value={hcConnected}
                                 onValueChange={handleHealthConnectToggle}
-                                trackColor={{ false: '#3e3e5e', true: '#6366f1' }}
+                                trackColor={{ false: '#d1d5db', true: colors.primary }}
                                 thumbColor="#ffffff"
                             />
                         </View>
-                        <Text style={styles.description}>{t('settings.healthConnectDesc')}</Text>
+                        <Text style={[styles.description, { color: colors.subtext }]}>{t('settings.healthConnectDesc')}</Text>
                     </View>
                 )}
 
                 {/* Notifications Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('settings.notifications')}</Text>
-                    <TouchableOpacity style={styles.settingRow}>
-                        <Text style={styles.settingLabel}>{t('settings.notificationMode')}</Text>
-                        <Text style={styles.settingValue}>{t('settings.homeMode')}</Text>
+                    <Text style={[styles.sectionTitle, { color: colors.subtext }]}>{t('settings.notifications')}</Text>
+                    <TouchableOpacity
+                        style={[styles.settingRow, { backgroundColor: colors.card }]}
+                        onPress={() => {
+                            Alert.alert(
+                                t('settings.notificationMode'),
+                                t('settings.selectMode'),
+                                [
+                                    { text: t('settings.homeMode'), onPress: () => setNotificationMode('home') },
+                                    { text: t('settings.heavySleeperMode'), onPress: () => setNotificationMode('heavy_sleeper') },
+                                    { text: t('common.cancel'), style: 'cancel' }
+                                ]
+                            );
+                        }}
+                    >
+                        <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.notificationMode')}</Text>
+                        <Text style={[styles.settingValue, { color: colors.primary }]}>
+                            {notificationMode === 'heavy_sleeper'
+                                ? t('settings.heavySleeperMode')
+                                : t('settings.homeMode')}
+                        </Text>
                     </TouchableOpacity>
                 </View>
 
                 {/* Export Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('settings.export')}</Text>
+                    <Text style={[styles.sectionTitle, { color: colors.subtext }]}>{t('settings.export')}</Text>
                     <TouchableOpacity
-                        style={styles.settingRow}
+                        style={[styles.settingRow, { backgroundColor: colors.card }]}
                         onPress={() => router.push('/export' as Href)}
                     >
-                        <Text style={styles.settingLabel}>{t('settings.exportData')}</Text>
-                        <Text style={styles.arrow}>→</Text>
+                        <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.exportData')}</Text>
+                        <Text style={[styles.arrow, { color: colors.subtext }]}>→</Text>
                     </TouchableOpacity>
                 </View>
 
                 {/* Emergency ID Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('settings.emergency')}</Text>
+                    <Text style={[styles.sectionTitle, { color: colors.subtext }]}>{t('settings.emergency')}</Text>
                     <TouchableOpacity
-                        style={styles.settingRow}
+                        style={[styles.settingRow, { backgroundColor: colors.card }]}
                         onPress={() => router.push('/emergency' as Href)}
                     >
-                        <Text style={styles.settingLabel}>{t('settings.emergencyId')}</Text>
-                        <Text style={styles.arrow}>→</Text>
+                        <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.emergencyId')}</Text>
+                        <Text style={[styles.arrow, { color: colors.subtext }]}>→</Text>
                     </TouchableOpacity>
                 </View>
 
                 {/* Help Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('settings.help') || 'Help'}</Text>
+                    <Text style={[styles.sectionTitle, { color: colors.subtext }]}>{t('settings.help') || 'Help'}</Text>
                     <TouchableOpacity
-                        style={styles.settingRow}
+                        style={[styles.settingRow, { backgroundColor: colors.card }]}
                         onPress={() => router.push('/onboarding/welcome?mode=tutorial' as Href)}
                     >
-                        <Text style={styles.settingLabel}>{t('settings.replayTutorial') || 'Replay Tutorial'}</Text>
-                        <Text style={styles.arrow}>→</Text>
+                        <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.replayTutorial') || 'Replay Tutorial'}</Text>
+                        <Text style={[styles.arrow, { color: colors.subtext }]}>→</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -289,7 +331,7 @@ export default function SettingsScreen() {
                 <View style={[styles.section, styles.dangerSection]}>
                     <Text style={[styles.sectionTitle, styles.dangerTitle]}>{t('settings.dangerZone')}</Text>
                     <TouchableOpacity
-                        style={styles.dangerButton}
+                        style={[styles.dangerButton, { backgroundColor: colors.card, borderColor: '#7f1d1d' }]}
                         onPress={handleDeleteAllData}
                     >
                         <Text style={styles.dangerButtonText}>{t('settings.deleteAllData')}</Text>
@@ -323,7 +365,6 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#6b7280',
         marginBottom: 12,
         textTransform: 'uppercase',
         letterSpacing: 1,
@@ -348,11 +389,9 @@ const styles = StyleSheet.create({
     },
     settingValue: {
         fontSize: 14,
-        color: '#6366f1',
     },
     arrow: {
         fontSize: 18,
-        color: '#6b7280',
     },
     dangerSection: {
         marginTop: 24,
@@ -361,12 +400,12 @@ const styles = StyleSheet.create({
         color: '#ef4444',
     },
     dangerButton: {
-        backgroundColor: '#3f1d1d',
+        // backgroundColor: '#3f1d1d', // Removed
         borderRadius: 12,
         padding: 16,
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#7f1d1d',
+        // borderColor: '#7f1d1d', // Moved to inline
     },
     dangerButtonText: {
         fontSize: 16,
@@ -374,7 +413,6 @@ const styles = StyleSheet.create({
         color: '#ef4444',
     },
     timeoutChip: {
-        backgroundColor: '#3e3e5e',
         paddingHorizontal: 10,
         paddingVertical: 4,
         borderRadius: 8,

@@ -70,7 +70,7 @@ export default function TimelineScreen() {
     };
 
     const handleAddProfile = () => {
-        router.push('/onboarding' as Href);
+        router.push('/onboarding/profile' as Href);
     };
 
     const handleEventComplete = async (eventId: string) => {
@@ -115,22 +115,26 @@ export default function TimelineScreen() {
     const dynamicStyles = {
         container: { backgroundColor: colors.background },
         text: { color: colors.text },
+        subtext: { color: colors.subtext },
         actionsheet: {
             backgroundColor: colors.card,
             borderColor: colors.border,
             borderWidth: isHighContrast ? 2 : 0
         },
         actionItem: {
-            backgroundColor: isHighContrast ? colors.background : '#3f3f5a',
+            backgroundColor: colors.card,
             borderColor: colors.border,
             borderWidth: isHighContrast ? 1 : 0
         },
         fab: {
-            backgroundColor: isHighContrast ? colors.primary : '#6366f1',
+            backgroundColor: colors.primary,
             borderWidth: isHighContrast ? 2 : 0,
             borderColor: '#fff'
         },
-        fabText: { color: isHighContrast ? '#000' : '#fff' }
+        fabText: { color: '#ffffff' },
+        emptyState: {
+            backgroundColor: colors.card
+        }
     };
 
     return (
@@ -166,7 +170,7 @@ export default function TimelineScreen() {
 
                 {/* Upcoming Events */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>
+                    <Text style={[styles.sectionTitle, dynamicStyles.subtext]}>
                         {t('timeline.upcoming')} ({pendingEvents.length})
                     </Text>
                     {isLoading ? (
@@ -194,7 +198,7 @@ export default function TimelineScreen() {
                 {/* Completed Today */}
                 {!isLoading && completedEvents.length > 0 && (
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>
+                        <Text style={[styles.sectionTitle, dynamicStyles.subtext]}>
                             {t('timeline.history')} ({completedEvents.length})
                         </Text>
                         {completedEvents.map((event) => (
@@ -239,7 +243,7 @@ export default function TimelineScreen() {
                             <View style={[styles.actionIcon, { backgroundColor: '#4A90D9' }]}>
                                 <Text style={styles.actionIconText}>💊</Text>
                             </View>
-                            <Text style={[styles.actionText, dynamicStyles.text]}>{t('medication.addTitle') || 'Medication'}</Text>
+                            <Text style={[styles.actionText, { color: colors.text }]}>{t('medication.addTitle') || 'Medication'}</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
@@ -251,7 +255,7 @@ export default function TimelineScreen() {
                             <View style={[styles.actionIcon, { backgroundColor: '#F59E0B' }]}>
                                 <Text style={styles.actionIconText}>🧴</Text>
                             </View>
-                            <Text style={[styles.actionText, dynamicStyles.text]}>{t('supplement.addTitle') || 'Supplement'}</Text>
+                            <Text style={[styles.actionText, { color: colors.text }]}>{t('supplement.addTitle') || 'Supplement'}</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
@@ -263,7 +267,7 @@ export default function TimelineScreen() {
                             <View style={[styles.actionIcon, { backgroundColor: '#8b5cf6' }]}>
                                 <Text style={styles.actionIconText}>🩺</Text>
                             </View>
-                            <Text style={[styles.actionText, dynamicStyles.text]}>{t('appointment.addTitle') || 'Appointment'}</Text>
+                            <Text style={[styles.actionText, { color: colors.text }]}>{t('appointment.addTitle') || 'Appointment'}</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
@@ -275,7 +279,7 @@ export default function TimelineScreen() {
                             <View style={[styles.actionIcon, { backgroundColor: '#10b981' }]}>
                                 <Text style={styles.actionIconText}>🏃</Text>
                             </View>
-                            <Text style={[styles.actionText, dynamicStyles.text]}>{t('activity.addTitle') || 'Activity'}</Text>
+                            <Text style={[styles.actionText, { color: colors.text }]}>{t('activity.addTitle') || 'Activity'}</Text>
                         </TouchableOpacity>
                     </View>
                 </TouchableOpacity>
@@ -300,7 +304,6 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#9ca3af',
         marginBottom: 12,
         textTransform: 'uppercase',
         letterSpacing: 1,

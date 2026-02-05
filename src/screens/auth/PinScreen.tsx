@@ -133,6 +133,7 @@ export default function PinScreen({ mode = 'unlock', onSuccess, onCancel }: PinS
     const renderKey = (item: string | React.ReactNode, value?: string) => {
         return (
             <TouchableOpacity
+                key={value || (typeof item === 'string' ? item : undefined)}
                 style={styles.key}
                 onPress={() => handlePress(value || item as string)}
                 activeOpacity={0.7}

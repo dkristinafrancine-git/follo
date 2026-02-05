@@ -8,6 +8,7 @@ import {
     Animated,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../../context/ThemeContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 48;
@@ -37,6 +38,7 @@ export function StatsSlider({
     upcomingMeds,
 }: StatsSliderProps) {
     const { t } = useTranslation();
+    const { colors } = useTheme();
     const flatListRef = useRef<FlatList>(null);
     const scrollX = useRef(new Animated.Value(0)).current;
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -99,11 +101,11 @@ export function StatsSlider({
     }, []);
 
     const renderStatCard = ({ item }: { item: StatCard }) => (
-        <View style={[styles.card, { width: CARD_WIDTH }]}>
+        <View style={[styles.card, { width: CARD_WIDTH, backgroundColor: colors.card }]}>
             <View style={styles.cardContent}>
                 <Text style={styles.cardIcon}>{item.icon}</Text>
                 <View style={styles.cardTextContainer}>
-                    <Text style={styles.cardTitle}>{t(item.titleKey)}</Text>
+                    <Text style={[styles.cardTitle, { color: colors.subtext }]}>{t(item.titleKey)}</Text>
                     <View style={styles.valueRow}>
                         <Text style={[styles.cardValue, { color: item.color }]}>
                             {item.value}
@@ -115,7 +117,7 @@ export function StatsSlider({
                         )}
                     </View>
                     {item.subtitle && (
-                        <Text style={styles.cardSubtitle}>{item.subtitle}</Text>
+                        <Text style={[styles.cardSubtitle, { color: colors.subtext }]}>{item.subtitle}</Text>
                     )}
                 </View>
             </View>
@@ -129,7 +131,8 @@ export function StatsSlider({
                     key={index}
                     style={[
                         styles.dot,
-                        index === currentIndex && styles.dotActive,
+                        { backgroundColor: colors.border },
+                        index === currentIndex && [styles.dotActive, { backgroundColor: colors.primary }],
                     ]}
                 />
             ))}
@@ -169,7 +172,7 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     card: {
-        backgroundColor: '#252542',
+        // backgroundColor: '#252542', // Handled by dynamic style
         borderRadius: 16,
         padding: 20,
         marginHorizontal: 0,

@@ -1,5 +1,6 @@
 import TextRecognition from 'react-native-mlkit-ocr';
 import { drugCorrectionService } from './drugCorrectionService';
+import { FREQUENCY_PATTERNS } from '../data/frequencyPatterns';
 
 export interface ParsedMedication {
     name?: string;
@@ -12,8 +13,15 @@ export interface ParsedMedication {
 export class OCRService {
     static async recognizeText(imagePath: string): Promise<string[]> {
         try {
-            const result = await (TextRecognition as any).recognize(imagePath);
-            // Flatten the result to just lines of text
+            // The library exports detectFromUri and detectFromFile.
+            // Using detectFromUri as we likely have a file:// URI.
+            const result = await (TextRecognition as any).detectFromUri(imagePath);
+
+            // Result is typically an array of text blocks
+            if (!result || !Array.isArray(result)) {
+                console.warn('OCR result is not an array:', result);
+                return [];
+            }
             return result.map((block: any) => block.text);
         } catch (error) {
             console.error('OCR recognition failed:', error);
@@ -58,18 +66,8 @@ export class OCRService {
             }
         }
 
-        // 4. Identify Frequency (BID, TID, Daily, etc.)
-        const frequencyPatterns = [
-            { pattern: /daily/i, value: 'Daily' },
-            { pattern: /once a day/i, value: 'Daily' },
-            { pattern: /twice a day/i, value: '2 times/day' },
-            { pattern: /bid/i, value: '2 times/day' },
-            { pattern: /three times a day/i, value: '3 times/day' },
-            { pattern: /tid/i, value: '3 times/day' },
-            { pattern: /every (\d+) hours/i, value: 'Every $1 hours' },
-        ];
-
-        for (const p of frequencyPatterns) {
+        // 4. Identify Frequency parsing logic utilizing centralized patterns
+        for (const p of FREQUENCY_PATTERNS) {
             const match = combinedText.match(p.pattern);
             if (match) {
                 frequency = p.value.replace('$1', match[1] || '');

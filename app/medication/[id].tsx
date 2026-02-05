@@ -26,10 +26,12 @@ import {
 } from '../../src/hooks/useMedications';
 import { medicationHistoryRepository } from '../../src/repositories';
 import { MedicationHistory, UpdateMedicationInput } from '../../src/types';
+import { useTheme } from '../../src/context/ThemeContext';
 
 export default function MedicationDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const { t } = useTranslation();
+    const { colors } = useTheme();
     const router = useRouter();
 
     // Medication data
@@ -88,13 +90,13 @@ export default function MedicationDetailScreen() {
                     options={{
                         headerShown: true,
                         title: t('medication.editTitle') || 'Medication',
-                        headerStyle: { backgroundColor: '#1a1a2e' },
-                        headerTintColor: '#fff',
+                        headerStyle: { backgroundColor: colors.background },
+                        headerTintColor: colors.text,
                     }}
                 />
-                <SafeAreaView style={styles.container} edges={['bottom']}>
+                <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['bottom']}>
                     <View style={styles.loadingContainer}>
-                        <ActivityIndicator size="large" color="#4A90D9" />
+                        <ActivityIndicator size="large" color={colors.primary} />
                     </View>
                 </SafeAreaView>
             </>
@@ -115,7 +117,7 @@ export default function MedicationDetailScreen() {
                 />
                 <SafeAreaView style={styles.container} edges={['bottom']}>
                     <View style={styles.errorContainer}>
-                        <Text style={styles.errorText}>Medication not found</Text>
+                        <Text style={[styles.errorText, { color: colors.subtext }]}>Medication not found</Text>
                     </View>
                 </SafeAreaView>
             </>
@@ -130,11 +132,11 @@ export default function MedicationDetailScreen() {
                     options={{
                         headerShown: true,
                         title: t('medication.editTitle') || 'Edit Medication',
-                        headerStyle: { backgroundColor: '#1a1a2e' },
-                        headerTintColor: '#fff',
+                        headerStyle: { backgroundColor: colors.background },
+                        headerTintColor: colors.text,
                     }}
                 />
-                <SafeAreaView style={styles.container} edges={['bottom']}>
+                <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['bottom']}>
                     <MedicationForm
                         initialValues={medication}
                         onSubmit={handleSubmit}
@@ -154,20 +156,20 @@ export default function MedicationDetailScreen() {
                 options={{
                     headerShown: true,
                     title: medication.name,
-                    headerStyle: { backgroundColor: '#1a1a2e' },
-                    headerTintColor: '#fff',
+                    headerStyle: { backgroundColor: colors.background },
+                    headerTintColor: colors.text,
                 }}
             />
-            <SafeAreaView style={styles.container} edges={['bottom']}>
+            <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['bottom']}>
                 <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
                     {/* Medication Info Card */}
-                    <View style={styles.card} accessibilityRole="summary" accessibilityLabel={`${medication.name}, ${medication.dosage || ''}`}>
+                    <View style={[styles.card, { backgroundColor: colors.card }]} accessibilityRole="summary" accessibilityLabel={`${medication.name}, ${medication.dosage || ''}`}>
                         <View style={styles.cardHeader}>
                             <Text style={styles.pillIcon} accessibilityLabel="Medication Icon">💊</Text>
                             <View style={styles.cardHeaderInfo}>
-                                <Text style={styles.medicationName} accessibilityRole="header">{medication.name}</Text>
+                                <Text style={[styles.medicationName, { color: colors.text }]} accessibilityRole="header">{medication.name}</Text>
                                 {medication.dosage && (
-                                    <Text style={styles.medicationDosage}>{medication.dosage}</Text>
+                                    <Text style={[styles.medicationDosage, { color: colors.primary }]}>{medication.dosage}</Text>
                                 )}
                             </View>
                         </View>
@@ -175,28 +177,29 @@ export default function MedicationDetailScreen() {
                         <View style={styles.infoGrid} accessibilityRole="list">
                             {medication.form && (
                                 <View style={styles.infoItem} accessible={true} accessibilityLabel={`${t('medication.form')}: ${medication.form}`}>
-                                    <Text style={styles.infoLabel}>{t('medication.form')}</Text>
-                                    <Text style={styles.infoValue}>{medication.form}</Text>
+                                    <Text style={[styles.infoLabel, { color: colors.subtext }]}>{t('medication.form')}</Text>
+                                    <Text style={[styles.infoValue, { color: colors.text }]}>{medication.form}</Text>
                                 </View>
                             )}
                             <View style={styles.infoItem} accessible={true} accessibilityLabel={`${t('medication.frequency')}: ${medication.frequencyRule?.frequency || 'Daily'}`}>
-                                <Text style={styles.infoLabel}>{t('medication.frequency')}</Text>
-                                <Text style={styles.infoValue}>
+                                <Text style={[styles.infoLabel, { color: colors.subtext }]}>{t('medication.frequency')}</Text>
+                                <Text style={[styles.infoValue, { color: colors.text }]}>
                                     {medication.frequencyRule?.frequency || 'Daily'}
                                 </Text>
                             </View>
                             <View style={styles.infoItem} accessible={true} accessibilityLabel={`${t('medication.time')}: ${medication.timeOfDay.join(', ')}`}>
-                                <Text style={styles.infoLabel}>{t('medication.time')}</Text>
-                                <Text style={styles.infoValue}>
+                                <Text style={[styles.infoLabel, { color: colors.subtext }]}>{t('medication.time')}</Text>
+                                <Text style={[styles.infoValue, { color: colors.text }]}>
                                     {medication.timeOfDay.join(', ')}
                                 </Text>
                             </View>
                             {medication.currentQuantity !== undefined && (
                                 <View style={styles.infoItem} accessible={true} accessibilityLabel={`${t('medication.currentQuantity')}: ${medication.currentQuantity} remaining`}>
-                                    <Text style={styles.infoLabel}>{t('medication.currentQuantity')}</Text>
+                                    <Text style={[styles.infoLabel, { color: colors.subtext }]}>{t('medication.currentQuantity')}</Text>
                                     <Text style={[
                                         styles.infoValue,
-                                        medication.currentQuantity <= medication.refillThreshold && styles.infoValueWarning
+                                        { color: colors.text },
+                                        medication.currentQuantity <= medication.refillThreshold && { color: colors.warning }
                                     ]}>
                                         {medication.currentQuantity} remaining
                                     </Text>
@@ -205,16 +208,16 @@ export default function MedicationDetailScreen() {
                         </View>
 
                         {medication.notes && (
-                            <View style={styles.notesSection}>
-                                <Text style={styles.notesLabel}>{t('medication.notes')}</Text>
-                                <Text style={styles.notesText}>{medication.notes}</Text>
+                            <View style={[styles.notesSection, { borderTopColor: colors.border }]}>
+                                <Text style={[styles.notesLabel, { color: colors.subtext }]}>{t('medication.notes')}</Text>
+                                <Text style={[styles.notesText, { color: colors.text }]}>{medication.notes}</Text>
                             </View>
                         )}
                     </View>
 
                     {/* Recent History */}
-                    <View style={styles.historySection}>
-                        <Text style={styles.sectionTitle}>Recent History</Text>
+                    <View style={[styles.historySection, { backgroundColor: colors.card }]}>
+                        <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent History</Text>
                         {history.length === 0 ? (
                             <Text style={styles.emptyHistory}>No history yet</Text>
                         ) : (
@@ -227,14 +230,14 @@ export default function MedicationDetailScreen() {
                                         entry.status === 'skipped' && styles.historyDotSkipped,
                                     ]} />
                                     <View style={styles.historyInfo}>
-                                        <Text style={styles.historyDate}>
+                                        <Text style={[styles.historyDate, { color: colors.subtext }]}>
                                             {format(new Date(entry.scheduledTime), 'MMM d, HH:mm')}
                                         </Text>
                                         <Text style={[
                                             styles.historyStatus,
-                                            entry.status === 'taken' && styles.historyStatusTaken,
-                                            entry.status === 'missed' && styles.historyStatusMissed,
-                                            entry.status === 'skipped' && styles.historyStatusSkipped,
+                                            entry.status === 'taken' && { color: colors.success },
+                                            entry.status === 'missed' && { color: colors.danger },
+                                            entry.status === 'skipped' && { color: colors.warning },
                                         ]}>
                                             {t(`medication.status.${entry.status}`)}
                                         </Text>
@@ -246,18 +249,18 @@ export default function MedicationDetailScreen() {
                 </ScrollView>
 
                 {/* Action Buttons */}
-                <View style={styles.actions}>
+                <View style={[styles.actions, { backgroundColor: colors.background, borderTopColor: colors.card }]}>
                     <TouchableOpacity
-                        style={styles.deleteButton}
+                        style={[styles.deleteButton, { backgroundColor: colors.card }]}
                         onPress={() => setShowDeleteModal(true)}
                         accessibilityRole="button"
                         accessibilityLabel={t('common.delete') || 'Delete'}
                         accessibilityHint="Deletes this medication"
                     >
-                        <Text style={styles.deleteButtonText}>{t('common.delete')}</Text>
+                        <Text style={[styles.deleteButtonText, { color: colors.danger }]}>{t('common.delete')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                        style={styles.editButton}
+                        style={[styles.editButton, { backgroundColor: colors.primary }]}
                         onPress={() => setMode('edit')}
                         accessibilityRole="button"
                         accessibilityLabel={t('common.edit') || 'Edit'}
@@ -270,21 +273,21 @@ export default function MedicationDetailScreen() {
                 {/* Delete Confirmation Modal */}
                 <Modal visible={showDeleteModal} transparent animationType="fade">
                     <View style={styles.modalOverlay}>
-                        <View style={styles.modalContent}>
-                            <Text style={styles.modalTitle}>Delete Medication?</Text>
-                            <Text style={styles.modalText}>
+                        <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+                            <Text style={[styles.modalTitle, { color: colors.text }]}>Delete Medication?</Text>
+                            <Text style={[styles.modalText, { color: colors.subtext }]}>
                                 {t('medication.deleteConfirm') ||
                                     'Are you sure you want to delete this medication? This action cannot be undone.'}
                             </Text>
                             <View style={styles.modalActions}>
                                 <TouchableOpacity
-                                    style={styles.modalCancelButton}
+                                    style={[styles.modalCancelButton, { backgroundColor: colors.background }]}
                                     onPress={() => setShowDeleteModal(false)}
                                 >
-                                    <Text style={styles.modalCancelText}>{t('common.cancel')}</Text>
+                                    <Text style={[styles.modalCancelText, { color: colors.text }]}>{t('common.cancel')}</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
-                                    style={styles.modalDeleteButton}
+                                    style={[styles.modalDeleteButton, { backgroundColor: colors.danger }]}
                                     onPress={handleDelete}
                                     disabled={deleting}
                                 >

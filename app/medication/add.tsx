@@ -12,11 +12,13 @@ import { MedicationForm } from '../../src/components/forms/MedicationForm';
 import { useCreateMedication } from '../../src/hooks/useMedications';
 import { useActiveProfile } from '../../src/hooks/useProfiles';
 import { CreateMedicationInput } from '../../src/types';
+import { useTheme } from '../../src/context/ThemeContext';
 
 export default function AddMedicationScreen() {
     const { t } = useTranslation();
     const router = useRouter();
     const params = useLocalSearchParams();
+    const { colors } = useTheme();
 
     const { activeProfile } = useActiveProfile();
     const { create, isLoading, error } = useCreateMedication(activeProfile?.id || null);
@@ -27,8 +29,11 @@ export default function AddMedicationScreen() {
         name: params.prefilledName as string,
         dosage: params.prefilledDosage as string,
         form: params.prefilledForm as string,
-        // Map frequency string to RecurrenceRule if possible (simplified default)
-        frequencyRule: params.prefilledFrequency ? { frequency: 'daily' } : undefined,
+        // Map frequency text to notes for user review
+        notes: params.prefilledFrequency as string,
+        // Default to daily if not specified, but don't assume based on text presence
+        frequencyRule: { frequency: 'daily' },
+        photoUri: params.prefilledPhoto as string,
     } : undefined;
 
     const handleSubmit = useCallback(
@@ -74,21 +79,21 @@ export default function AddMedicationScreen() {
                         headerShown: true,
                         presentation: 'modal',
                         title: t('medication.addTitle') || 'Add Medication',
-                        headerStyle: { backgroundColor: '#1a1a2e' },
-                        headerTintColor: '#fff',
+                        headerStyle: { backgroundColor: colors.background },
+                        headerTintColor: colors.text,
                         headerRight: () => (
                             <Text
                                 onPress={handleScan}
-                                style={{ color: '#4A90D9', fontSize: 16, fontWeight: '600' }}
+                                style={{ color: colors.primary, fontSize: 16, fontWeight: '600' }}
                             >
                                 Scan
                             </Text>
                         ),
                     }}
                 />
-                <SafeAreaView style={styles.container} edges={['bottom']}>
+                <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['bottom']}>
                     <View style={styles.loadingContainer}>
-                        <ActivityIndicator size="large" color="#4A90D9" />
+                        <ActivityIndicator size="large" color={colors.primary} />
                     </View>
                 </SafeAreaView>
             </>
@@ -104,14 +109,14 @@ export default function AddMedicationScreen() {
                         headerShown: true,
                         presentation: 'modal',
                         title: t('medication.addTitle') || 'Add Medication',
-                        headerStyle: { backgroundColor: '#1a1a2e' },
-                        headerTintColor: '#fff',
+                        headerStyle: { backgroundColor: colors.background },
+                        headerTintColor: colors.text,
                     }}
                 />
-                <SafeAreaView style={styles.container} edges={['bottom']}>
+                <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['bottom']}>
                     <View style={styles.successContainer}>
-                        <Text style={styles.successIcon}>✓</Text>
-                        <Text style={styles.successText}>
+                        <Text style={[styles.successIcon, { color: colors.success }]}>✓</Text>
+                        <Text style={[styles.successText, { color: colors.text }]}>
                             {t('medication.saveSuccess') || 'Medication saved successfully'}
                         </Text>
                     </View>
@@ -127,12 +132,12 @@ export default function AddMedicationScreen() {
                     headerShown: true,
                     presentation: 'modal',
                     title: t('medication.addTitle') || 'Add Medication',
-                    headerStyle: { backgroundColor: '#1a1a2e' },
-                    headerTintColor: '#fff',
+                    headerStyle: { backgroundColor: colors.background },
+                    headerTintColor: colors.text,
                     headerRight: () => (
                         <Text
                             onPress={handleScan}
-                            style={{ color: '#4A90D9', fontSize: 16, fontWeight: '600' }}
+                            style={{ color: colors.primary, fontSize: 16, fontWeight: '600' }}
                             accessibilityRole="button"
                             accessibilityLabel={t('medication.scanLabel') || 'Scan Label'}
                             accessibilityHint="Opens camera to scan medication label"
@@ -142,7 +147,7 @@ export default function AddMedicationScreen() {
                     ),
                 }}
             />
-            <SafeAreaView style={styles.container} edges={['bottom']}>
+            <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['bottom']}>
                 <MedicationForm
                     key={prefilledValues ? 'prefilled' : 'manual'}
                     initialValues={prefilledValues}

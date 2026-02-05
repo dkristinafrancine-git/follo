@@ -9,17 +9,14 @@ import notifee, {
     AndroidCategory,
     TriggerType,
     TimestampTrigger,
-    RepeatFrequency,
     AndroidVisibility,
     EventType,
     Event
 } from '@notifee/react-native';
 import { Platform } from 'react-native';
 import { CalendarEvent } from '../types';
-import { calendarEventRepository } from '../repositories';
-
-// Notification modes
-export type NotificationMode = 'home' | 'heavy_sleeper';
+import { calendarEventRepository, settingsRepository } from '../repositories';
+import { NotificationMode } from '../repositories/settingsRepository';
 
 // Notification channel IDs
 export const NOTIFICATION_CHANNELS = {
@@ -93,14 +90,15 @@ export const notificationService = {
      */
     async scheduleEventNotification(
         event: CalendarEvent,
-        mode: NotificationMode = 'home'
+        mode?: NotificationMode
     ): Promise<string> {
         if (new Date(event.scheduledTime).getTime() < Date.now() - 5 * 60 * 1000) {
             console.log(`[NotificationService] Skipping past event ${event.id}`);
             return '';
         }
 
-        const channelId = getChannelId(event, mode);
+        const effectiveMode = mode ?? await settingsRepository.getNotificationMode();
+        const channelId = getChannelId(event, effectiveMode);
         const title = getNotificationTitle(event);
         const body = getNotificationBody(event);
         const triggerTimestamp = new Date(event.scheduledTime).getTime();
@@ -108,7 +106,7 @@ export const notificationService = {
         const trigger: TimestampTrigger = {
             type: TriggerType.TIMESTAMP,
             timestamp: triggerTimestamp,
-            alarmManager: mode === 'heavy_sleeper' ? {
+            alarmManager: effectiveMode === 'heavy_sleeper' ? {
                 allowWhileIdle: true,
             } : undefined,
         };
@@ -120,10 +118,10 @@ export const notificationService = {
                 body,
                 android: {
                     channelId,
-                    category: mode === 'heavy_sleeper' ? AndroidCategory.ALARM : AndroidCategory.REMINDER,
-                    importance: mode === 'heavy_sleeper' ? AndroidImportance.HIGH : AndroidImportance.DEFAULT,
+                    category: effectiveMode === 'heavy_sleeper' ? AndroidCategory.ALARM : AndroidCategory.REMINDER,
+                    importance: effectiveMode === 'heavy_sleeper' ? AndroidImportance.HIGH : AndroidImportance.DEFAULT,
                     // Full Screen Action (Heavy Sleeper)
-                    fullScreenAction: mode === 'heavy_sleeper' ? {
+                    fullScreenAction: effectiveMode === 'heavy_sleeper' ? {
                         id: 'default', // Launches main activity
                     } : undefined,
                     actions: (event.eventType === 'medication_due' || event.eventType === 'supplement_due')
@@ -169,17 +167,20 @@ export const notificationService = {
      */
     async scheduleUpcomingNotifications(
         events: CalendarEvent[],
-        mode: NotificationMode = 'home'
+        mode?: NotificationMode
     ): Promise<number> {
         // Cancel all first to ensure sync
         await this.cancelAll();
+
+        // Resolve mode if not provided
+        const effectiveMode = mode ?? await settingsRepository.getNotificationMode();
 
         let scheduled = 0;
         const now = Date.now();
 
         for (const event of events) {
             if (event.status === 'pending' && new Date(event.scheduledTime).getTime() > now) {
-                await this.scheduleEventNotification(event, mode);
+                await this.scheduleEventNotification(event, effectiveMode);
                 scheduled++;
             }
         }

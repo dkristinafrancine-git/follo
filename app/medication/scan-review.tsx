@@ -57,6 +57,7 @@ export default function ScanReviewScreen() {
                 prefilledDosage: dosage,
                 prefilledForm: form,
                 prefilledFrequency: frequency,
+                prefilledPhoto: imageUri,
             }
         });
     };

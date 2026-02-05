@@ -2,14 +2,17 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useTheme } from '../../src/context/ThemeContext';
+
 export default function ScannerScreen() {
     const { t } = useTranslation();
+    const { colors } = useTheme();
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={styles.content}>
-                <Text style={styles.title}>{t('scanner.title')}</Text>
-                <Text style={styles.description}>{t('scanner.description')}</Text>
+                <Text style={[styles.title, { color: colors.text }]}>{t('scanner.title')}</Text>
+                <Text style={[styles.description, { color: colors.subtext }]}>{t('scanner.description')}</Text>
             </View>
         </SafeAreaView>
     );

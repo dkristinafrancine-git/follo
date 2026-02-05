@@ -11,11 +11,13 @@ import { activityRepository } from '../../src/repositories/activityRepository';
 import { ActivityHeatmap } from '../../src/components/analytics/ActivityHeatmap';
 import { Ionicons } from '@expo/vector-icons';
 import { subDays } from 'date-fns';
+import { useTheme } from '../../src/context/ThemeContext';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
 export default function MyFlowScreen() {
     const { t } = useTranslation();
+    const { colors } = useTheme();
     const { activeProfile } = useActiveProfile();
     const [stats, setStats] = useState<MyFlowStats | null>(null);
     const [history, setHistory] = useState<AdherenceDataPoint[]>([]);
@@ -87,7 +89,7 @@ export default function MyFlowScreen() {
                         y1={chartHeight - (val / maxValue) * chartHeight}
                         x2={chartWidth}
                         y2={chartHeight - (val / maxValue) * chartHeight}
-                        stroke="#3e3e5e"
+                        stroke={colors.border}
                         strokeWidth="1"
                     />
                 ))}
@@ -107,7 +109,7 @@ export default function MyFlowScreen() {
                             <SvgText
                                 x={index * (barWidth + 10) + barWidth / 2}
                                 y={chartHeight - 5}
-                                fill="#9ca3af"
+                                fill={colors.subtext}
                                 fontSize="10"
                                 textAnchor="middle"
                             >
@@ -121,20 +123,20 @@ export default function MyFlowScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
             <ScrollView style={styles.content}>
                 <View style={styles.header}>
                     <View style={styles.headerRow}>
                         <View>
-                            <Text style={styles.title}>{t('myFlow.title')}</Text>
+                            <Text style={[styles.title, { color: colors.text }]}>{t('myFlow.title')}</Text>
                             {activeProfile && (
-                                <Text style={styles.subtitle}>
+                                <Text style={[styles.subtitle, { color: colors.subtext }]}>
                                     {t('common.for')} {activeProfile.name}
                                 </Text>
                             )}
                         </View>
                         <TouchableOpacity style={styles.exportButton} onPress={handleExport}>
-                            <Ionicons name="document-text-outline" size={20} color="#fff" />
+                            <Ionicons name="document-text-outline" size={20} color={colors.primary} />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -142,20 +144,20 @@ export default function MyFlowScreen() {
                 {/* Insights Section */}
                 {insights.length > 0 && (
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Care Insights</Text>
+                        <Text style={[styles.sectionTitle, { color: colors.subtext }]}>Care Insights</Text>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingRight: 16 }}>
                             {insights.map((insight, index) => (
-                                <View key={index} style={styles.insightCard}>
+                                <View key={index} style={[styles.insightCard, { backgroundColor: colors.card }]}>
                                     <View style={styles.insightHeader}>
-                                        <Text style={styles.insightTitle}>{insight.title}</Text>
+                                        <Text style={[styles.insightTitle, { color: colors.subtext }]}>{insight.title}</Text>
                                         <Ionicons
                                             name={insight.trend === 'up' ? 'trending-up' : insight.trend === 'down' ? 'trending-down' : 'remove'}
                                             size={16}
-                                            color={insight.trend === 'up' ? '#10b981' : insight.trend === 'down' ? '#ef4444' : '#9ca3af'}
+                                            color={insight.trend === 'up' ? colors.success : insight.trend === 'down' ? colors.danger : colors.subtext}
                                         />
                                     </View>
-                                    <Text style={styles.insightValue}>{insight.value}</Text>
-                                    <Text style={styles.insightDesc}>{insight.description}</Text>
+                                    <Text style={[styles.insightValue, { color: colors.text }]}>{insight.value}</Text>
+                                    <Text style={[styles.insightDesc, { color: colors.subtext }]}>{insight.description}</Text>
                                 </View>
                             ))}
                         </ScrollView>
@@ -164,16 +166,16 @@ export default function MyFlowScreen() {
 
                 {/* Adherence Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('myFlow.adherence')}</Text>
-                    <View style={styles.card}>
+                    <Text style={[styles.sectionTitle, { color: colors.subtext }]}>{t('myFlow.adherence')}</Text>
+                    <View style={[styles.card, { backgroundColor: colors.card }]}>
                         <Text style={[
                             styles.percentage,
-                            { color: (stats?.adherencePercentage ?? 0) >= 80 ? '#10b981' : (stats?.adherencePercentage ?? 0) >= 50 ? '#f59e0b' : '#ef4444' }
+                            { color: (stats?.adherencePercentage ?? 0) >= 80 ? colors.success : (stats?.adherencePercentage ?? 0) >= 50 ? colors.warning : colors.danger }
                         ]}>
                             {stats ? `${stats.adherencePercentage}%` : '--%'}
                         </Text>
-                        <Text style={styles.cardLabel}>{t('myFlow.medicationAdherence')}</Text>
-                        <Text style={styles.subtext}>{t('myFlow.lastSevenDays')}</Text>
+                        <Text style={[styles.cardLabel, { color: colors.text }]}>{t('myFlow.medicationAdherence')}</Text>
+                        <Text style={[styles.subtext, { color: colors.subtext }]}>{t('myFlow.lastSevenDays')}</Text>
                     </View>
                 </View>
 
@@ -191,8 +193,8 @@ export default function MyFlowScreen() {
                 {/* Chart Section */}
                 {history.length > 0 && (
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>{t('myFlow.history')}</Text>
-                        <View style={[styles.card, styles.chartCard]}>
+                        <Text style={[styles.sectionTitle, { color: colors.subtext }]}>{t('myFlow.history')}</Text>
+                        <View style={[styles.card, styles.chartCard, { backgroundColor: colors.card }]}>
                             {renderChart()}
                         </View>
                     </View>
@@ -200,21 +202,21 @@ export default function MyFlowScreen() {
 
                 {/* Activity Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('myFlow.activities')}</Text>
-                    <View style={styles.card}>
+                    <Text style={[styles.sectionTitle, { color: colors.subtext }]}>{t('myFlow.activities')}</Text>
+                    <View style={[styles.card, { backgroundColor: colors.card }]}>
                         <Text style={styles.count}>{stats?.activitiesLogged ?? 0}</Text>
-                        <Text style={styles.cardLabel}>{t('myFlow.activitiesLogged')}</Text>
-                        <Text style={styles.subtext}>{t('myFlow.today')}</Text>
+                        <Text style={[styles.cardLabel, { color: colors.text }]}>{t('myFlow.activitiesLogged')}</Text>
+                        <Text style={[styles.subtext, { color: colors.subtext }]}>{t('myFlow.today')}</Text>
                     </View>
                 </View>
 
                 {/* Streak Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('myFlow.streak')}</Text>
-                    <View style={styles.card}>
-                        <Text style={[styles.count, { color: '#f59e0b' }]}>{stats?.streakDays ?? 0}</Text>
-                        <Text style={styles.cardLabel}>{t('myFlow.days')}</Text>
-                        <Text style={styles.subtext}>{t('myFlow.currentStreak')}</Text>
+                    <Text style={[styles.sectionTitle, { color: colors.subtext }]}>{t('myFlow.streak')}</Text>
+                    <View style={[styles.card, { backgroundColor: colors.card }]}>
+                        <Text style={[styles.count, { color: colors.warning }]}>{stats?.streakDays ?? 0}</Text>
+                        <Text style={[styles.cardLabel, { color: colors.text }]}>{t('myFlow.days')}</Text>
+                        <Text style={[styles.subtext, { color: colors.subtext }]}>{t('myFlow.currentStreak')}</Text>
                     </View>
                 </View>
             </ScrollView>

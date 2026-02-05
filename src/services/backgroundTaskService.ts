@@ -5,7 +5,7 @@
 
 import * as TaskManager from 'expo-task-manager';
 import * as BackgroundFetch from 'expo-background-fetch';
-import { calendarEventRepository, profileRepository } from '../repositories';
+import { calendarEventRepository, profileRepository, settingsRepository } from '../repositories';
 import { notificationService } from './notificationService';
 import { format, addDays } from 'date-fns';
 
@@ -50,6 +50,8 @@ TaskManager.defineTask(NOTIFICATION_RESCHEDULE_TASK, async () => {
 
         // 3. Schedule
         if (allEvents.length > 0) {
+            // Service now handles fetching mode if not provided, but we can be explicit if needed.
+            // Since we updated scheduleUpcomingNotifications to fetch it if undefined, we can just pass the events.
             totalScheduled = await notificationService.scheduleUpcomingNotifications(allEvents);
             console.log(`[${NOTIFICATION_RESCHEDULE_TASK}] Scheduled ${totalScheduled} events`);
             return BackgroundFetch.BackgroundFetchResult.NewData;
