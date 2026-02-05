@@ -86,7 +86,7 @@
 - [x] Create EventCard component with actions
 - [x] Create Daily Schedule view with event list
 - [x] Create Quick Action buttons (+Medication, +Appointment) (FAB Implemented)
-- [ ] Create History Timeline with infinite scroll
+
 - [x] Implement FAB with quick actions
 
 ### 2.4 Medication Management (Story 2.1, 3.1)
@@ -165,7 +165,7 @@
 ### 4.2 My Flow Dashboard (Story 8.1)
 - [x] Create My Flow tab screen
 - [x] Implement adherence trend charts (7/30/90 day)
-- [ ] Create activity pattern heatmap
+- [/] Create activity pattern heatmap
 - [x] Add streak tracking display
 - [x] Create consistency score calculation
 - [x] Add export to PDF option

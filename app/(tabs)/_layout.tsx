@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 
 function TimelineIcon({ color, size = 24 }: { color: string; size?: number }) {
@@ -85,6 +86,7 @@ function SettingsIcon({ color, size = 24 }: { color: string; size?: number }) {
 
 export default function TabLayout() {
     const { t } = useTranslation();
+    const insets = useSafeAreaInsets();
 
     return (
         <Tabs
@@ -96,8 +98,8 @@ export default function TabLayout() {
                     backgroundColor: '#0f0f1a',
                     borderTopColor: '#1e1e3f',
                     borderTopWidth: 1,
-                    height: 60,
-                    paddingBottom: 8,
+                    height: 60 + insets.bottom,
+                    paddingBottom: 8 + insets.bottom,
                     paddingTop: 8,
                 },
                 tabBarLabelStyle: {

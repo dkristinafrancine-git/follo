@@ -229,4 +229,33 @@ export const activityRepository = {
 
         return result?.count ?? 0;
     },
+
+    /**
+     * Get activity heatmap data (daily counts)
+     */
+    async getActivityHeatmapData(
+        profileId: string,
+        startDate: string,
+        endDate: string
+    ): Promise<{ date: string; count: number }[]> {
+        const db = await getDatabase();
+
+        // Group by YYYY-MM-DD
+        // SQLite uses strftime('%Y-%m-%d', ...) 
+        // Note: start_time is ISO string, so it should work if we just take the date part
+        const result = await db.getAllAsync<{ date: string; count: number }>(
+            `SELECT 
+                strftime('%Y-%m-%d', start_time) as date,
+                COUNT(*) as count
+             FROM activities
+             WHERE profile_id = ? 
+             AND start_time >= ? 
+             AND start_time <= ?
+             GROUP BY date
+             ORDER BY date ASC`,
+            [profileId, startDate, endDate]
+        );
+
+        return result;
+    },
 };

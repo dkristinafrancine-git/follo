@@ -7,7 +7,10 @@ import { Svg, Rect, Text as SvgText, Line } from 'react-native-svg';
 import { TouchableOpacity, Alert } from 'react-native';
 import { useActiveProfile } from '../../src/hooks/useProfiles';
 import { myFlowService, careMetricsService, exportService, MyFlowStats, AdherenceDataPoint, CareInsight } from '../../src/services';
+import { activityRepository } from '../../src/repositories/activityRepository';
+import { ActivityHeatmap } from '../../src/components/analytics/ActivityHeatmap';
 import { Ionicons } from '@expo/vector-icons';
+import { subDays } from 'date-fns';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -16,7 +19,9 @@ export default function MyFlowScreen() {
     const { activeProfile } = useActiveProfile();
     const [stats, setStats] = useState<MyFlowStats | null>(null);
     const [history, setHistory] = useState<AdherenceDataPoint[]>([]);
+
     const [insights, setInsights] = useState<CareInsight[]>([]);
+    const [heatmapData, setHeatmapData] = useState<{ date: string, count: number }[]>([]);
 
     const loadData = useCallback(async () => {
         if (!activeProfile) return;
@@ -27,6 +32,17 @@ export default function MyFlowScreen() {
             setHistory(historyData);
             const insightsData = await careMetricsService.getDashboardInsights(activeProfile.id);
             setInsights(insightsData);
+
+
+            // Heatmap Data (Last 20 weeks approx 140 days)
+            const endDate = new Date();
+            const startDate = subDays(endDate, 150);
+            const activityData = await activityRepository.getActivityHeatmapData(
+                activeProfile.id,
+                startDate.toISOString(),
+                endDate.toISOString()
+            );
+            setHeatmapData(activityData);
         } catch (error) {
             console.error('Failed to load My Flow data:', error);
         }
@@ -159,6 +175,17 @@ export default function MyFlowScreen() {
                         <Text style={styles.cardLabel}>{t('myFlow.medicationAdherence')}</Text>
                         <Text style={styles.subtext}>{t('myFlow.lastSevenDays')}</Text>
                     </View>
+                </View>
+
+                {/* Activity Heatmap Section */}
+                <View style={styles.section}>
+                    {/* ActivityHeatmap fits nicely here as it has its own title inside, but we can wrap it if needed */}
+                    <ActivityHeatmap
+                        data={heatmapData}
+                        onDayPress={(date, count) => {
+                            // Optional: Show tooltip or toast
+                        }}
+                    />
                 </View>
 
                 {/* Chart Section */}
