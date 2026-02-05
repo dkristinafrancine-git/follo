@@ -13,6 +13,7 @@ import {
     CreateCalendarEventInput
 } from '../types';
 import { calendarEventRepository } from '../repositories';
+import { notificationService } from './notificationService';
 import { addDays, format, parse, startOfDay, endOfDay, isBefore, isAfter } from 'date-fns';
 
 /**
@@ -82,7 +83,10 @@ export const calendarService = {
 
         // Batch insert events
         if (events.length > 0) {
-            await calendarEventRepository.createBatch(events);
+            const createdEvents = await calendarEventRepository.createBatch(events);
+            // Schedule notifications for these new events
+            await notificationService.scheduleUpcomingNotifications(createdEvents);
+            console.log(`[CalendarService] Generated and scheduled ${createdEvents.length} events for medication ${medication.id}`);
         }
     },
 
@@ -129,7 +133,10 @@ export const calendarService = {
         }
 
         if (events.length > 0) {
-            await calendarEventRepository.createBatch(events);
+            const createdEvents = await calendarEventRepository.createBatch(events);
+            // Schedule notifications for these new events
+            await notificationService.scheduleUpcomingNotifications(createdEvents);
+            console.log(`[CalendarService] Generated and scheduled ${createdEvents.length} events for supplement ${supplement.id}`);
         }
     },
 
@@ -142,7 +149,7 @@ export const calendarService = {
 
         // Only create if appointment is in the future
         if (isAfter(new Date(appointment.scheduledTime), new Date())) {
-            await calendarEventRepository.create({
+            const event = await calendarEventRepository.create({
                 profileId: appointment.profileId,
                 eventType: 'appointment' as CalendarEventType,
                 sourceId: appointment.id,
@@ -159,6 +166,10 @@ export const calendarService = {
                     reason: appointment.reason,
                 },
             });
+
+            // Schedule notification
+            await notificationService.scheduleEventNotification(event);
+            console.log(`[CalendarService] Scheduled notification for appointment ${event.id}`);
         }
     },
 

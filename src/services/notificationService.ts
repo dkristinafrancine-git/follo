@@ -43,7 +43,7 @@ export const notificationService = {
                 visibility: AndroidVisibility.PUBLIC,
                 sound: 'default',
                 vibration: true,
-                vibrationPattern: [0, 250, 250, 250],
+                vibrationPattern: [300, 500],
             });
 
             await notifee.createChannel({
@@ -61,7 +61,7 @@ export const notificationService = {
                 importance: AndroidImportance.HIGH, // MAX requires special handling, HIGH is safer for now
                 sound: 'default', // In real app, put a custom 'alarm.mp3' in /res/raw
                 vibration: true,
-                vibrationPattern: [0, 1000, 500, 1000, 500, 1000],
+                vibrationPattern: [300, 1000, 500, 1000, 500, 1000],
             });
 
             // Set up categories (Actions)
@@ -193,30 +193,35 @@ export const notificationService = {
      */
     async handleNotificationEvent({ type, detail }: Event): Promise<void> {
         const { notification, pressAction } = detail;
+        console.log(`[NotificationService] Event received: type=${type} action=${pressAction?.id} notification=${notification?.id}`);
 
-        if (type === EventType.ACTION_PRESS && pressAction && notification?.data?.eventId) {
-            const eventId = notification.data.eventId as string;
-            console.log(`[NotificationService] Action ${pressAction.id} on event ${eventId}`);
+        try {
+            if (type === EventType.ACTION_PRESS && pressAction && notification?.data?.eventId) {
+                const eventId = notification.data.eventId as string;
+                console.log(`[NotificationService] Action ${pressAction.id} on event ${eventId}`);
 
-            if (pressAction.id === 'TAKE') {
-                // update inventory if it's a medication
-                const event = await calendarEventRepository.getById(eventId);
-                if (event && event.eventType === 'medication_due') {
-                    const { medicationRepository } = await import('../repositories');
-                    await medicationRepository.decrementQuantity(event.sourceId);
+                if (pressAction.id === 'TAKE') {
+                    // update inventory if it's a medication
+                    const event = await calendarEventRepository.getById(eventId);
+                    if (event && event.eventType === 'medication_due') {
+                        const { medicationRepository } = await import('../repositories');
+                        await medicationRepository.decrementQuantity(event.sourceId);
+                    }
+
+                    await calendarEventRepository.update(eventId, {
+                        status: 'completed',
+                        completedTime: new Date().toISOString(),
+                    });
+                    await notifee.cancelNotification(notification.id!);
+                } else if (pressAction.id === 'SKIP') {
+                    await calendarEventRepository.update(eventId, {
+                        status: 'skipped',
+                    });
+                    await notifee.cancelNotification(notification.id!);
                 }
-
-                await calendarEventRepository.update(eventId, {
-                    status: 'completed',
-                    completedTime: new Date().toISOString(),
-                });
-                await notifee.cancelNotification(notification.id!);
-            } else if (pressAction.id === 'SKIP') {
-                await calendarEventRepository.update(eventId, {
-                    status: 'skipped',
-                });
-                await notifee.cancelNotification(notification.id!);
             }
+        } catch (error) {
+            console.error('[NotificationService] Failed to handle event', error);
         }
     }
 };

@@ -11,6 +11,8 @@ import '../src/locales/i18n';
 import { initDatabase } from '../src/database/index';
 import { useProfileStore } from '../src/hooks/useProfiles';
 import { ErrorBoundary } from '../src/components/ErrorBoundary';
+import notifee, { EventType } from '@notifee/react-native';
+import { notificationService } from '../src/services/notificationService';
 
 export default function RootLayout() {
     const [isDbReady, setIsDbReady] = useState(false);
@@ -19,11 +21,18 @@ export default function RootLayout() {
     const isLoadingProfiles = useProfileStore(state => state.isLoading);
 
     useEffect(() => {
-        async function initialize() {
+        async function initialization() {
             try {
                 // Initialize database first
                 await initDatabase();
                 setIsDbReady(true);
+
+                // Initialize notifications (channels, permissions)
+                try {
+                    await notificationService.initialize();
+                } catch (e) {
+                    console.error('Failed to init notifications:', e);
+                }
 
                 // Then load profiles
                 await loadProfiles();
@@ -32,7 +41,16 @@ export default function RootLayout() {
                 setIsDbReady(true); // Still proceed to show error state
             }
         }
-        initialize();
+        initialization();
+
+        // Listen for foreground events
+        const unsubscribe = notifee.onForegroundEvent(async (event) => {
+            await notificationService.handleNotificationEvent(event);
+        });
+
+        return () => {
+            unsubscribe();
+        };
     }, []);
 
     // Redirect to onboarding if no profiles exist
