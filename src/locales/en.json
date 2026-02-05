@@ -46,8 +46,16 @@
         "exportData": "Export Health Data",
         "emergency": "Emergency",
         "emergencyId": "Emergency ID",
+        "help": "Help",
+        "replayTutorial": "Replay Tutorial",
+        "deleteAllConfirm": "Are you sure you want to delete ALL data? This action cannot be undone.",
         "dangerZone": "Danger Zone",
-        "deleteAllData": "Delete All Data"
+        "deleteAllData": "Delete All Data",
+        "security": "Security",
+        "appLock": "App Lock (PIN)",
+        "changePin": "Change PIN",
+        "biometrics": "Biometric Unlock",
+        "autoLock": "Auto-Lock Timeout"
     },
     "common": {
         "save": "Save",
@@ -58,7 +66,11 @@
         "skip": "Skip",
         "loading": "Loading...",
         "error": "Something went wrong",
-        "retry": "Retry"
+        "retry": "Retry",
+        "on": "On",
+        "off": "Off",
+        "close": "Close",
+        "done": "Done"
     },
     "appointment": {
         "title": "Title",
@@ -75,7 +87,10 @@
         "yourProfile": "Your profile",
         "selectProfile": "Select Profile",
         "primary": "Primary",
-        "addProfile": "Add Profile"
+        "addProfile": "Add Profile",
+        "manageProfiles": "Manage Profiles",
+        "active": "Active",
+        "deleteConfirm": "Are you sure you want to delete this profile?"
     },
     "onboarding": {
         "welcome": "Welcome to Follo",
@@ -115,6 +130,22 @@
                 "description": "All data stays on your device. Export anytime, delete whenever you want"
             }
         }
+    },
+    "emergency": {
+        "title": "Emergency ID",
+        "bloodType": "Blood Type",
+        "allergies": "Allergies",
+        "conditions": "Conditions",
+        "organDonor": "Organ Donor",
+        "contacts": "Emergency Contacts",
+        "addContact": "Add Contact",
+        "scanToImport": "Scan to Import",
+        "exportCard": "Export Wallet Card",
+        "scanForInfo": "Scan for Medical Info",
+        "noData": "No emergency data set up yet",
+        "notes": "Notes",
+        "importSuccess": "Emergency ID imported successfully!",
+        "importError": "Failed to import emergency data"
     },
     "medication": {
         "name": "Medication Name",
@@ -161,6 +192,35 @@
             "missed": "Missed",
             "skipped": "Skipped",
             "postponed": "Postponed"
+        }
+    },
+    "accessibility": {
+        "title": "Accessibility",
+        "highContrast": "High Contrast Mode",
+        "dates": {
+            "previousDay": "Previous day",
+            "nextDay": "Next day",
+            "today": "Today",
+            "selected": "Selected"
+        },
+        "actions": {
+            "addMedication": "Add new medication",
+            "addAppointment": "Add new appointment",
+            "addActivity": "Log new activity",
+            "take": "Mark as taken",
+            "skip": "Skip dose",
+            "postpone": "Postpone dose"
+        },
+        "status": {
+            "completed": "Completed",
+            "missed": "Missed",
+            "pending": "Pending",
+            "skipped": "Skipped"
+        },
+        "hints": {
+            "doubleTapToView": "Double tap to view details",
+            "doubleTapToEdit": "Double tap to edit",
+            "doubleTapToToggle": "Double tap to toggle"
         }
     }
 }

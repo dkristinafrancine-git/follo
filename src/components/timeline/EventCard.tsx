@@ -1,3 +1,4 @@
+import React from 'react';
 import {
     View,
     Text,
@@ -7,7 +8,9 @@ import {
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import * as Haptics from 'expo-haptics';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { CalendarEvent } from '../../types';
+import { useTheme } from '../../context/ThemeContext';
 
 interface EventCardProps {
     event: CalendarEvent;
@@ -19,8 +22,14 @@ interface EventCardProps {
 
 export function EventCard({ event, subtitle, onPress, onComplete, onSkip }: EventCardProps) {
     const { t } = useTranslation();
+    const { colors, isHighContrast } = useTheme();
+
+    const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
     const getEventStyle = () => {
+        if (isHighContrast) {
+            return { color: colors.primary, icon: '⭐' }; // Use simplified icon/color for HC
+        }
         switch (event.eventType) {
             case 'medication_due':
                 return { color: '#6366f1', icon: '💊' };
@@ -35,7 +44,20 @@ export function EventCard({ event, subtitle, onPress, onComplete, onSkip }: Even
         }
     };
 
+    const eventStyle = getEventStyle();
+
     const getStatusStyle = () => {
+        if (isHighContrast) {
+            // Simplified status text for High Contrast
+            const statusText = {
+                completed: t('medication.status.taken'),
+                missed: t('medication.status.missed'),
+                skipped: t('medication.status.skipped'),
+                pending: ''
+            }[event.status] || '';
+            return { color: colors.text, text: statusText };
+        }
+
         switch (event.status) {
             case 'completed':
                 return { color: '#10b981', text: t('medication.status.taken') };
@@ -48,7 +70,6 @@ export function EventCard({ event, subtitle, onPress, onComplete, onSkip }: Even
         }
     };
 
-    const eventStyle = getEventStyle();
     const statusStyle = getStatusStyle();
     const scheduledTime = new Date(event.scheduledTime);
     const isPending = event.status === 'pending';
@@ -64,14 +85,32 @@ export function EventCard({ event, subtitle, onPress, onComplete, onSkip }: Even
         onSkip?.();
     };
 
+    const dynamicStyles = {
+        container: {
+            backgroundColor: colors.card,
+            borderColor: colors.border,
+            borderWidth: isHighContrast ? 2 : 0
+        },
+        text: { color: colors.text },
+        subtext: { color: colors.subtext },
+        timeBg: { backgroundColor: isHighContrast ? '#333' : eventStyle.color + '40' },
+        timeText: { color: isHighContrast ? colors.text : eventStyle.color },
+    };
+
     return (
-        <TouchableOpacity
-            style={[styles.container, isOverdue && styles.containerOverdue]}
+        <AnimatedTouchable
+            entering={FadeIn.duration(400)}
+            exiting={FadeOut.duration(300)}
+            style={[styles.container, dynamicStyles.container, isOverdue && styles.containerOverdue]}
             onPress={onPress}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel={`${event.title}, ${subtitle || ''}, ${t('medication.time')}: ${format(scheduledTime, 'HH:mm')}, ${t('medication.status.label')}: ${statusStyle.text || t('accessibility.status.pending')}`}
+            accessibilityHint={t('accessibility.hints.doubleTapToView') || 'Double tap to view details'}
+            accessibilityState={{ disabled: false, selected: false, checked: event.status === 'completed' }}
         >
-            <View style={[styles.timeIndicator, { backgroundColor: eventStyle.color + '40' }]}>
-                <Text style={[styles.timeText, { color: eventStyle.color }]}>
+            <View style={[styles.timeIndicator, dynamicStyles.timeBg]}>
+                <Text style={[styles.timeText, dynamicStyles.timeText]}>
                     {format(scheduledTime, 'HH:mm')}
                 </Text>
             </View>
@@ -80,25 +119,32 @@ export function EventCard({ event, subtitle, onPress, onComplete, onSkip }: Even
                 <View style={styles.header}>
                     <Text style={styles.icon}>{eventStyle.icon}</Text>
                     <View style={styles.titleContainer}>
-                        <Text style={styles.title} numberOfLines={1}>{event.title}</Text>
-                        {subtitle && <Text style={styles.subtitle} numberOfLines={1}>{subtitle}</Text>}
+                        <Text style={[styles.title, dynamicStyles.text]} numberOfLines={1}>{event.title}</Text>
+                        {subtitle && <Text style={[styles.subtitle, dynamicStyles.subtext]} numberOfLines={1}>{subtitle}</Text>}
                     </View>
                 </View>
 
                 {!isPending ? (
-                    <View style={[styles.statusBadge, { backgroundColor: statusStyle.color + '20' }]}>
-                        <Text style={[styles.statusText, { color: statusStyle.color }]}>{statusStyle.text}</Text>
+                    <View style={[styles.statusBadge, { backgroundColor: isHighContrast ? '#333' : statusStyle.color + '20' }]}>
+                        <Text style={[styles.statusText, { color: isHighContrast ? colors.text : statusStyle.color }]}>{statusStyle.text}</Text>
                     </View>
                 ) : (
                     <View style={styles.actions}>
-                        <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
+                        <TouchableOpacity
+                            style={styles.skipButton}
+                            onPress={handleSkip}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('accessibility.actions.skip') || 'Skip'}
+                        >
                             <Text style={styles.skipButtonText}>{t('common.skip') ?? 'Skip'}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
-                            style={[styles.completeButton, { backgroundColor: eventStyle.color }]}
+                            style={[styles.completeButton, { backgroundColor: isHighContrast ? colors.primary : eventStyle.color }]}
                             onPress={handleComplete}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('accessibility.actions.take') || 'Take'}
                         >
-                            <Text style={styles.completeButtonText}>✓</Text>
+                            <Text style={[styles.completeButtonText, { color: isHighContrast ? '#000' : '#fff' }]}>✓</Text>
                         </TouchableOpacity>
                     </View>
                 )}
@@ -109,7 +155,7 @@ export function EventCard({ event, subtitle, onPress, onComplete, onSkip }: Even
                     <Text style={styles.overdueText}>⚠️</Text>
                 </View>
             )}
-        </TouchableOpacity>
+        </AnimatedTouchable>
     );
 }
 

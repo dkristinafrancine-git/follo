@@ -120,6 +120,54 @@ export const activityRepository = {
     },
 
     /**
+     * Update an activity
+     */
+    async update(id: string, input: Partial<CreateActivityInput>): Promise<Activity | null> {
+        const db = await getDatabase();
+        const existing = await this.getById(id);
+        if (!existing) return null;
+
+        const updates: string[] = [];
+        const values: (string | number | null)[] = [];
+
+        if (input.type !== undefined) {
+            updates.push('type = ?');
+            values.push(input.type);
+        }
+        if (input.value !== undefined) {
+            updates.push('value = ?');
+            values.push(input.value ?? null);
+        }
+        if (input.unit !== undefined) {
+            updates.push('unit = ?');
+            values.push(input.unit ?? null);
+        }
+        if (input.startTime !== undefined) {
+            updates.push('start_time = ?');
+            values.push(input.startTime);
+        }
+        if (input.endTime !== undefined) {
+            updates.push('end_time = ?');
+            values.push(input.endTime ?? null);
+        }
+        if (input.notes !== undefined) {
+            updates.push('notes = ?');
+            values.push(input.notes ?? null);
+        }
+
+        if (updates.length === 0) return existing;
+
+        values.push(id);
+
+        await db.runAsync(
+            `UPDATE activities SET ${updates.join(', ')} WHERE id = ?`,
+            values
+        );
+
+        return this.getById(id);
+    },
+
+    /**
      * Get weekly summary for a type
      */
     async getWeeklySummary(

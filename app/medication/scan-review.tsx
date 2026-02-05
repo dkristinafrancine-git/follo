@@ -51,7 +51,7 @@ export default function ScanReviewScreen() {
         // User story implies adding "without manual typing".
         // Let's navigate to the main Add Medication form with these params pre-filled.
         router.push({
-            pathname: '/medication/add',
+            pathname: '/medication/add' as any,
             params: {
                 prefilledName: name,
                 prefilledDosage: dosage,

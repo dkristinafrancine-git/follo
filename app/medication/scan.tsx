@@ -29,14 +29,13 @@ export default function ScannerScreen() {
         if (camera.current) {
             try {
                 const photo = await camera.current.takePhoto({
-                    qualityPrioritization: 'quality', // Prioritize reading text
                     flash: 'auto',
                     enableShutterSound: true,
                 });
 
                 // Navigate to review screen
                 router.push({
-                    pathname: '/medication/scan-review',
+                    pathname: '/medication/scan-review' as any,
                     params: { imageUri: 'file://' + photo.path }, // Ensure file:// scheme
                 });
             } catch (error) {

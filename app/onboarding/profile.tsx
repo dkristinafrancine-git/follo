@@ -50,8 +50,8 @@ export default function ProfileSetupScreen() {
 
             await createProfile(trimmedName, birthDate || undefined);
 
-            // Navigate to first medication setup (required)
-            router.push('/onboarding/first-medication' as Href);
+            // Navigate to permissions setup
+            router.push('/onboarding/permissions' as Href);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to create profile');
         } finally {

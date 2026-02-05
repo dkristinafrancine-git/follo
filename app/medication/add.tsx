@@ -133,6 +133,9 @@ export default function AddMedicationScreen() {
                         <Text
                             onPress={handleScan}
                             style={{ color: '#4A90D9', fontSize: 16, fontWeight: '600' }}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('medication.scanLabel') || 'Scan Label'}
+                            accessibilityHint="Opens camera to scan medication label"
                         >
                             Scan Label
                         </Text>

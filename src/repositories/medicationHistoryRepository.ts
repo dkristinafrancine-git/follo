@@ -285,4 +285,41 @@ export const medicationHistoryRepository = {
         );
         return (result?.count ?? 0) > 0;
     },
+
+    /**
+     * Get most missed medications with count
+     */
+    async getMostMissed(profileId: string, limit = 5): Promise<{ medicationId: string; count: number }[]> {
+        const db = await getDatabase();
+        const result = await db.getAllAsync<{ medication_id: string; count: number }>(
+            `SELECT medication_id, COUNT(*) as count 
+             FROM medication_history 
+             WHERE profile_id = ? AND status = 'missed'
+             GROUP BY medication_id 
+             ORDER BY count DESC 
+             LIMIT ?`,
+            [profileId, limit]
+        );
+        return result.map(r => ({ medicationId: r.medication_id, count: r.count }));
+    },
+
+    /**
+     * Get best adherence time (hour of day with most 'taken' status)
+     */
+    async getBestTime(profileId: string): Promise<{ hour: number; count: number } | null> {
+        const db = await getDatabase();
+        // SQLite: strftime('%H', scheduled_time) returns hour 00-23
+        const result = await db.getFirstAsync<{ hour: string; count: number }>(
+            `SELECT strftime('%H', scheduled_time) as hour, COUNT(*) as count 
+             FROM medication_history 
+             WHERE profile_id = ? AND status = 'taken'
+             GROUP BY hour
+             ORDER BY count DESC 
+             LIMIT 1`,
+            [profileId]
+        );
+
+        if (!result) return null;
+        return { hour: parseInt(result.hour, 10), count: result.count };
+    }
 };

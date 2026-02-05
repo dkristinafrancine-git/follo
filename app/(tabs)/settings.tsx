@@ -1,12 +1,48 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { router, Href } from 'expo-router';
+import { healthConnectService } from '../../src/services';
+import { useSecurity } from '../../src/hooks/useSecurity';
+import * as LocalAuthentication from 'expo-local-authentication';
+import * as SecureStore from 'expo-secure-store';
+import { useProfileStore } from '../../src/hooks/useProfiles';
+import { resetDatabase } from '../../src/database/index';
 
 export default function SettingsScreen() {
     const { t, i18n } = useTranslation();
     const [isKorean, setIsKorean] = useState(i18n.language === 'ko');
+    const [hcAvailable, setHcAvailable] = useState(false);
+    const [hcConnected, setHcConnected] = useState(false);
+    const [hasBiometrics, setHasBiometrics] = useState(false);
+
+    // Security Context
+    const {
+        hasPin,
+        isBiometricsEnabled,
+        toggleBiometrics,
+        autoLockTimeout,
+        setAutoLockTimeout
+    } = useSecurity();
+
+    const loadProfiles = useProfileStore(state => state.loadProfiles);
+
+    useEffect(() => {
+        const checkHardware = async () => {
+            const available = await healthConnectService.isAvailable();
+            setHcAvailable(available);
+            if (available) {
+                const connected = await healthConnectService.checkPermissions();
+                setHcConnected(connected);
+            }
+
+            // Check Biometrics
+            const bio = await LocalAuthentication.hasHardwareAsync();
+            setHasBiometrics(bio);
+        };
+        checkHardware();
+    }, []);
 
     const toggleLanguage = () => {
         const newLang = isKorean ? 'en' : 'ko';
@@ -14,11 +50,163 @@ export default function SettingsScreen() {
         setIsKorean(!isKorean);
     };
 
+    const handleHealthConnectToggle = async () => {
+        if (!hcAvailable) return;
+
+        if (!hcConnected) {
+            const success = await healthConnectService.requestPermissions();
+            if (success) {
+                setHcConnected(true);
+                Alert.alert(t('common.success'), t('settings.healthConnectConnected'));
+            } else {
+                Alert.alert(t('common.error'), t('settings.healthConnectFailed'));
+            }
+        } else {
+            // Provide instruction on how to disconnect (usually via system settings)
+            Alert.alert(t('settings.healthConnect'), t('settings.healthConnectDisconnect'));
+        }
+    };
+
+    const handleDeleteAllData = () => {
+        Alert.alert(
+            t('settings.dangerZone'),
+            t('settings.deleteAllConfirm') || "Are you sure you want to delete ALL data? This action cannot be undone.",
+            [
+                { text: t('common.cancel'), style: 'cancel' },
+                {
+                    text: t('settings.deleteAllData'),
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            // 1. Clear SecureStore (PIN, etc.)
+                            await SecureStore.deleteItemAsync('auth_pin_hash');
+                            await SecureStore.deleteItemAsync('auth_biometrics_enabled');
+                            await SecureStore.deleteItemAsync('auth_auto_lock_timeout');
+
+                            // 2. Reset Database
+                            await resetDatabase();
+
+                            // 3. Clear Zustand & Reload
+                            await loadProfiles();
+
+                            // 4. Navigate to Onboarding
+                            router.replace('/onboarding' as Href);
+
+                            Alert.alert(t('common.success'), "All data has been deleted.");
+                        } catch (error) {
+                            console.error(error);
+                            Alert.alert(t('common.error'), "Failed to delete data.");
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView style={styles.content}>
                 <View style={styles.header}>
                     <Text style={styles.title}>{t('settings.title')}</Text>
+                </View>
+
+                {/* Profile Management Section */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>{t('profile.yourProfile') || 'Profiles'}</Text>
+                    <TouchableOpacity
+                        style={styles.settingRow}
+                        onPress={() => router.push('/settings/profiles' as Href)}
+                    >
+                        <Text style={styles.settingLabel}>{t('profile.manageProfiles') || 'Manage Profiles'}</Text>
+                        <Text style={styles.arrow}>→</Text>
+                    </TouchableOpacity>
+                </View>
+
+                {/* Security Section */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>{t('settings.security')}</Text>
+
+                    {/* App Lock (PIN) */}
+                    <TouchableOpacity
+                        style={styles.settingRow}
+                        onPress={() => {
+                            router.push({
+                                pathname: '/auth/pin',
+                                params: { mode: hasPin ? 'disable' : 'setup' }
+                            });
+                        }}
+                    >
+                        <Text style={styles.settingLabel}>{t('settings.appLock')}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <Text style={[styles.settingValue, { marginRight: 8 }]}>
+                                {hasPin ? t('common.on') : t('common.off')}
+                            </Text>
+                            <Switch
+                                value={hasPin}
+                                onValueChange={() => {
+                                    router.push({
+                                        pathname: '/auth/pin',
+                                        params: { mode: hasPin ? 'disable' : 'setup' }
+                                    });
+                                }}
+                                trackColor={{ false: '#3e3e5e', true: '#6366f1' }}
+                                thumbColor="#ffffff"
+                            />
+                        </View>
+                    </TouchableOpacity>
+
+                    {/* Change PIN */}
+                    {hasPin && (
+                        <TouchableOpacity
+                            style={styles.settingRow}
+                            onPress={() => {
+                                router.push({
+                                    pathname: '/auth/pin',
+                                    params: { mode: 'setup' } // 'setup' implies changing/setting new
+                                });
+                            }}
+                        >
+                            <Text style={styles.settingLabel}>{t('settings.changePin')}</Text>
+                            <Text style={styles.arrow}>→</Text>
+                        </TouchableOpacity>
+                    )}
+
+                    {/* Biometrics */}
+                    {hasPin && hasBiometrics && (
+                        <View style={styles.settingRow}>
+                            <Text style={styles.settingLabel}>{t('settings.biometrics')}</Text>
+                            <Switch
+                                value={isBiometricsEnabled}
+                                onValueChange={toggleBiometrics}
+                                trackColor={{ false: '#3e3e5e', true: '#6366f1' }}
+                                thumbColor="#ffffff"
+                            />
+                        </View>
+                    )}
+
+                    {/* Auto-Lock Timeout */}
+                    {hasPin && (
+                        <View style={styles.settingRow}>
+                            <Text style={styles.settingLabel}>{t('settings.autoLock')}</Text>
+                            <View style={{ flexDirection: 'row', gap: 10 }}>
+                                {[1, 5, 15].map(min => (
+                                    <TouchableOpacity
+                                        key={min}
+                                        onPress={() => setAutoLockTimeout(min)}
+                                        style={[
+                                            styles.timeoutChip,
+                                            autoLockTimeout === min && styles.timeoutChipActive
+                                        ]}
+                                    >
+                                        <Text style={[
+                                            styles.timeoutText,
+                                            autoLockTimeout === min && styles.timeoutTextActive
+                                        ]}>{min}m</Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        </View>
+                    )}
                 </View>
 
                 {/* Language Section */}
@@ -34,6 +222,23 @@ export default function SettingsScreen() {
                         />
                     </View>
                 </View>
+
+                {/* Health Connect Section */}
+                {hcAvailable && (
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>{t('settings.healthConnect')}</Text>
+                        <View style={styles.settingRow}>
+                            <Text style={styles.settingLabel}>{t('settings.syncHealthConnect')}</Text>
+                            <Switch
+                                value={hcConnected}
+                                onValueChange={handleHealthConnectToggle}
+                                trackColor={{ false: '#3e3e5e', true: '#6366f1' }}
+                                thumbColor="#ffffff"
+                            />
+                        </View>
+                        <Text style={styles.description}>{t('settings.healthConnectDesc')}</Text>
+                    </View>
+                )}
 
                 {/* Notifications Section */}
                 <View style={styles.section}>
@@ -68,10 +273,25 @@ export default function SettingsScreen() {
                     </TouchableOpacity>
                 </View>
 
+                {/* Help Section */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>{t('settings.help') || 'Help'}</Text>
+                    <TouchableOpacity
+                        style={styles.settingRow}
+                        onPress={() => router.push('/onboarding/welcome?mode=tutorial' as Href)}
+                    >
+                        <Text style={styles.settingLabel}>{t('settings.replayTutorial') || 'Replay Tutorial'}</Text>
+                        <Text style={styles.arrow}>→</Text>
+                    </TouchableOpacity>
+                </View>
+
                 {/* Danger Zone */}
                 <View style={[styles.section, styles.dangerSection]}>
                     <Text style={[styles.sectionTitle, styles.dangerTitle]}>{t('settings.dangerZone')}</Text>
-                    <TouchableOpacity style={styles.dangerButton}>
+                    <TouchableOpacity
+                        style={styles.dangerButton}
+                        onPress={handleDeleteAllData}
+                    >
                         <Text style={styles.dangerButtonText}>{t('settings.deleteAllData')}</Text>
                     </TouchableOpacity>
                 </View>
@@ -107,6 +327,11 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         textTransform: 'uppercase',
         letterSpacing: 1,
+    },
+    description: {
+        fontSize: 12,
+        color: '#6b7280',
+        marginTop: 8,
     },
     settingRow: {
         backgroundColor: '#252542',
@@ -147,5 +372,21 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
         color: '#ef4444',
+    },
+    timeoutChip: {
+        backgroundColor: '#3e3e5e',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 8,
+    },
+    timeoutChipActive: {
+        backgroundColor: '#6366f1',
+    },
+    timeoutText: {
+        color: '#ffffff',
+        fontSize: 12,
+    },
+    timeoutTextActive: {
+        fontWeight: 'bold',
     },
 });

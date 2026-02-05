@@ -11,6 +11,7 @@ import {
     Animated,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import * as Haptics from 'expo-haptics';
 import { Profile } from '../../types';
 import { getProfileAvatarUrl } from '../../services/avatarService';
 
@@ -40,6 +41,7 @@ export function ProfileSelector({
     }, [isOpen]);
 
     const handleSelect = (profileId: string) => {
+        Haptics.selectionAsync();
         onSelectProfile(profileId);
         setIsOpen(false);
     };
@@ -53,7 +55,10 @@ export function ProfileSelector({
             {/* Trigger Button */}
             <TouchableOpacity
                 style={styles.trigger}
-                onPress={() => setIsOpen(true)}
+                onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setIsOpen(true);
+                }}
                 activeOpacity={0.7}
             >
                 {avatarUrl ? (

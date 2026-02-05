@@ -161,38 +161,38 @@ export default function MedicationDetailScreen() {
             <SafeAreaView style={styles.container} edges={['bottom']}>
                 <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
                     {/* Medication Info Card */}
-                    <View style={styles.card}>
+                    <View style={styles.card} accessibilityRole="summary" accessibilityLabel={`${medication.name}, ${medication.dosage || ''}`}>
                         <View style={styles.cardHeader}>
-                            <Text style={styles.pillIcon}>💊</Text>
+                            <Text style={styles.pillIcon} accessibilityLabel="Medication Icon">💊</Text>
                             <View style={styles.cardHeaderInfo}>
-                                <Text style={styles.medicationName}>{medication.name}</Text>
+                                <Text style={styles.medicationName} accessibilityRole="header">{medication.name}</Text>
                                 {medication.dosage && (
                                     <Text style={styles.medicationDosage}>{medication.dosage}</Text>
                                 )}
                             </View>
                         </View>
 
-                        <View style={styles.infoGrid}>
+                        <View style={styles.infoGrid} accessibilityRole="list">
                             {medication.form && (
-                                <View style={styles.infoItem}>
+                                <View style={styles.infoItem} accessible={true} accessibilityLabel={`${t('medication.form')}: ${medication.form}`}>
                                     <Text style={styles.infoLabel}>{t('medication.form')}</Text>
                                     <Text style={styles.infoValue}>{medication.form}</Text>
                                 </View>
                             )}
-                            <View style={styles.infoItem}>
+                            <View style={styles.infoItem} accessible={true} accessibilityLabel={`${t('medication.frequency')}: ${medication.frequencyRule?.frequency || 'Daily'}`}>
                                 <Text style={styles.infoLabel}>{t('medication.frequency')}</Text>
                                 <Text style={styles.infoValue}>
                                     {medication.frequencyRule?.frequency || 'Daily'}
                                 </Text>
                             </View>
-                            <View style={styles.infoItem}>
+                            <View style={styles.infoItem} accessible={true} accessibilityLabel={`${t('medication.time')}: ${medication.timeOfDay.join(', ')}`}>
                                 <Text style={styles.infoLabel}>{t('medication.time')}</Text>
                                 <Text style={styles.infoValue}>
                                     {medication.timeOfDay.join(', ')}
                                 </Text>
                             </View>
                             {medication.currentQuantity !== undefined && (
-                                <View style={styles.infoItem}>
+                                <View style={styles.infoItem} accessible={true} accessibilityLabel={`${t('medication.currentQuantity')}: ${medication.currentQuantity} remaining`}>
                                     <Text style={styles.infoLabel}>{t('medication.currentQuantity')}</Text>
                                     <Text style={[
                                         styles.infoValue,
@@ -250,12 +250,18 @@ export default function MedicationDetailScreen() {
                     <TouchableOpacity
                         style={styles.deleteButton}
                         onPress={() => setShowDeleteModal(true)}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('common.delete') || 'Delete'}
+                        accessibilityHint="Deletes this medication"
                     >
                         <Text style={styles.deleteButtonText}>{t('common.delete')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.editButton}
                         onPress={() => setMode('edit')}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('common.edit') || 'Edit'}
+                        accessibilityHint="Edits this medication"
                     >
                         <Text style={styles.editButtonText}>{t('common.edit')}</Text>
                     </TouchableOpacity>

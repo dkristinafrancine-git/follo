@@ -1,5 +1,5 @@
 import TextRecognition from 'react-native-mlkit-ocr';
-import medicationNames from '../data/medicationReference.json';
+import { drugCorrectionService } from './drugCorrectionService';
 
 export interface ParsedMedication {
     name?: string;
@@ -28,16 +28,15 @@ export class OCRService {
         let form: string | undefined;
         let frequency: string | undefined;
 
-        // 1. Identify Name (check against list or Regex for capitalized prominent words)
-        // Simple exhaustive check against known list for high confidence
-        for (const knownName of medicationNames) {
-            if (combinedText.toLowerCase().includes(knownName.toLowerCase())) {
-                name = knownName;
-                break;
-            }
+        // 1. Identify Name using SymSpell for fuzzy matching
+        // This handles noisy OCR like "L1pitor" or "Advi1"
+        const suggestions = drugCorrectionService.getDrugSuggestions(combinedText);
+
+        if (suggestions.length > 0) {
+            name = suggestions[0];
         }
 
-        // Fallback: Look for the first line that looks like a name (Alpha only, caps?) if not found
+        // Fallback: If no fuzzy match, look for highly capitalized words on single lines
         if (!name) {
             const potentialName = lines.find(l => /^[A-Z][a-z]+(\s[A-Z][a-z]+)?$/.test(l.trim()));
             if (potentialName) name = potentialName.trim();
@@ -83,7 +82,7 @@ export class OCRService {
             dosage,
             form,
             frequency,
-            confidence: name ? 0.8 : 0.4, // Rough confidence metric
+            confidence: name ? 0.8 : 0.4,
         };
     }
 }

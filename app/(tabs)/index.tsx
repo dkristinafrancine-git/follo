@@ -5,8 +5,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Href } from 'expo-router';
 import { startOfDay, endOfDay, format } from 'date-fns';
 import { useProfiles, useActiveProfile } from '../../src/hooks/useProfiles';
+import { useTheme } from '../../src/context/ThemeContext';
 import { ProfileSelector } from '../../src/components/common/ProfileSelector';
 import { DateCarousel, StatsSlider, EventCard } from '../../src/components/timeline';
+import { Skeleton } from '../../src/components/ui/Skeleton';
+import * as Haptics from 'expo-haptics';
 import { CalendarEvent } from '../../src/types';
 
 export default function TimelineScreen() {
@@ -27,6 +30,9 @@ export default function TimelineScreen() {
         currentStreak: 0,
         upcomingMeds: 0,
     });
+
+    // FAB Modal State
+    const [showFabMenu, setShowFabMenu] = useState(false);
 
     // Load events for selected date
     const loadEvents = useCallback(async () => {
@@ -94,12 +100,46 @@ export default function TimelineScreen() {
     const pendingEvents = events.filter(e => e.status === 'pending');
     const completedEvents = events.filter(e => e.status !== 'pending');
 
+    const handleFabPress = () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        setShowFabMenu(true);
+    };
+
+    const navigateTo = (path: Href) => {
+        setShowFabMenu(false);
+        router.push(path);
+    };
+
+    const { colors, isHighContrast } = useTheme();
+
+    const dynamicStyles = {
+        container: { backgroundColor: colors.background },
+        text: { color: colors.text },
+        actionsheet: {
+            backgroundColor: colors.card,
+            borderColor: colors.border,
+            borderWidth: isHighContrast ? 2 : 0
+        },
+        actionItem: {
+            backgroundColor: isHighContrast ? colors.background : '#3f3f5a',
+            borderColor: colors.border,
+            borderWidth: isHighContrast ? 1 : 0
+        },
+        fab: {
+            backgroundColor: isHighContrast ? colors.primary : '#6366f1',
+            borderWidth: isHighContrast ? 2 : 0,
+            borderColor: '#fff'
+        },
+        fabText: { color: isHighContrast ? '#000' : '#fff' }
+    };
+
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, dynamicStyles.container]}>
+            {/* ... existing ScrollView ... */}
             <ScrollView
                 style={styles.content}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#6366f1" />
+                    <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.primary} />
                 }
             >
                 {/* Profile Selector */}
@@ -129,7 +169,13 @@ export default function TimelineScreen() {
                     <Text style={styles.sectionTitle}>
                         {t('timeline.upcoming')} ({pendingEvents.length})
                     </Text>
-                    {pendingEvents.length > 0 ? (
+                    {isLoading ? (
+                        <>
+                            <Skeleton height={100} style={{ marginBottom: 12, borderRadius: 16 }} />
+                            <Skeleton height={100} style={{ marginBottom: 12, borderRadius: 16 }} />
+                            <Skeleton height={100} style={{ marginBottom: 12, borderRadius: 16 }} />
+                        </>
+                    ) : pendingEvents.length > 0 ? (
                         pendingEvents.map((event) => (
                             <EventCard
                                 key={event.id}
@@ -139,14 +185,14 @@ export default function TimelineScreen() {
                             />
                         ))
                     ) : (
-                        <View style={styles.emptyState}>
-                            <Text style={styles.emptyText}>{t('timeline.noUpcoming')}</Text>
+                        <View style={[styles.emptyState, dynamicStyles.actionsheet]}>
+                            <Text style={[styles.emptyText, dynamicStyles.text]}>{t('timeline.noUpcoming')}</Text>
                         </View>
                     )}
                 </View>
 
                 {/* Completed Today */}
-                {completedEvents.length > 0 && (
+                {!isLoading && completedEvents.length > 0 && (
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>
                             {t('timeline.history')} ({completedEvents.length})
@@ -163,14 +209,81 @@ export default function TimelineScreen() {
 
             {/* Floating Action Button */}
             <TouchableOpacity
-                style={styles.fab}
-                onPress={() => router.push('/medication/add' as Href)}
+                style={[styles.fab, dynamicStyles.fab]}
+                onPress={handleFabPress}
+                accessibilityRole="button"
+                accessibilityLabel={t('accessibility.actions.add') || 'Add new item'}
+                accessibilityHint={t('accessibility.hints.doubleTapToView') || 'Opens the add menu'}
             >
-                <Text style={styles.fabText}>+</Text>
+                <Text style={[styles.fabText, dynamicStyles.fabText]}>+</Text>
             </TouchableOpacity>
+
+            {/* FAB Action Sheet Modal */}
+            {showFabMenu && (
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setShowFabMenu(false)}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('common.close') || 'Close menu'}
+                >
+                    <View style={[styles.actionSheet, dynamicStyles.actionsheet]} accessibilityRole="menu">
+                        <Text style={[styles.actionSheetTitle, dynamicStyles.text]} accessibilityRole="header">{t('common.add') || 'Add New'}</Text>
+
+                        <TouchableOpacity
+                            style={[styles.actionItem, dynamicStyles.actionItem]}
+                            onPress={() => navigateTo('/medication/add' as Href)}
+                            accessibilityRole="menuitem"
+                            accessibilityLabel={t('accessibility.actions.addMedication')}
+                        >
+                            <View style={[styles.actionIcon, { backgroundColor: '#4A90D9' }]}>
+                                <Text style={styles.actionIconText}>💊</Text>
+                            </View>
+                            <Text style={[styles.actionText, dynamicStyles.text]}>{t('medication.addTitle') || 'Medication'}</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={[styles.actionItem, dynamicStyles.actionItem]}
+                            onPress={() => navigateTo('/supplement/add' as Href)}
+                            accessibilityRole="menuitem"
+                            accessibilityLabel={t('supplement.addTitle') || 'Supplement'}
+                        >
+                            <View style={[styles.actionIcon, { backgroundColor: '#F59E0B' }]}>
+                                <Text style={styles.actionIconText}>🧴</Text>
+                            </View>
+                            <Text style={[styles.actionText, dynamicStyles.text]}>{t('supplement.addTitle') || 'Supplement'}</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={[styles.actionItem, dynamicStyles.actionItem]}
+                            onPress={() => navigateTo('/appointment/add' as Href)}
+                            accessibilityRole="menuitem"
+                            accessibilityLabel={t('accessibility.actions.addAppointment')}
+                        >
+                            <View style={[styles.actionIcon, { backgroundColor: '#8b5cf6' }]}>
+                                <Text style={styles.actionIconText}>🩺</Text>
+                            </View>
+                            <Text style={[styles.actionText, dynamicStyles.text]}>{t('appointment.addTitle') || 'Appointment'}</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={[styles.actionItem, dynamicStyles.actionItem]}
+                            onPress={() => navigateTo('/activity/add' as Href)}
+                            accessibilityRole="menuitem"
+                            accessibilityLabel={t('accessibility.actions.addActivity')}
+                        >
+                            <View style={[styles.actionIcon, { backgroundColor: '#10b981' }]}>
+                                <Text style={styles.actionIconText}>🏃</Text>
+                            </View>
+                            <Text style={[styles.actionText, dynamicStyles.text]}>{t('activity.addTitle') || 'Activity'}</Text>
+                        </TouchableOpacity>
+                    </View>
+                </TouchableOpacity>
+            )}
         </SafeAreaView>
     );
 }
+
 
 const styles = StyleSheet.create({
     container: {
@@ -221,10 +334,59 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,
+        zIndex: 10,
     },
     fabText: {
         color: '#ffffff',
         fontSize: 28,
         fontWeight: '300',
+    },
+    modalOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        justifyContent: 'flex-end',
+        zIndex: 20,
+    },
+    actionSheet: {
+        backgroundColor: '#252542',
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        padding: 24,
+        paddingBottom: 40,
+    },
+    actionSheetTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#fff',
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    actionItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 20,
+        backgroundColor: '#3f3f5a',
+        padding: 16,
+        borderRadius: 16,
+    },
+    actionIcon: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 16,
+    },
+    actionIconText: {
+        fontSize: 20,
+    },
+    actionText: {
+        fontSize: 16,
+        color: '#fff',
+        fontWeight: '600',
     },
 });

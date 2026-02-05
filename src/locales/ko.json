@@ -39,8 +39,16 @@
         "exportData": "건강 데이터 내보내기",
         "emergency": "응급",
         "emergencyId": "응급 신분증",
+        "help": "도움말",
+        "replayTutorial": "튜토리얼 다시 보기",
+        "deleteAllConfirm": "모든 데이터를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
         "dangerZone": "위험 구역",
-        "deleteAllData": "모든 데이터 삭제"
+        "deleteAllData": "모든 데이터 삭제",
+        "security": "보안",
+        "appLock": "앱 잠금 (PIN)",
+        "changePin": "PIN 변경",
+        "biometrics": "생체 인식 잠금 해제",
+        "autoLock": "자동 잠금 시간"
     },
     "common": {
         "save": "저장",
@@ -50,7 +58,11 @@
         "add": "추가",
         "loading": "로딩 중...",
         "error": "문제가 발생했습니다",
-        "retry": "다시 시도"
+        "retry": "다시 시도",
+        "on": "켜짐",
+        "off": "꺼짐",
+        "close": "닫기",
+        "done": "완료"
     },
     "medication": {
         "name": "약 이름",
@@ -121,6 +133,38 @@
         "yourProfile": "내 프로필",
         "selectProfile": "프로필 선택",
         "primary": "기본",
-        "addProfile": "프로필 추가"
+        "addProfile": "프로필 추가",
+        "manageProfiles": "프로필 관리",
+        "active": "활성",
+        "deleteConfirm": "이 프로필을 삭제하시겠습니까?"
+    },
+    "accessibility": {
+        "title": "접근성",
+        "highContrast": "고대비 모드",
+        "dates": {
+            "previousDay": "이전 날짜",
+            "nextDay": "다음 날짜",
+            "today": "오늘",
+            "selected": "선택됨"
+        },
+        "actions": {
+            "addMedication": "새 약 추가",
+            "addAppointment": "새 예약 추가",
+            "addActivity": "새 활동 기록",
+            "take": "복용 완료로 표시",
+            "skip": "건너뛰기",
+            "postpone": "미루기"
+        },
+        "status": {
+            "completed": "완료됨",
+            "missed": "놓침",
+            "pending": "대기 중",
+            "skipped": "건너뜀"
+        },
+        "hints": {
+            "doubleTapToView": "두 번 탭하여 세부 정보 보기",
+            "doubleTapToEdit": "두 번 탭하여 편집",
+            "doubleTapToToggle": "두 번 탭하여 전환"
+        }
     }
 }

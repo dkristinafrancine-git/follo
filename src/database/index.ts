@@ -183,6 +183,8 @@ export async function initDatabase(): Promise<void> {
       ON medications(profile_id);
     CREATE INDEX IF NOT EXISTS idx_appointments_profile 
       ON appointments(profile_id, scheduled_time);
+    CREATE INDEX IF NOT EXISTS idx_medication_reference_name 
+      ON medication_reference(name);
   `);
 
   console.log('Database initialized successfully');
@@ -193,6 +195,32 @@ export async function closeDatabase(): Promise<void> {
     await db.closeAsync();
     db = null;
   }
+}
+
+export async function resetDatabase(): Promise<void> {
+  const database = await getDatabase();
+
+  // Disable foreign keys to allow dropping tables
+  await database.execAsync('PRAGMA foreign_keys = OFF;');
+
+  // List of all tables
+  const tables = [
+    'profiles', 'medications', 'medication_history', 'appointments',
+    'activities', 'supplements', 'supplement_history', 'calendar_events',
+    'emergency_data', 'medication_reference'
+  ];
+
+  for (const table of tables) {
+    await database.execAsync(`DROP TABLE IF EXISTS ${table};`);
+  }
+
+  // Re-enable foreign keys
+  await database.execAsync('PRAGMA foreign_keys = ON;');
+
+  // Re-initialize (recreate tables)
+  await initDatabase();
+
+  console.log('Database reset successfully');
 }
 
 export { db };

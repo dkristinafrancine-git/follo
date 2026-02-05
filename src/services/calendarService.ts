@@ -8,6 +8,7 @@ import {
     Medication,
     Supplement,
     Appointment,
+    Activity,
     CalendarEventType,
     CreateCalendarEventInput
 } from '../types';
@@ -159,6 +160,32 @@ export const calendarService = {
                 },
             });
         }
+    },
+
+    /**
+     * Generate a calendar event for an activity (completed event)
+     */
+    async generateActivityEvent(activity: Activity): Promise<void> {
+        // Delete any existing event for this activity
+        await calendarEventRepository.deleteBySource(activity.id);
+
+        await calendarEventRepository.create({
+            profileId: activity.profileId,
+            eventType: 'activity' as CalendarEventType,
+            sourceId: activity.id,
+            title: typeof activity.type === 'string'
+                ? activity.type.charAt(0).toUpperCase() + activity.type.slice(1)
+                : 'Activity',
+            scheduledTime: activity.startTime,
+            endTime: activity.endTime,
+            status: 'completed',
+            completedTime: activity.startTime,
+            metadata: {
+                value: activity.value,
+                unit: activity.unit,
+                notes: activity.notes,
+            },
+        });
     },
 
     /**

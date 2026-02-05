@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, Href } from 'expo-router';
+import { router, Href, useLocalSearchParams } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
@@ -56,6 +56,9 @@ const SLIDES: WelcomeSlide[] = [
 
 export default function WelcomeScreen() {
     const { t } = useTranslation();
+    const { mode } = useLocalSearchParams<{ mode: string }>();
+    const isTutorialMode = mode === 'tutorial';
+
     const [currentIndex, setCurrentIndex] = useState(0);
     const scrollX = useRef(new Animated.Value(0)).current;
     const flatListRef = useRef<FlatList>(null);
@@ -63,7 +66,7 @@ export default function WelcomeScreen() {
     const renderSlide = ({ item }: { item: WelcomeSlide }) => (
         <View style={[styles.slide, { width }]}>
             <View style={[styles.emojiContainer, { backgroundColor: item.color + '20' }]}>
-                <Text style={styles.emoji}>{item.emoji}</Text>
+                <Text style={styles.emoji} accessibilityLabel={item.emoji}>{item.emoji}</Text>
             </View>
             <Text style={styles.slideTitle}>{t(item.titleKey)}</Text>
             <Text style={styles.slideDescription}>{t(item.descriptionKey)}</Text>
@@ -71,7 +74,7 @@ export default function WelcomeScreen() {
     );
 
     const renderPagination = () => (
-        <View style={styles.pagination}>
+        <View style={styles.pagination} accessibilityRole="adjustable" accessibilityLabel={`Page ${currentIndex + 1} of ${SLIDES.length}`}>
             {SLIDES.map((_, index) => {
                 const inputRange = [(index - 1) * width, index * width, (index + 1) * width];
 
@@ -104,13 +107,21 @@ export default function WelcomeScreen() {
         if (currentIndex < SLIDES.length - 1) {
             flatListRef.current?.scrollToIndex({ index: currentIndex + 1 });
         } else {
-            // Go to profile creation
-            router.push('/onboarding/profile' as Href);
+            if (isTutorialMode) {
+                router.back();
+            } else {
+                // Go to profile creation
+                router.push('/onboarding/profile' as Href);
+            }
         }
     };
 
     const handleSkip = () => {
-        router.push('/onboarding/profile' as Href);
+        if (isTutorialMode) {
+            router.back();
+        } else {
+            router.push('/onboarding/profile' as Href);
+        }
     };
 
     const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
@@ -123,10 +134,17 @@ export default function WelcomeScreen() {
         <SafeAreaView style={styles.container}>
             {/* Header with Skip */}
             <View style={styles.header}>
-                <Text style={styles.logo}>🩺 Follo</Text>
+                <Text style={styles.logo} accessibilityRole="header">🩺 Follo</Text>
                 {currentIndex < SLIDES.length - 1 && (
-                    <TouchableOpacity onPress={handleSkip}>
-                        <Text style={styles.skipText}>{t('onboarding.skip')}</Text>
+                    <TouchableOpacity
+                        onPress={handleSkip}
+                        accessibilityRole="button"
+                        accessibilityLabel={isTutorialMode ? t('common.close') || 'Close' : t('onboarding.skip')}
+                        accessibilityHint="Skips the tutorial"
+                    >
+                        <Text style={styles.skipText}>
+                            {isTutorialMode ? t('common.close') || 'Close' : t('onboarding.skip')}
+                        </Text>
                     </TouchableOpacity>
                 )}
             </View>
@@ -157,11 +175,13 @@ export default function WelcomeScreen() {
                 <TouchableOpacity
                     style={[styles.nextButton, { backgroundColor: SLIDES[currentIndex].color }]}
                     onPress={handleNext}
+                    accessibilityRole="button"
+                    accessibilityLabel={currentIndex < SLIDES.length - 1 ? t('onboarding.next') : (isTutorialMode ? t('common.done') || 'Done' : t('onboarding.getStarted'))}
                 >
                     <Text style={styles.nextButtonText}>
                         {currentIndex < SLIDES.length - 1
                             ? t('onboarding.next')
-                            : t('onboarding.getStarted')
+                            : (isTutorialMode ? t('common.done') || 'Done' : t('onboarding.getStarted'))
                         }
                     </Text>
                 </TouchableOpacity>

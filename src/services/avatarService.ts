@@ -29,7 +29,7 @@ const AVATAR_COLORS = [
  */
 export function getAvatarUrl(
     seed: string,
-    style: AvatarStyle = 'bottts',
+    style: AvatarStyle = 'lorelei',
     size = 128
 ): string {
     // Create a simple hash from the seed to pick a background color
@@ -37,6 +37,8 @@ export function getAvatarUrl(
     const backgroundColor = AVATAR_COLORS[colorIndex];
 
     // DiceBear API URL
+    // Lorelei Neutral: usually implies specific mood or just the style.
+    // We append &mood=happy to make it pleasant but neutral enough.
     return `https://api.dicebear.com/7.x/${style}/png?seed=${encodeURIComponent(seed)}&size=${size}&backgroundColor=${backgroundColor}`;
 }
 
@@ -46,7 +48,7 @@ export function getAvatarUrl(
 export function getProfileAvatarUrl(
     profileName: string,
     profileId?: string,
-    style: AvatarStyle = 'bottts'
+    style: AvatarStyle = 'lorelei'
 ): string {
     // Use profile ID if available (more stable), otherwise use name
     const seed = profileId ?? profileName;
@@ -58,7 +60,7 @@ export function getProfileAvatarUrl(
  */
 export function getAvatarOptions(baseSeed: string, count = 6): string[] {
     return Array.from({ length: count }, (_, i) =>
-        getAvatarUrl(`${baseSeed}-${i}`, 'bottts')
+        getAvatarUrl(`${baseSeed}-${i}`, 'lorelei')
     );
 }
 

@@ -1,5 +1,6 @@
 import { randomUUID } from 'expo-crypto';
 import { getDatabase } from '../database';
+import { encryptionService } from '../services/encryptionService';
 import {
     EmergencyData,
     CreateEmergencyDataInput,
@@ -12,7 +13,9 @@ function rowToEmergencyData(row: Record<string, unknown>): EmergencyData {
     let allergies: string[] = [];
     if (row.allergies) {
         try {
-            allergies = JSON.parse(row.allergies as string);
+            // Decrypt first
+            const decrypted = encryptionService.decrypt(row.allergies as string);
+            allergies = JSON.parse(decrypted);
         } catch {
             allergies = [];
         }
@@ -54,6 +57,7 @@ export const emergencyDataRepository = {
      * Get emergency data for a profile
      */
     async getByProfile(profileId: string): Promise<EmergencyData | null> {
+        await encryptionService.initialize();
         const db = await getDatabase();
         const result = await db.getFirstAsync<Record<string, unknown>>(
             'SELECT * FROM emergency_data WHERE profile_id = ?',
@@ -84,7 +88,7 @@ export const emergencyDataRepository = {
          WHERE profile_id = ?`,
                 [
                     input.bloodType ?? null,
-                    JSON.stringify(input.allergies),
+                    encryptionService.encrypt(JSON.stringify(input.allergies)),
                     JSON.stringify(input.medicalConditions),
                     JSON.stringify(input.emergencyContacts),
                     input.organDonor ? 1 : 0,
@@ -111,7 +115,7 @@ export const emergencyDataRepository = {
                     id,
                     input.profileId,
                     input.bloodType ?? null,
-                    JSON.stringify(input.allergies),
+                    encryptionService.encrypt(JSON.stringify(input.allergies)),
                     JSON.stringify(input.medicalConditions),
                     JSON.stringify(input.emergencyContacts),
                     input.organDonor ? 1 : 0,
