@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, AppState, DeviceEventEmitter } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Href } from 'expo-router';
@@ -61,6 +61,24 @@ export default function TimelineScreen() {
 
     useEffect(() => {
         loadEvents();
+
+        // Listen for AppState changes (background -> foreground)
+        const appStateSubscription = AppState.addEventListener('change', nextAppState => {
+            if (nextAppState === 'active') {
+                loadEvents();
+            }
+        });
+
+        // Listen for events from NotificationService
+        const eventSubscription = DeviceEventEmitter.addListener('REFRESH_TIMELINE', () => {
+            console.log('Received REFRESH_TIMELINE event');
+            loadEvents();
+        });
+
+        return () => {
+            appStateSubscription.remove();
+            eventSubscription.remove();
+        };
     }, [loadEvents]);
 
     const handleRefresh = async () => {

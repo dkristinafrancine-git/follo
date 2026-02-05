@@ -41,8 +41,17 @@ export const calendarEventRepository = {
      */
     async getByDay(profileId: string, date: string): Promise<CalendarEvent[]> {
         const db = await getDatabase();
-        const startDate = `${date}T00:00:00.000Z`;
-        const endDate = `${date}T23:59:59.999Z`;
+
+        // Parse "YYYY-MM-DD" as local midnight
+        const [year, month, day] = date.split('-').map(Number);
+        const localStart = new Date(year, month - 1, day, 0, 0, 0);
+        const localEnd = new Date(year, month - 1, day, 23, 59, 59, 999);
+
+        // Convert to UTC for DB query
+        const startDate = localStart.toISOString();
+        const endDate = localEnd.toISOString();
+
+        console.log(`[Repo] getByDay: ${date} -> UTC range ${startDate} to ${endDate}`);
 
         const result = await db.getAllAsync<Record<string, unknown>>(
             `SELECT * FROM calendar_events 
@@ -60,9 +69,18 @@ export const calendarEventRepository = {
      */
     async getPendingToday(profileId: string): Promise<CalendarEvent[]> {
         const db = await getDatabase();
-        const today = new Date().toISOString().split('T')[0];
-        const startDate = `${today}T00:00:00.000Z`;
-        const endDate = `${today}T23:59:59.999Z`;
+
+        // Get today's date in local time
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        const day = now.getDate();
+
+        const localStart = new Date(year, month, day, 0, 0, 0);
+        const localEnd = new Date(year, month, day, 23, 59, 59, 999);
+
+        const startDate = localStart.toISOString();
+        const endDate = localEnd.toISOString();
 
         const result = await db.getAllAsync<Record<string, unknown>>(
             `SELECT * FROM calendar_events 
@@ -342,6 +360,18 @@ export const calendarEventRepository = {
     ): Promise<{ total: number; completed: number; missed: number; skipped: number; pending: number }> {
         const db = await getDatabase();
 
+        // Parse start date "YYYY-MM-DD"
+        const [startYear, startMonth, startDay] = startDate.split('-').map(Number);
+        const localStart = new Date(startYear, startMonth - 1, startDay, 0, 0, 0);
+
+        // Parse end date "YYYY-MM-DD"
+        const [endYear, endMonth, endDay] = endDate.split('-').map(Number);
+        const localEnd = new Date(endYear, endMonth - 1, endDay, 23, 59, 59, 999);
+
+        // Convert to UTC
+        const utcStart = localStart.toISOString();
+        const utcEnd = localEnd.toISOString();
+
         const result = await db.getFirstAsync<{
             total: number;
             completed: number;
@@ -350,16 +380,16 @@ export const calendarEventRepository = {
             pending: number;
         }>(
             `SELECT 
-        COUNT(*) as total,
-        SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
-        SUM(CASE WHEN status = 'missed' THEN 1 ELSE 0 END) as missed,
-        SUM(CASE WHEN status = 'skipped' THEN 1 ELSE 0 END) as skipped,
-        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending
-       FROM calendar_events 
-       WHERE profile_id = ? 
-       AND scheduled_time >= ? 
-       AND scheduled_time < ?`,
-            [profileId, startDate, endDate]
+         COUNT(*) as total,
+         SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
+         SUM(CASE WHEN status = 'missed' THEN 1 ELSE 0 END) as missed,
+         SUM(CASE WHEN status = 'skipped' THEN 1 ELSE 0 END) as skipped,
+         SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending
+        FROM calendar_events 
+        WHERE profile_id = ? 
+        AND scheduled_time >= ? 
+        AND scheduled_time <= ?`,
+            [profileId, utcStart, utcEnd]
         );
 
         return {

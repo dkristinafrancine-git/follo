@@ -13,7 +13,7 @@ import notifee, {
     EventType,
     Event
 } from '@notifee/react-native';
-import { Platform } from 'react-native';
+import { Platform, DeviceEventEmitter } from 'react-native';
 import { CalendarEvent } from '../types';
 import { calendarEventRepository, settingsRepository } from '../repositories';
 import { NotificationMode } from '../repositories/settingsRepository';
@@ -202,22 +202,33 @@ export const notificationService = {
 
                 if (pressAction.id === 'TAKE') {
                     // update inventory if it's a medication
+                    console.log(`[NotificationService] Processing TAKE for event ${eventId}`);
                     const event = await calendarEventRepository.getById(eventId);
+
                     if (event && event.eventType === 'medication_due') {
+                        console.log(`[NotificationService] Decrementing quantity for medication ${event.sourceId}`);
                         const { medicationRepository } = await import('../repositories');
                         await medicationRepository.decrementQuantity(event.sourceId);
+                        console.log(`[NotificationService] Quantity decremented`);
                     }
 
+                    console.log(`[NotificationService] Updating event status to completed`);
                     await calendarEventRepository.update(eventId, {
                         status: 'completed',
                         completedTime: new Date().toISOString(),
                     });
+                    console.log(`[NotificationService] Event updated, cancelling notification`);
                     await notifee.cancelNotification(notification.id!);
+                    console.log(`[NotificationService] Notification cancelled`);
+                    DeviceEventEmitter.emit('REFRESH_TIMELINE');
                 } else if (pressAction.id === 'SKIP') {
+                    console.log(`[NotificationService] Processing SKIP for event ${eventId}`);
                     await calendarEventRepository.update(eventId, {
                         status: 'skipped',
                     });
+                    console.log(`[NotificationService] Event updated to skipped`);
                     await notifee.cancelNotification(notification.id!);
+                    DeviceEventEmitter.emit('REFRESH_TIMELINE');
                 }
             }
         } catch (error) {
