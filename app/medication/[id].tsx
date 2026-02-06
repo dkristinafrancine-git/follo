@@ -14,7 +14,7 @@ import {
     ScrollView,
     Modal,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
@@ -33,6 +33,7 @@ export default function MedicationDetailScreen() {
     const { t } = useTranslation();
     const { colors } = useTheme();
     const router = useRouter();
+    const insets = useSafeAreaInsets();
 
     // Medication data
     const { medication, isLoading: loadingMed, error } = useMedication(id || null);
@@ -249,7 +250,7 @@ export default function MedicationDetailScreen() {
                 </ScrollView>
 
                 {/* Action Buttons */}
-                <View style={[styles.actions, { backgroundColor: colors.background, borderTopColor: colors.card }]}>
+                <View style={[styles.actions, { backgroundColor: colors.background, borderTopColor: colors.card, paddingBottom: insets.bottom + 16 }]}>
                     <TouchableOpacity
                         style={[styles.deleteButton, { backgroundColor: colors.card }]}
                         onPress={() => setShowDeleteModal(true)}

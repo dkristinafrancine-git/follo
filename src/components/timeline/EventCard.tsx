@@ -18,18 +18,18 @@ interface EventCardProps {
     onPress?: () => void;
     onComplete?: () => void;
     onSkip?: () => void;
+    onPostpone?: (minutes: number) => void;
 }
+// Create animated component outside
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
-export function EventCard({ event, subtitle, onPress, onComplete, onSkip }: EventCardProps) {
+export function EventCard({ event, subtitle, onPress, onComplete, onSkip, onPostpone }: EventCardProps) {
     const { t } = useTranslation();
     const { colors, isHighContrast } = useTheme();
 
-    const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
-
     const getEventStyle = () => {
-        if (isHighContrast) {
-            return { color: colors.primary, icon: '⭐' }; // Use simplified icon/color for HC
-        }
+        if (isHighContrast) return { color: colors.primary, icon: '⭐' };
+
         switch (event.eventType) {
             case 'medication_due':
                 return { color: '#6366f1', icon: '💊' };
@@ -85,6 +85,14 @@ export function EventCard({ event, subtitle, onPress, onComplete, onSkip }: Even
         onSkip?.();
     };
 
+    const [isPostponing, setIsPostponing] = React.useState(false);
+
+    const handlePostpone = (minutes: number) => {
+        Haptics.selectionAsync();
+        setIsPostponing(false);
+        onPostpone?.(minutes);
+    };
+
     const dynamicStyles = {
         container: {
             backgroundColor: colors.card,
@@ -128,15 +136,41 @@ export function EventCard({ event, subtitle, onPress, onComplete, onSkip }: Even
                     <View style={[styles.statusBadge, { backgroundColor: isHighContrast ? '#333' : statusStyle.color + '20' }]}>
                         <Text style={[styles.statusText, { color: isHighContrast ? colors.text : statusStyle.color }]}>{statusStyle.text}</Text>
                     </View>
+                ) : isPostponing ? (
+                    <View style={styles.postponeActions}>
+                        {[5, 15, 30].map(min => (
+                            <TouchableOpacity
+                                key={min}
+                                style={styles.postponeOption}
+                                onPress={() => handlePostpone(min)}
+                            >
+                                <Text style={styles.postponeOptionText}>{min}m</Text>
+                            </TouchableOpacity>
+                        ))}
+                        <TouchableOpacity
+                            style={styles.postponeCancel}
+                            onPress={() => setIsPostponing(false)}
+                        >
+                            <Text style={styles.postponeCancelText}>✕</Text>
+                        </TouchableOpacity>
+                    </View>
                 ) : (
                     <View style={styles.actions}>
                         <TouchableOpacity
-                            style={styles.skipButton}
+                            style={styles.actionButton}
+                            onPress={() => setIsPostponing(true)}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('accessibility.actions.postpone') || 'Postpone'}
+                        >
+                            <Text style={styles.actionButtonText}>🕒</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.actionButton}
                             onPress={handleSkip}
                             accessibilityRole="button"
                             accessibilityLabel={t('accessibility.actions.skip') || 'Skip'}
                         >
-                            <Text style={styles.skipButtonText}>{t('common.skip') ?? 'Skip'}</Text>
+                            <Text style={styles.actionButtonText}>{t('common.skip') ?? 'Skip'}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={[styles.completeButton, { backgroundColor: isHighContrast ? colors.primary : eventStyle.color }]}
@@ -227,7 +261,17 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
     },
-    skipButton: {
+    actionButton: {
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+        marginRight: 8,
+    },
+    actionButtonText: {
+        color: '#9ca3af',
+        fontSize: 13,
+        fontWeight: '500',
+    },
+    skipButton: { // Keep for backward compatibility if needed, but we used actionButton above
         paddingHorizontal: 12,
         paddingVertical: 8,
         marginRight: 8,
@@ -257,4 +301,27 @@ const styles = StyleSheet.create({
     overdueText: {
         fontSize: 14,
     },
+    postponeActions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    postponeOption: {
+        backgroundColor: '#3f3f5a',
+        paddingHorizontal: 8,
+        paddingVertical: 6,
+        borderRadius: 8,
+        marginRight: 6,
+    },
+    postponeOptionText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    postponeCancel: {
+        padding: 4,
+    },
+    postponeCancelText: {
+        color: '#9ca3af',
+        fontSize: 16,
+    }
 });

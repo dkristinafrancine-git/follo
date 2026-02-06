@@ -17,7 +17,7 @@ import {
     medicationHistoryRepository,
     calendarEventRepository,
 } from '../repositories';
-import { calendarService } from '../services';
+import { calendarService, notificationService } from '../services';
 
 // Default values per implementation plan
 const DEFAULT_REFILL_THRESHOLD = 7;
@@ -358,12 +358,7 @@ export function useMedicationActions(profileId: string | null): UseMedicationAct
             setError(null);
 
             try {
-                // 1. Log postponement in history (optional, currently not logging postpones in history as they are just reschedules)
-                // However, user story 4.3 mentions "postpone frequency tracking", so we might want to log it.
-                // For now, we'll just reschedule the event.
-                // Ideally, we should add a 'postponed' status to medication_history or a separate log. 
-                // Let's record it as 'postponed' in history for tracking.
-
+                // 1. Log postponement in history
                 await medicationHistoryRepository.recordStatus(
                     profileId,
                     medicationId,
@@ -375,12 +370,19 @@ export function useMedicationActions(profileId: string | null): UseMedicationAct
                 // 2. Update calendar_event time
                 const events = await calendarEventRepository.getBySourceAndTime(medicationId, scheduledTime);
                 if (events.length > 0) {
-                    await calendarEventRepository.postponeEvent(events[0].id, minutes);
-                }
+                    const eventId = events[0].id;
+                    await calendarEventRepository.postponeEvent(eventId, minutes);
 
-                // 3. TODO: Update widget/notification
-                // await notificationService.cancelNotification(events[0].id);
-                // await notificationService.scheduleNotification(events[0].id, newTime);
+                    // 3. Update notification
+                    // Cancel existing notification
+                    await notificationService.cancelNotification(eventId);
+
+                    // Schedule new notification for the updated event
+                    const updatedEvent = await calendarEventRepository.getById(eventId);
+                    if (updatedEvent) {
+                        await notificationService.scheduleEventNotification(updatedEvent);
+                    }
+                }
             } catch (err) {
                 const error = err instanceof Error ? err : new Error('Failed to postpone medication');
                 setError(error);

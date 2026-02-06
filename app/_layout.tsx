@@ -51,7 +51,7 @@ export default function RootLayout() {
             await notificationService.handleNotificationEvent(event);
 
             // Also check for alarm usage in foreground (if active)
-            if (event.type === EventType.PRESS && event.detail.notification?.android?.channelId === 'heavy_sleeper_alarm') {
+            if (event.type === EventType.PRESS && event.detail.notification?.android?.channelId === 'heavy_sleeper_alarm_v2') {
                 router.replace({
                     pathname: '/alarm',
                     params: { eventId: String(event.detail.notification.data?.eventId) }
@@ -157,7 +157,7 @@ async function checkInitialNotification() {
     const initialNotification = await notifee.getInitialNotification();
     if (initialNotification) {
         const { notification } = initialNotification;
-        if (notification.android?.channelId === 'heavy_sleeper_alarm' && notification.data?.eventId) {
+        if (notification.android?.channelId === 'heavy_sleeper_alarm_v2' && notification.data?.eventId) {
             // Give it a moment for navigation to mount
             setTimeout(() => {
                 router.replace({

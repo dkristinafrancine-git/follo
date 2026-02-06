@@ -22,7 +22,7 @@ import { NotificationMode } from '../repositories/settingsRepository';
 export const NOTIFICATION_CHANNELS = {
     MEDICATION_REMINDER: 'medication_reminder',
     APPOINTMENT_REMINDER: 'appointment_reminder',
-    HEAVY_SLEEPER_ALARM: 'heavy_sleeper_alarm',
+    HEAVY_SLEEPER_ALARM: 'heavy_sleeper_alarm_v2',
 } as const;
 
 export const notificationService = {

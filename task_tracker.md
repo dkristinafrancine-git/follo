@@ -300,3 +300,9 @@
 - **Progress:** `assembleDebug` passed configuration phase. Currently compiling native modules (CMake).
 - **Outcome:** Build Successful! `app-debug.apk` created.
 - **Root Cause:** Missing `react-native-worklets` package required by Reanimated 4.x. Install + Rebuild fixed it.
+
+### Heavy Sleeper Mode Fix (2026-02-06 21:14)
+- **Status:** Success
+- **Action:** Updated `MainActivity.kt` for specific lock screen flags. Updated Notifee channel to v2. Implemented alarm sound.
+- **Build:** Built via `gradlew app:assembleDebug` and installed manually via `adb install` after uninstalling old version to avoid storage limits.
+

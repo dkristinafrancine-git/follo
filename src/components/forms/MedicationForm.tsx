@@ -14,6 +14,7 @@ import {
     ScrollView,
     Modal,
     Platform,
+    Alert,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import DateTimePicker from '@react-native-community/datetimepicker';

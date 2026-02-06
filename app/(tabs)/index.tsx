@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Href } from 'expo-router';
 import { startOfDay, endOfDay, format } from 'date-fns';
 import { useProfiles, useActiveProfile } from '../../src/hooks/useProfiles';
+import { useMedicationActions } from '../../src/hooks/useMedications';
 import { useTheme } from '../../src/context/ThemeContext';
 import { ProfileSelector } from '../../src/components/common/ProfileSelector';
 import { DateCarousel, StatsSlider, EventCard } from '../../src/components/timeline';
@@ -114,6 +115,17 @@ export default function TimelineScreen() {
         }
     };
 
+    const { markPostponed } = useMedicationActions(activeProfile?.id || null);
+
+    const handleEventPostpone = async (event: CalendarEvent, minutes: number) => {
+        try {
+            await markPostponed(event.sourceId, event.scheduledTime, minutes);
+            await loadEvents();
+        } catch (error) {
+            console.error('Failed to postpone event:', error);
+        }
+    };
+
     // Separate pending and completed events
     const pendingEvents = events.filter(e => e.status === 'pending');
     const completedEvents = events.filter(e => e.status !== 'pending');
@@ -202,8 +214,10 @@ export default function TimelineScreen() {
                             <EventCard
                                 key={event.id}
                                 event={event}
+                                onPress={() => router.push(`/medication/${event.sourceId}`)}
                                 onComplete={() => handleEventComplete(event.id)}
                                 onSkip={() => handleEventSkip(event.id)}
+                                onPostpone={(minutes) => handleEventPostpone(event, minutes)}
                             />
                         ))
                     ) : (
@@ -220,7 +234,11 @@ export default function TimelineScreen() {
                             {t('timeline.history')} ({completedEvents.length})
                         </Text>
                         {completedEvents.map((event) => (
-                            <EventCard key={event.id} event={event} />
+                            <EventCard
+                                key={event.id}
+                                event={event}
+                                onPress={() => router.push(`/medication/${event.sourceId}`)}
+                            />
                         ))}
                     </View>
                 )}

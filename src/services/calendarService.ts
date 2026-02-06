@@ -47,8 +47,15 @@ export const calendarService = {
             return;
         }
 
-        // Delete existing future events for this medication to regenerate
-        await calendarEventRepository.deleteBySource(medication.id);
+        const now = new Date();
+        // Use safe delete from now onwards to preserve history
+        // We delete from the start of the current day to allow regenerating today's schedule if needed
+        // but only for PENDING events. Completed events are safe.
+        const regenerationStart = startOfDay(new Date());
+        await calendarEventRepository.deleteFuturePendingEvents(
+            medication.id,
+            regenerationStart.toISOString()
+        );
 
         const events: CreateCalendarEventInput[] = [];
         let currentDate = startOfDay(startDate);
@@ -60,9 +67,19 @@ export const calendarService = {
                 // Create an event for each time of day
                 for (const time of medication.timeOfDay) {
                     const scheduledTime = combineDateTime(currentDate, time);
+                    const scheduledDate = new Date(scheduledTime);
 
-                    // Only create future events
-                    if (isAfter(new Date(scheduledTime), new Date())) {
+                    // Allow events for today (even if time passed) and future dates.
+                    // Only skip if the scheduled time is significantly in the past (before today)
+                    // The "startOfDay(now)" check above handles the date iteration start, 
+                    // but we ensure we don't double-create if we passed a historic startDate.
+                    // However, we WANT to create today's past events so user can mark them.
+
+                    const isToday = startOfDay(scheduledDate).getTime() === startOfDay(now).getTime();
+                    const isFuture = isAfter(scheduledDate, now);
+
+                    // We create the event if it is in the future OR if it is today (even if time passed)
+                    if (isFuture || isToday) {
                         events.push({
                             profileId: medication.profileId,
                             eventType: 'medication_due' as CalendarEventType,
@@ -102,7 +119,12 @@ export const calendarService = {
             return;
         }
 
-        await calendarEventRepository.deleteBySource(supplement.id);
+        const now = new Date();
+        const regenerationStart = startOfDay(new Date());
+        await calendarEventRepository.deleteFuturePendingEvents(
+            supplement.id,
+            regenerationStart.toISOString()
+        );
 
         const events: CreateCalendarEventInput[] = [];
         let currentDate = startOfDay(startDate);
@@ -112,8 +134,12 @@ export const calendarService = {
             if (shouldScheduleOnDate(supplement.frequencyRule, currentDate, new Date(supplement.createdAt))) {
                 for (const time of supplement.timeOfDay) {
                     const scheduledTime = combineDateTime(currentDate, time);
+                    const scheduledDate = new Date(scheduledTime);
 
-                    if (isAfter(new Date(scheduledTime), new Date())) {
+                    const isToday = startOfDay(scheduledDate).getTime() === startOfDay(now).getTime();
+                    const isFuture = isAfter(scheduledDate, now);
+
+                    if (isFuture || isToday) {
                         events.push({
                             profileId: supplement.profileId,
                             eventType: 'supplement_due' as CalendarEventType,

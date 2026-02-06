@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-nati
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useKeepAwake } from 'expo-keep-awake';
-import { Audio } from 'expo-av';
+import { Audio, InterruptionModeAndroid } from 'expo-av';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, runOnJS, withTiming } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { notificationService } from '../src/services/notificationService';
@@ -43,37 +43,51 @@ export default function AlarmScreen() {
 
     useEffect(() => {
         // Play Alarm Sound
-        let soundObject: Audio.Sound;
-
         async function playSound() {
             try {
                 await Audio.setAudioModeAsync({
                     playsInSilentModeIOS: true,
                     staysActiveInBackground: true,
                     shouldDuckAndroid: true,
+                    interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
+                    playThroughEarpieceAndroid: false,
                 });
 
-                // For MVP, we play a default system sound mechanism or just silent loop if asset missing.
-                // Since we don't have a guaranteed asset, we'll log for now.
-                // In a real app, 'require(...)' would point to a bundled mp3.
-                console.log('Alarm sound would play here (looping)');
+                // Try to load the alarm sound
+                // User must add 'assets/alarm.mp3'
+                try {
+                    const { sound: newSound } = await Audio.Sound.createAsync(
+                        require('../assets/sounds/alarm.mp3'),
+                        { isLooping: true, shouldPlay: true }
+                    );
+                    setSound(newSound);
+                } catch (e) {
+                    console.warn('Alarm sound file not found. Please add assets/sounds/alarm.mp3');
+                }
 
             } catch (error) {
-                console.error('Failed to play alarm sound', error);
+                console.error('Failed to configure audio session', error);
             }
         }
 
         playSound();
 
         return () => {
-            // soundObject?.unloadAsync();
+            sound?.unloadAsync();
         };
     }, []);
 
     const handleTake = async () => {
-        if (!event) return;
+        if (sound) {
+            try {
+                await sound.stopAsync();
+                await sound.unloadAsync();
+            } catch (e) {
+                console.log('Error stopping sound', e);
+            }
+        }
 
-        // Stop sound logic here
+        if (!event) return;
 
         // Perform "Take" action logic
         if (event.eventType === 'medication_due') {
@@ -95,7 +109,14 @@ export default function AlarmScreen() {
     };
 
     const handleSnooze = async () => {
-        // sound?.stopAsync();
+        if (sound) {
+            try {
+                await sound.stopAsync();
+                await sound.unloadAsync();
+            } catch (e) {
+                console.log('Error stopping sound', e);
+            }
+        }
         // Just go back for now, real snooze would reschedule
         router.replace('/(tabs)');
     };

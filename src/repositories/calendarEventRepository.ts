@@ -321,6 +321,22 @@ export const calendarEventRepository = {
     },
 
     /**
+     * Delete only future pending events for a source (safe regeneration)
+     * Preserves history (completed/skipped/missed) and past pending events
+     */
+    async deleteFuturePendingEvents(sourceId: string, fromDate: string): Promise<number> {
+        const db = await getDatabase();
+        const result = await db.runAsync(
+            `DELETE FROM calendar_events 
+       WHERE source_id = ? 
+       AND scheduled_time >= ? 
+       AND status = 'pending'`,
+            [sourceId, fromDate]
+        );
+        return result.changes;
+    },
+
+    /**
      * Get overdue pending events
      */
     async getOverdue(profileId: string): Promise<CalendarEvent[]> {
