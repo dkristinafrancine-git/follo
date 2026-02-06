@@ -19,6 +19,7 @@ import { useTranslation } from 'react-i18next';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { CreateSupplementInput, Supplement, RecurrenceRule } from '../../types';
 import { format, parse } from 'date-fns';
+import { useTheme } from '../../context/ThemeContext';
 
 interface SupplementFormProps {
     initialValues?: Partial<Supplement>;
@@ -35,6 +36,7 @@ const FREQUENCIES = [
 
 export function SupplementForm({ initialValues, onSubmit, onCancel, isLoading = false }: SupplementFormProps) {
     const { t } = useTranslation();
+    const { colors } = useTheme();
 
     // Form State
     const [name, setName] = useState(initialValues?.name || '');
@@ -112,46 +114,46 @@ export function SupplementForm({ initialValues, onSubmit, onCancel, isLoading = 
     };
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
             <View style={styles.field}>
-                <Text style={styles.label}>{t('medication.name') || 'Name'} *</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('medication.name') || 'Name'} *</Text>
                 <TextInput
-                    style={[styles.input, errors.name && styles.inputError]}
+                    style={[styles.input, { backgroundColor: colors.card, color: colors.text }, errors.name && { borderColor: colors.danger, borderWidth: 1 }]}
                     value={name}
                     onChangeText={setName}
                     placeholder={t('supplement.namePlaceholder') || 'e.g., Vitamin C'}
-                    placeholderTextColor="#6b7280"
+                    placeholderTextColor={colors.subtext}
                 />
-                {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+                {errors.name && <Text style={[styles.errorText, { color: colors.danger }]}>{errors.name}</Text>}
             </View>
 
             <View style={styles.row}>
                 <View style={[styles.field, { flex: 1 }]}>
-                    <Text style={styles.label}>{t('medication.dosage') || 'Dosage'}</Text>
+                    <Text style={[styles.label, { color: colors.subtext }]}>{t('medication.dosage') || 'Dosage'}</Text>
                     <TextInput
-                        style={styles.input}
+                        style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
                         value={dosage}
                         onChangeText={setDosage}
                         placeholder="e.g., 500mg"
-                        placeholderTextColor="#6b7280"
+                        placeholderTextColor={colors.subtext}
                     />
                 </View>
 
                 <View style={[styles.field, { flex: 1 }]}>
-                    <Text style={styles.label}>{t('medication.stock') || 'Current Stock'}</Text>
+                    <Text style={[styles.label, { color: colors.subtext }]}>{t('medication.stock') || 'Current Stock'}</Text>
                     <TextInput
-                        style={styles.input}
+                        style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
                         value={stock}
                         onChangeText={setStock}
                         placeholder="0"
                         keyboardType="number-pad"
-                        placeholderTextColor="#6b7280"
+                        placeholderTextColor={colors.subtext}
                     />
                 </View>
             </View>
 
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>{t('medication.schedule') || 'Schedule'}</Text>
+            <View style={[styles.section, { backgroundColor: colors.card }]}>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('medication.schedule') || 'Schedule'}</Text>
 
                 <View style={styles.frequencyContainer}>
                     {FREQUENCIES.map((freq) => (
@@ -159,13 +161,15 @@ export function SupplementForm({ initialValues, onSubmit, onCancel, isLoading = 
                             key={freq.value}
                             style={[
                                 styles.freqButton,
-                                frequency === freq.value && styles.freqButtonSelected
+                                { backgroundColor: colors.background }, // Use background for unselected to contrast with card
+                                frequency === freq.value && { backgroundColor: colors.primary }
                             ]}
                             onPress={() => setFrequency(freq.value as 'daily' | 'weekly' | 'monthly' | 'custom')}
                         >
                             <Text style={[
                                 styles.freqText,
-                                frequency === freq.value && styles.freqTextSelected
+                                { color: colors.subtext },
+                                frequency === freq.value && { color: '#fff' }
                             ]}>
                                 {freq.label}
                             </Text>
@@ -174,41 +178,41 @@ export function SupplementForm({ initialValues, onSubmit, onCancel, isLoading = 
                 </View>
 
                 <View style={styles.timesContainer}>
-                    <Text style={styles.label}>{t('medication.times') || 'Time of Day'}</Text>
+                    <Text style={[styles.label, { color: colors.subtext }]}>{t('medication.times') || 'Time of Day'}</Text>
                     {times.map((time, index) => (
                         <View key={index} style={styles.timeRow}>
                             <TouchableOpacity
-                                style={styles.timeButton}
+                                style={[styles.timeButton, { backgroundColor: colors.background, borderColor: colors.border }]}
                                 onPress={() => openTimePicker(index)}
                             >
-                                <Text style={styles.timeText}>
+                                <Text style={[styles.timeText, { color: colors.text }]}>
                                     {format(parse(time, 'HH:mm', new Date()), 'h:mm a')}
                                 </Text>
                             </TouchableOpacity>
                             {times.length > 1 && (
                                 <TouchableOpacity
                                     onPress={() => removeTime(index)}
-                                    style={styles.removeBtn}
+                                    style={[styles.removeBtn, { backgroundColor: colors.background }]}
                                 >
-                                    <Text style={styles.removeBtnText}>✕</Text>
+                                    <Text style={[styles.removeBtnText, { color: colors.danger }]}>✕</Text>
                                 </TouchableOpacity>
                             )}
                         </View>
                     ))}
-                    <TouchableOpacity style={styles.addTimeBtn} onPress={addTime}>
-                        <Text style={styles.addTimeText}>+ {t('common.addTime') || 'Add Time'}</Text>
+                    <TouchableOpacity style={[styles.addTimeBtn, { borderColor: colors.primary }]} onPress={addTime}>
+                        <Text style={[styles.addTimeText, { color: colors.primary }]}>+ {t('common.addTime') || 'Add Time'}</Text>
                     </TouchableOpacity>
                 </View>
             </View>
 
             <View style={styles.field}>
-                <Text style={styles.label}>{t('common.notes') || 'Notes'}</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('common.notes') || 'Notes'}</Text>
                 <TextInput
-                    style={[styles.input, styles.textArea]}
+                    style={[styles.input, styles.textArea, { backgroundColor: colors.card, color: colors.text }]}
                     value={notes}
                     onChangeText={setNotes}
                     placeholder={t('common.notesPlaceholder') || 'e.g., Take with food'}
-                    placeholderTextColor="#6b7280"
+                    placeholderTextColor={colors.subtext}
                     multiline
                     numberOfLines={3}
                     textAlignVertical="top"
@@ -216,10 +220,10 @@ export function SupplementForm({ initialValues, onSubmit, onCancel, isLoading = 
             </View>
 
             <View style={styles.actions}>
-                <TouchableOpacity style={styles.cancelButton} onPress={onCancel} disabled={isLoading}>
-                    <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
+                <TouchableOpacity style={[styles.cancelButton, { backgroundColor: colors.card }]} onPress={onCancel} disabled={isLoading}>
+                    <Text style={[styles.cancelButtonText, { color: colors.text }]}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={isLoading}>
+                <TouchableOpacity style={[styles.submitButton, { backgroundColor: colors.primary }]} onPress={handleSubmit} disabled={isLoading}>
                     <Text style={styles.submitButtonText}>{isLoading ? t('common.loading') : t('common.save')}</Text>
                 </TouchableOpacity>
             </View>
@@ -239,7 +243,6 @@ export function SupplementForm({ initialValues, onSubmit, onCancel, isLoading = 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#1a1a2e',
     },
     content: {
         padding: 20,
@@ -247,14 +250,12 @@ const styles = StyleSheet.create({
     },
     section: {
         marginBottom: 24,
-        backgroundColor: '#252542',
         padding: 16,
         borderRadius: 12,
     },
     sectionTitle: {
         fontSize: 16,
         fontWeight: '700',
-        color: '#fff',
         marginBottom: 16,
     },
     field: {
@@ -268,24 +269,16 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#9ca3af',
         marginBottom: 8,
         textTransform: 'uppercase',
     },
     input: {
-        backgroundColor: '#252542',
         borderRadius: 12,
         paddingHorizontal: 16,
         paddingVertical: 14,
         fontSize: 16,
-        color: '#ffffff',
-    },
-    inputError: {
-        borderWidth: 1,
-        borderColor: '#ef4444',
     },
     errorText: {
-        color: '#ef4444',
         fontSize: 12,
         marginTop: 4,
     },
@@ -302,18 +295,10 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingVertical: 10,
         borderRadius: 8,
-        backgroundColor: '#3f3f5a',
         alignItems: 'center',
     },
-    freqButtonSelected: {
-        backgroundColor: '#4A90D9',
-    },
     freqText: {
-        color: '#9ca3af',
         fontWeight: '600',
-    },
-    freqTextSelected: {
-        color: '#fff',
     },
     timesContainer: {
         gap: 12,
@@ -325,25 +310,20 @@ const styles = StyleSheet.create({
     },
     timeButton: {
         flex: 1,
-        backgroundColor: '#1a1a2e',
         paddingVertical: 12,
         paddingHorizontal: 16,
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: '#3f3f5a',
     },
     timeText: {
-        color: '#fff',
         fontSize: 16,
         textAlign: 'center',
     },
     removeBtn: {
         padding: 10,
-        backgroundColor: '#3f3f5a',
         borderRadius: 8,
     },
     removeBtnText: {
-        color: '#ef4444',
         fontWeight: 'bold',
     },
     addTimeBtn: {
@@ -351,12 +331,10 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#4A90D9',
         borderRadius: 8,
         borderStyle: 'dashed',
     },
     addTimeText: {
-        color: '#4A90D9',
         fontWeight: '600',
     },
     actions: {
@@ -368,20 +346,17 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingVertical: 16,
         borderRadius: 12,
-        backgroundColor: '#3f3f5a',
         alignItems: 'center',
         justifyContent: 'center',
     },
     cancelButtonText: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#ffffff',
     },
     submitButton: {
         flex: 2,
         paddingVertical: 16,
         borderRadius: 12,
-        backgroundColor: '#4A90D9',
         alignItems: 'center',
         justifyContent: 'center',
     },

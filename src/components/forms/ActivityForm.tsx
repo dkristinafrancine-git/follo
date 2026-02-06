@@ -1,9 +1,9 @@
 /**
  * ActivityForm Component
- * Dynamic form for logging different types of activities
+ * Form for adding and editing activities/exercises
  */
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import {
     View,
     Text,
@@ -17,258 +17,222 @@ import { useTranslation } from 'react-i18next';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
 import { Activity, CreateActivityInput, ActivityType } from '../../types';
+import { useTheme } from '../../context/ThemeContext';
+
+const ACTIVITY_TYPES: { type: ActivityType; label: string; icon: string }[] = [
+    { type: 'exercise', label: 'Exercise', icon: '🏋️' },
+    { type: 'meditation', label: 'Meditation', icon: '🧘' },
+    { type: 'therapy', label: 'Therapy', icon: '🗣️' },
+    { type: 'journaling', label: 'Journaling', icon: '✍️' },
+    { type: 'meal', label: 'Meal', icon: '🥗' },
+    { type: 'other', label: 'Other', icon: '✨' },
+];
+
+const MOODS = ['😢', '😕', '😐', '🙂', '😄'];
 
 interface ActivityFormProps {
-    onSubmit: (data: Partial<CreateActivityInput>) => Promise<void>;
+    initialValues?: Partial<Activity>;
+    onSubmit: (data: CreateActivityInput) => Promise<void>;
     onCancel: () => void;
     isLoading?: boolean;
 }
 
-// Activity Types with Icons and Colors
-const ACTIVITY_TYPES: { type: ActivityType; label: string; icon: string; color: string }[] = [
-    { type: 'water', label: 'Water', icon: '💧', color: '#3b82f6' },
-    { type: 'exercise', label: 'Exercise', icon: '🏃', color: '#ef4444' },
-    { type: 'sleep', label: 'Sleep', icon: '😴', color: '#8b5cf6' },
-    { type: 'mood', label: 'Mood', icon: '😊', color: '#f59e0b' },
-    { type: 'symptom', label: 'Symptom', icon: '🤒', color: '#10b981' },
-    { type: 'custom', label: 'Other', icon: '📝', color: '#6b7280' },
-];
-
-const MOODS = ['😞', '😐', '🙂', '😊', '🤩']; // 1 to 5
-
-export function ActivityForm({ onSubmit, onCancel, isLoading = false }: ActivityFormProps) {
+export function ActivityForm({ initialValues, onSubmit, onCancel, isLoading = false }: ActivityFormProps) {
     const { t } = useTranslation();
+    const { colors } = useTheme();
 
-    // Form state
-    const [selectedType, setSelectedType] = useState<ActivityType>('water');
-    const [startTime, setStartTime] = useState(new Date());
-    const [endTime, setEndTime] = useState<Date | undefined>(undefined);
-    const [value, setValue] = useState<string>(''); // Parsed to number on submit
-    const [unit, setUnit] = useState<string>(''); // e.g., ml, min
-    const [notes, setNotes] = useState('');
-    const [customName, setCustomName] = useState('');
+    // Form State
+    const [selectedType, setSelectedType] = useState<ActivityType>(initialValues?.type || 'exercise');
+    const [title, setTitle] = useState(initialValues?.title || '');
+    const [duration, setDuration] = useState(initialValues?.durationMinutes?.toString() || '30');
+    const [intensity, setIntensity] = useState(initialValues?.intensity || 'medium');
+    const [moodBefore, setMoodBefore] = useState(initialValues?.moodBefore || 3);
+    const [notes, setNotes] = useState(initialValues?.notes || '');
+    const [completedAt, setCompletedAt] = useState(initialValues?.completedAt ? new Date(initialValues.completedAt) : new Date());
 
-    // Picker state
-    const [showStartPicker, setShowStartPicker] = useState(false);
-    const [showEndPicker, setShowEndPicker] = useState(false);
+    // Picker State
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [showTimePicker, setShowTimePicker] = useState(false);
 
-    // Dynamic defaults based on type
-    const handleTypeSelect = (type: ActivityType) => {
-        setSelectedType(type);
-        setNotes('');
-        setValue('');
-        setEndTime(undefined);
-        setCustomName('');
+    // Errors
+    const [errors, setErrors] = useState<Record<string, string>>({});
 
-        // Set default units
-        if (type === 'water') setUnit('ml');
-        if (type === 'exercise') setUnit('min');
-        if (type === 'sleep') setUnit('hours');
-        if (type === 'vital_signs') setUnit('');
-        if (type === 'custom') setUnit('');
+    const validate = () => {
+        const newErrors: Record<string, string> = {};
+        if (!title.trim() && selectedType === 'other') newErrors.title = t('common.required');
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     };
 
-    // Submit handler
-    const handleSubmit = useCallback(async () => {
-        const activityType = selectedType === 'custom' && customName.trim()
-            ? customName.trim().toLowerCase().replace(/\s+/g, '_')
-            : selectedType;
+    const handleSubmit = async () => {
+        if (!validate()) return;
 
-        const data: Partial<CreateActivityInput> = {
-            type: activityType,
-            startTime: startTime.toISOString(),
+        const defaultTitle = ACTIVITY_TYPES.find(t => t.type === selectedType)?.label || 'Activity';
+
+        const activityData: CreateActivityInput = {
+            profileId: initialValues?.profileId || '', // Injected by parent
+            type: selectedType,
+            title: title.trim() || defaultTitle,
+            durationMinutes: parseInt(duration) || 0,
+            intensity: intensity as 'low' | 'medium' | 'high',
+            moodBefore,
             notes: notes.trim() || undefined,
-            unit: unit || undefined,
+            completedAt: completedAt.toISOString(),
         };
 
-        // If it's a custom type, we might want to store the display name in notes or handled by capitalization
-        if (selectedType === 'custom' && customName.trim()) {
-            // Optional: Append original name to notes if needed, or rely on type
-        }
+        await onSubmit(activityData);
+    };
 
-        if (selectedType === 'sleep' && endTime) {
-            data.endTime = endTime.toISOString();
-            // Calculate duration in hours
-            const diff = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
-            data.value = Number(diff.toFixed(1));
-        } else if (value) {
-            data.value = parseFloat(value);
-        }
-
-        await onSubmit(data);
-    }, [selectedType, startTime, endTime, value, unit, notes, onSubmit]);
-
-    const handleDateChange = (event: unknown, selectedDate?: Date, isEnd = false) => {
-        if (Platform.OS === 'android') {
-            setShowStartPicker(false);
-            setShowEndPicker(false);
-        }
-
+    const handleDateChange = (event: unknown, selectedDate?: Date) => {
+        setShowDatePicker(Platform.OS === 'ios');
         if (selectedDate) {
-            if (isEnd) {
-                setEndTime(selectedDate);
-            } else {
-                setStartTime(selectedDate);
-            }
+            const newDate = new Date(completedAt);
+            newDate.setFullYear(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+            setCompletedAt(newDate);
         }
     };
 
-    // Render logic for specific input fields
-    const renderInputFields = () => {
-        switch (selectedType) {
-            case 'water':
-                return (
-                    <View style={styles.inputGroup}>
-                        <Text style={styles.label}>{t('activity.amount') || 'Amount (ml)'}</Text>
-                        <View style={styles.row}>
-                            <TextInput
-                                style={[styles.input, { flex: 1 }]}
-                                value={value}
-                                onChangeText={setValue}
-                                placeholder="250"
-                                keyboardType="numeric"
-                                placeholderTextColor="#6b7280"
-                            />
-                            <View style={styles.quickAddRow}>
-                                <TouchableOpacity onPress={() => setValue((prev) => String((parseFloat(prev || '0') + 250)))} style={styles.quickAddBtn}><Text style={styles.quickAddText}>+250</Text></TouchableOpacity>
-                                <TouchableOpacity onPress={() => setValue((prev) => String((parseFloat(prev || '0') + 500)))} style={styles.quickAddBtn}><Text style={styles.quickAddText}>+500</Text></TouchableOpacity>
-                            </View>
-                        </View>
-                    </View>
-                );
-            case 'exercise':
-                return (
-                    <View style={styles.inputGroup}>
-                        <Text style={styles.label}>{t('activity.duration') || 'Duration (min)'}</Text>
-                        <TextInput
-                            style={styles.input}
-                            value={value}
-                            onChangeText={setValue}
-                            placeholder="30"
-                            keyboardType="numeric"
-                            placeholderTextColor="#6b7280"
-                        />
-                    </View>
-                );
-            case 'sleep':
-                return (
-                    <View style={styles.inputGroup}>
-                        <View style={styles.row}>
-                            <View style={{ flex: 1 }}>
-                                <Text style={styles.label}>{t('activity.sleepStart') || 'Sleep Start'}</Text>
-                                <TouchableOpacity style={styles.pickerButton} onPress={() => setShowStartPicker(true)}>
-                                    <Text style={styles.pickerButtonText}>{format(startTime, 'MMM d, HH:mm')}</Text>
-                                </TouchableOpacity>
-                            </View>
-                            <View style={{ flex: 1 }}>
-                                <Text style={styles.label}>{t('activity.sleepEnd') || 'Wake Up'}</Text>
-                                <TouchableOpacity style={styles.pickerButton} onPress={() => setShowEndPicker(true)}>
-                                    <Text style={styles.pickerButtonText}>{endTime ? format(endTime, 'MMM d, HH:mm') : 'Select time'}</Text>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                    </View>
-                );
-            case 'mood':
-                return (
-                    <View style={styles.inputGroup}>
-                        <Text style={styles.label}>{t('activity.mood') || 'How are you feeling?'}</Text>
-                        <View style={styles.moodContainer}>
-                            {MOODS.map((emoji, index) => (
-                                <TouchableOpacity
-                                    key={index}
-                                    style={[styles.moodBtn, parseInt(value) === index + 1 && styles.moodBtnSelected]}
-                                    onPress={() => setValue(String(index + 1))}
-                                >
-                                    <Text style={styles.moodEmoji}>{emoji}</Text>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-                    </View>
-                );
-            default:
-                return (
-                    <View style={styles.inputGroup}>
-                        <View style={styles.field}>
-                            <Text style={styles.label}>{t('activity.metricName') || 'Metric Name'}</Text>
-                            <TextInput
-                                style={styles.input}
-                                value={customName}
-                                onChangeText={setCustomName}
-                                placeholder="e.g., Weight, Blood Pressure"
-                                placeholderTextColor="#6b7280"
-                            />
-                        </View>
-                        <View style={styles.row}>
-                            <View style={{ flex: 1 }}>
-                                <Text style={styles.label}>{t('activity.value') || 'Value'}</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    value={value}
-                                    onChangeText={setValue}
-                                    placeholder="0"
-                                    keyboardType="numeric"
-                                    placeholderTextColor="#6b7280"
-                                />
-                            </View>
-                            <View style={{ flex: 1 }}>
-                                <Text style={styles.label}>{t('activity.unit') || 'Unit'}</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    value={unit}
-                                    onChangeText={setUnit}
-                                    placeholder="e.g., kg, mmHg"
-                                    placeholderTextColor="#6b7280"
-                                />
-                            </View>
-                        </View>
-                    </View>
-                );
+    const handleTimeChange = (event: unknown, selectedDate?: Date) => {
+        setShowTimePicker(Platform.OS === 'ios');
+        if (selectedDate) {
+            const newDate = new Date(completedAt);
+            newDate.setHours(selectedDate.getHours(), selectedDate.getMinutes());
+            setCompletedAt(newDate);
         }
     };
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-            {/* Type Selector */}
-            <View style={styles.typeGrid}>
+        <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
+            {/* Activity Type Selection */}
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('activity.type') || 'Activity Type'}</Text>
+            <View style={styles.typesGrid}>
                 {ACTIVITY_TYPES.map((item) => (
                     <TouchableOpacity
                         key={item.type}
                         style={[
                             styles.typeCard,
-                            selectedType === item.type && { backgroundColor: item.color, borderColor: item.color }
+                            { backgroundColor: colors.card },
+                            selectedType === item.type && { backgroundColor: colors.primary, borderColor: colors.primary }
                         ]}
-                        onPress={() => handleTypeSelect(item.type)}
+                        onPress={() => setSelectedType(item.type)}
                     >
                         <Text style={styles.typeIcon}>{item.icon}</Text>
-                        <Text style={[styles.typeLabel, selectedType === item.type && { color: '#fff' }]}>
+                        <Text style={[
+                            styles.typeLabel,
+                            { color: colors.subtext },
+                            selectedType === item.type && { color: '#ffffff', fontWeight: '700' }
+                        ]}>
                             {item.label}
                         </Text>
                     </TouchableOpacity>
                 ))}
             </View>
 
-            {/* Dynamic Inputs */}
-            {renderInputFields()}
+            {/* Details Section */}
+            <View style={styles.field}>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('activity.title') || 'Title (Optional)'}</Text>
+                <TextInput
+                    style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
+                    value={title}
+                    onChangeText={setTitle}
+                    placeholder={ACTIVITY_TYPES.find(t => t.type === selectedType)?.label}
+                    placeholderTextColor={colors.subtext}
+                />
+            </View>
 
-            {/* Common Inputs */}
-            {selectedType !== 'sleep' && (
-                <View style={styles.field}>
-                    <Text style={styles.label}>{t('activity.time') || 'Time'}</Text>
-                    <TouchableOpacity style={styles.pickerButton} onPress={() => setShowStartPicker(true)}>
-                        <Text style={styles.pickerButtonText}>{format(startTime, 'MMM d, HH:mm')}</Text>
+            <View style={styles.row}>
+                <View style={[styles.field, { flex: 1 }]}>
+                    <Text style={[styles.label, { color: colors.subtext }]}>{t('activity.duration') || 'Duration (min)'}</Text>
+                    <TextInput
+                        style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
+                        value={duration}
+                        onChangeText={setDuration}
+                        keyboardType="number-pad"
+                        placeholder="30"
+                        placeholderTextColor={colors.subtext}
+                    />
+                </View>
+
+                <View style={[styles.field, { flex: 1 }]}>
+                    <Text style={[styles.label, { color: colors.subtext }]}>{t('activity.intensity') || 'Intensity'}</Text>
+                    <View style={styles.intensityContainer}>
+                        {(['low', 'medium', 'high'] as const).map((level) => (
+                            <TouchableOpacity
+                                key={level}
+                                style={[
+                                    styles.intensityButton,
+                                    { backgroundColor: colors.card },
+                                    intensity === level && { backgroundColor: colors.primary }
+                                ]}
+                                onPress={() => setIntensity(level)}
+                            >
+                                <Text style={[
+                                    styles.intensityText,
+                                    { color: colors.subtext },
+                                    intensity === level && { color: '#ffffff', fontWeight: '600' }
+                                ]}>
+                                    {level.charAt(0).toUpperCase()}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                </View>
+            </View>
+
+            {/* Date & Time */}
+            <View style={styles.row}>
+                <View style={[styles.field, { flex: 1 }]}>
+                    <Text style={[styles.label, { color: colors.subtext }]}>{t('activity.date') || 'Date'}</Text>
+                    <TouchableOpacity
+                        style={[styles.pickerButton, { backgroundColor: colors.card }]}
+                        onPress={() => setShowDatePicker(true)}
+                    >
+                        <Text style={[styles.pickerButtonText, { color: colors.text }]}>
+                            {format(completedAt, 'MMM d, yyyy')}
+                        </Text>
                     </TouchableOpacity>
                 </View>
-            )}
+                <View style={[styles.field, { flex: 1 }]}>
+                    <Text style={[styles.label, { color: colors.subtext }]}>{t('activity.time') || 'Time'}</Text>
+                    <TouchableOpacity
+                        style={[styles.pickerButton, { backgroundColor: colors.card }]}
+                        onPress={() => setShowTimePicker(true)}
+                    >
+                        <Text style={[styles.pickerButtonText, { color: colors.text }]}>
+                            {format(completedAt, 'HH:mm')}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
 
+            {/* Mood Selection */}
             <View style={styles.field}>
-                <Text style={styles.label}>{t('activity.notes') || 'Notes'}</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('activity.mood') || 'Mood Before'}</Text>
+                <View style={[styles.moodContainer, { backgroundColor: colors.card }]}>
+                    {MOODS.map((emoji, index) => (
+                        <TouchableOpacity
+                            key={index}
+                            style={[
+                                styles.moodButton,
+                                moodBefore === index + 1 && { backgroundColor: `${colors.primary}30`, borderColor: colors.primary }
+                            ]}
+                            onPress={() => setMoodBefore(index + 1)}
+                        >
+                            <Text style={styles.moodEmoji}>{emoji}</Text>
+                        </TouchableOpacity>
+                    ))}
+                </View>
+            </View>
+
+            {/* Notes */}
+            <View style={styles.field}>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('common.notes') || 'Notes'}</Text>
                 <TextInput
-                    style={[styles.input, styles.textArea]}
+                    style={[styles.input, styles.textArea, { backgroundColor: colors.card, color: colors.text }]}
                     value={notes}
                     onChangeText={setNotes}
-                    placeholder={t('activity.notesPlaceholder') || 'Add details...'}
-                    placeholderTextColor="#6b7280"
+                    placeholder={t('common.notesPlaceholder') || 'How did it go?'}
+                    placeholderTextColor={colors.subtext}
                     multiline
                     numberOfLines={3}
                     textAlignVertical="top"
@@ -277,29 +241,30 @@ export function ActivityForm({ onSubmit, onCancel, isLoading = false }: Activity
 
             {/* Actions */}
             <View style={styles.actions}>
-                <TouchableOpacity style={styles.cancelButton} onPress={onCancel} disabled={isLoading}>
-                    <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
+                <TouchableOpacity style={[styles.cancelButton, { backgroundColor: colors.card }]} onPress={onCancel} disabled={isLoading}>
+                    <Text style={[styles.cancelButtonText, { color: colors.text }]}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={isLoading}>
+                <TouchableOpacity style={[styles.submitButton, { backgroundColor: colors.primary }]} onPress={handleSubmit} disabled={isLoading}>
                     <Text style={styles.submitButtonText}>{isLoading ? t('common.loading') : t('common.save')}</Text>
                 </TouchableOpacity>
             </View>
 
-            {/* Pickers */}
-            {showStartPicker && (
+            {/* Date Pickers */}
+            {showDatePicker && (
                 <DateTimePicker
-                    value={startTime}
-                    mode="time"
+                    value={completedAt}
+                    mode="date"
                     display="default"
-                    onChange={(e, d) => handleDateChange(e, d, false)}
+                    onChange={handleDateChange}
                 />
             )}
-            {showEndPicker && (
+            {showTimePicker && (
                 <DateTimePicker
-                    value={endTime || new Date()}
+                    value={completedAt}
                     mode="time"
+                    is24Hour={true}
                     display="default"
-                    onChange={(e, d) => handleDateChange(e, d, true)}
+                    onChange={handleTimeChange}
                 />
             )}
         </ScrollView>
@@ -309,137 +274,127 @@ export function ActivityForm({ onSubmit, onCancel, isLoading = false }: Activity
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#1a1a2e',
     },
     content: {
         padding: 20,
         paddingBottom: 40,
     },
-    typeGrid: {
+    sectionTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        marginBottom: 12,
+    },
+    typesGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 12,
+        gap: 10,
         marginBottom: 24,
     },
     typeCard: {
         width: '30%',
         aspectRatio: 1,
-        backgroundColor: '#252542',
-        borderRadius: 16,
-        justifyContent: 'center',
+        borderRadius: 12,
         alignItems: 'center',
-        borderWidth: 2,
-        borderColor: 'transparent',
+        justifyContent: 'center',
+        padding: 8,
     },
     typeIcon: {
-        fontSize: 32,
+        fontSize: 24,
         marginBottom: 8,
     },
     typeLabel: {
         fontSize: 12,
-        color: '#9ca3af',
-        fontWeight: '600',
-    },
-    inputGroup: {
-        marginBottom: 20,
+        textAlign: 'center',
     },
     field: {
         marginBottom: 20,
     },
+    row: {
+        flexDirection: 'row',
+        gap: 12,
+        marginBottom: 10,
+    },
     label: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#9ca3af',
         marginBottom: 8,
         textTransform: 'uppercase',
     },
     input: {
-        backgroundColor: '#252542',
         borderRadius: 12,
         paddingHorizontal: 16,
-        paddingVertical: 16,
+        paddingVertical: 14,
         fontSize: 16,
-        color: '#ffffff',
-        minHeight: 56,
     },
     textArea: {
         minHeight: 100,
         paddingTop: 16,
     },
-    row: {
+    intensityContainer: {
         flexDirection: 'row',
-        gap: 12,
-        alignItems: 'center',
-    },
-    quickAddRow: {
-        flexDirection: 'row',
+        height: 50,
         gap: 8,
     },
-    quickAddBtn: {
-        backgroundColor: '#3f3f5a',
-        paddingHorizontal: 12,
-        paddingVertical: 8,
+    intensityButton: {
+        flex: 1,
         borderRadius: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: 'transparent',
     },
-    quickAddText: {
-        color: '#fff',
+    intensityText: {
         fontWeight: '600',
+        fontSize: 14,
     },
     pickerButton: {
-        backgroundColor: '#252542',
         borderRadius: 12,
         paddingHorizontal: 16,
-        paddingVertical: 16,
-        minHeight: 56,
+        paddingVertical: 14,
         justifyContent: 'center',
+        height: 50,
     },
     pickerButtonText: {
         fontSize: 16,
-        color: '#ffffff',
     },
     moodContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        backgroundColor: '#252542',
-        padding: 16,
+        padding: 12,
         borderRadius: 12,
     },
-    moodBtn: {
-        padding: 8,
-        borderRadius: 50,
+    moodButton: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        alignItems: 'center',
+        justifyContent: 'center',
         borderWidth: 2,
         borderColor: 'transparent',
     },
-    moodBtnSelected: {
-        backgroundColor: '#4A90D920',
-        borderColor: '#4A90D9',
-    },
     moodEmoji: {
-        fontSize: 32,
+        fontSize: 24,
     },
     actions: {
         flexDirection: 'row',
         gap: 12,
-        marginTop: 8,
+        marginTop: 20,
     },
     cancelButton: {
         flex: 1,
         paddingVertical: 16,
         borderRadius: 12,
-        backgroundColor: '#3f3f5a',
         alignItems: 'center',
         justifyContent: 'center',
     },
     cancelButtonText: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#ffffff',
     },
     submitButton: {
         flex: 2,
         paddingVertical: 16,
         borderRadius: 12,
-        backgroundColor: '#4A90D9',
         alignItems: 'center',
         justifyContent: 'center',
     },

@@ -12,10 +12,12 @@ import { AppointmentForm } from '../../src/components/forms/AppointmentForm';
 import { useCreateAppointment } from '../../src/hooks/useAppointments';
 import { useActiveProfile } from '../../src/hooks/useProfiles';
 import { CreateAppointmentInput } from '../../src/types';
+import { useTheme } from '../../src/context/ThemeContext';
 
 export default function AddAppointmentScreen() {
     const { t } = useTranslation();
     const router = useRouter();
+    const { colors } = useTheme();
 
     const { activeProfile } = useActiveProfile();
     const { create, isLoading, error } = useCreateAppointment();
@@ -67,13 +69,13 @@ export default function AddAppointmentScreen() {
                         headerShown: true,
                         presentation: 'modal',
                         title: t('appointment.addTitle') || 'Add Appointment',
-                        headerStyle: { backgroundColor: '#1a1a2e' },
-                        headerTintColor: '#fff',
+                        headerStyle: { backgroundColor: colors.background },
+                        headerTintColor: colors.text,
                     }}
                 />
-                <SafeAreaView style={styles.container} edges={['bottom']}>
+                <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['bottom']}>
                     <View style={styles.loadingContainer}>
-                        <ActivityIndicator size="large" color="#4A90D9" />
+                        <ActivityIndicator size="large" color={colors.primary} />
                     </View>
                 </SafeAreaView>
             </>
@@ -87,11 +89,11 @@ export default function AddAppointmentScreen() {
                     headerShown: true,
                     presentation: 'modal',
                     title: t('appointment.addTitle') || 'Add Appointment',
-                    headerStyle: { backgroundColor: '#1a1a2e' },
-                    headerTintColor: '#fff',
+                    headerStyle: { backgroundColor: colors.background },
+                    headerTintColor: colors.text,
                 }}
             />
-            <SafeAreaView style={styles.container} edges={['bottom']}>
+            <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['bottom']}>
                 <AppointmentForm
                     onSubmit={handleSubmit}
                     onCancel={handleCancel}
@@ -106,7 +108,6 @@ export default function AddAppointmentScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#1a1a2e',
     },
     loadingContainer: {
         flex: 1,

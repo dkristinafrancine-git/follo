@@ -12,10 +12,12 @@ import { ActivityForm } from '../../src/components/forms/ActivityForm';
 import { useCreateActivity } from '../../src/hooks/useActivities';
 import { useActiveProfile } from '../../src/hooks/useProfiles';
 import { CreateActivityInput } from '../../src/types';
+import { useTheme } from '../../src/context/ThemeContext';
 
 export default function AddActivityScreen() {
     const { t } = useTranslation();
     const router = useRouter();
+    const { colors } = useTheme();
 
     const { activeProfile } = useActiveProfile();
     const { create, isLoading, error } = useCreateActivity();
@@ -67,13 +69,13 @@ export default function AddActivityScreen() {
                         headerShown: true,
                         presentation: 'modal',
                         title: t('activity.addTitle') || 'Log Activity',
-                        headerStyle: { backgroundColor: '#1a1a2e' },
-                        headerTintColor: '#fff',
+                        headerStyle: { backgroundColor: colors.background },
+                        headerTintColor: colors.text,
                     }}
                 />
-                <SafeAreaView style={styles.container} edges={['bottom']}>
+                <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['bottom']}>
                     <View style={styles.loadingContainer}>
-                        <ActivityIndicator size="large" color="#4A90D9" />
+                        <ActivityIndicator size="large" color={colors.primary} />
                     </View>
                 </SafeAreaView>
             </>
@@ -87,11 +89,11 @@ export default function AddActivityScreen() {
                     headerShown: true,
                     presentation: 'modal',
                     title: t('activity.addTitle') || 'Log Activity',
-                    headerStyle: { backgroundColor: '#1a1a2e' },
-                    headerTintColor: '#fff',
+                    headerStyle: { backgroundColor: colors.background },
+                    headerTintColor: colors.text,
                 }}
             />
-            <SafeAreaView style={styles.container} edges={['bottom']}>
+            <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['bottom']}>
                 <ActivityForm
                     onSubmit={handleSubmit}
                     onCancel={handleCancel}
@@ -105,7 +107,6 @@ export default function AddActivityScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#1a1a2e',
     },
     loadingContainer: {
         flex: 1,

@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
 import { Appointment, CreateAppointmentInput } from '../../types';
+import { useTheme } from '../../context/ThemeContext';
 
 // Duration options in minutes
 const DURATIONS = [15, 30, 45, 60, 90, 120];
@@ -50,6 +51,7 @@ export function AppointmentForm({
     mode = 'add',
 }: AppointmentFormProps) {
     const { t } = useTranslation();
+    const { colors } = useTheme();
 
     // Form state
     const [formData, setFormData] = useState<FormData>({
@@ -151,41 +153,41 @@ export function AppointmentForm({
     };
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
             {/* Title */}
             <View style={styles.field}>
-                <Text style={styles.label}>{t('appointment.title') || 'Title'} *</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.title') || 'Title'} *</Text>
                 <TextInput
-                    style={[styles.input, errors.title && styles.inputError]}
+                    style={[styles.input, { backgroundColor: colors.card, color: colors.text }, errors.title && { borderColor: colors.danger, borderWidth: 1 }]}
                     value={formData.title}
                     onChangeText={v => updateField('title', v)}
                     placeholder={t('appointment.titlePlaceholder') || 'e.g. Cardiologist Visit'}
-                    placeholderTextColor="#6b7280"
+                    placeholderTextColor={colors.subtext}
                     autoFocus={mode === 'add'}
                 />
-                {errors.title && <Text style={styles.errorText}>{errors.title}</Text>}
+                {errors.title && <Text style={[styles.errorText, { color: colors.danger }]}>{errors.title}</Text>}
             </View>
 
             {/* Doctor & Specialty Row */}
             <View style={styles.row}>
                 <View style={[styles.field, styles.halfField]}>
-                    <Text style={styles.label}>{t('appointment.doctor') || 'Doctor'}</Text>
+                    <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.doctor') || 'Doctor'}</Text>
                     <TextInput
-                        style={styles.input}
+                        style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
                         value={formData.doctorName}
                         onChangeText={v => updateField('doctorName', v)}
                         placeholder="Dr. Smith"
-                        placeholderTextColor="#6b7280"
+                        placeholderTextColor={colors.subtext}
                     />
                 </View>
                 <View style={[styles.field, styles.halfField]}>
-                    <Text style={styles.label}>{t('appointment.specialty') || 'Specialty'}</Text>
+                    <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.specialty') || 'Specialty'}</Text>
                     <TextInput
-                        style={styles.input}
+                        style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
                         value={formData.specialty}
                         onChangeText={v => updateField('specialty', v)}
                         placeholder="Cardiology"
-                        placeholderTextColor="#6b7280"
+                        placeholderTextColor={colors.subtext}
                     />
                 </View>
             </View>
@@ -193,23 +195,23 @@ export function AppointmentForm({
             {/* Date & Time Row */}
             <View style={styles.row}>
                 <View style={[styles.field, styles.halfField]}>
-                    <Text style={styles.label}>{t('appointment.date') || 'Date'}</Text>
+                    <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.date') || 'Date'}</Text>
                     <TouchableOpacity
-                        style={styles.pickerButton}
+                        style={[styles.pickerButton, { backgroundColor: colors.card }]}
                         onPress={() => setShowDatePicker(true)}
                     >
-                        <Text style={styles.pickerButtonText}>
+                        <Text style={[styles.pickerButtonText, { color: colors.text }]}>
                             {format(formData.scheduledTime, 'MMM d, yyyy')}
                         </Text>
                     </TouchableOpacity>
                 </View>
                 <View style={[styles.field, styles.halfField]}>
-                    <Text style={styles.label}>{t('appointment.time') || 'Time'}</Text>
+                    <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.time') || 'Time'}</Text>
                     <TouchableOpacity
-                        style={styles.pickerButton}
+                        style={[styles.pickerButton, { backgroundColor: colors.card }]}
                         onPress={() => setShowTimePicker(true)}
                     >
-                        <Text style={styles.pickerButtonText}>
+                        <Text style={[styles.pickerButtonText, { color: colors.text }]}>
                             {format(formData.scheduledTime, 'HH:mm')}
                         </Text>
                     </TouchableOpacity>
@@ -218,12 +220,12 @@ export function AppointmentForm({
 
             {/* Duration */}
             <View style={styles.field}>
-                <Text style={styles.label}>{t('appointment.duration') || 'Duration'}</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.duration') || 'Duration'}</Text>
                 <TouchableOpacity
-                    style={styles.pickerButton}
+                    style={[styles.pickerButton, { backgroundColor: colors.card }]}
                     onPress={() => setShowDurationPicker(true)}
                 >
-                    <Text style={styles.pickerButtonText}>
+                    <Text style={[styles.pickerButtonText, { color: colors.text }]}>
                         {formData.duration} {t('common.minutes') || 'minutes'}
                     </Text>
                 </TouchableOpacity>
@@ -231,42 +233,42 @@ export function AppointmentForm({
 
             {/* Location */}
             <View style={styles.field}>
-                <Text style={styles.label}>{t('appointment.location') || 'Location'}</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.location') || 'Location'}</Text>
                 <TextInput
-                    style={styles.input}
+                    style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
                     value={formData.location}
                     onChangeText={v => updateField('location', v)}
                     placeholder={t('appointment.locationPlaceholder') || 'e.g. Medical Center, Room 302'}
-                    placeholderTextColor="#6b7280"
+                    placeholderTextColor={colors.subtext}
                 />
             </View>
 
             {/* Reason */}
             <View style={styles.field}>
-                <Text style={styles.label}>{t('appointment.reason') || 'Reason'}</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.reason') || 'Reason'}</Text>
                 <TextInput
-                    style={styles.input}
+                    style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
                     value={formData.reason}
                     onChangeText={v => updateField('reason', v)}
                     placeholder={t('appointment.reasonPlaceholder') || 'e.g. Annual Checkup'}
-                    placeholderTextColor="#6b7280"
+                    placeholderTextColor={colors.subtext}
                 />
             </View>
 
             {/* Checklist */}
             <View style={styles.field}>
-                <Text style={styles.label}>{t('appointment.checklist') || 'Pre-appointment Checklist'}</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.checklist') || 'Pre-appointment Checklist'}</Text>
                 <View style={styles.checklistInputRow}>
                     <TextInput
-                        style={[styles.input, styles.checklistInput]}
+                        style={[styles.input, styles.checklistInput, { backgroundColor: colors.card, color: colors.text }]}
                         value={newItem}
                         onChangeText={setNewItem}
                         placeholder={t('appointment.checklistPlaceholder') || 'e.g. Bring ID'}
-                        placeholderTextColor="#6b7280"
+                        placeholderTextColor={colors.subtext}
                         onSubmitEditing={addChecklistItem}
                     />
                     <TouchableOpacity
-                        style={[styles.addButton, !newItem.trim() && styles.addButtonDisabled]}
+                        style={[styles.addButton, { backgroundColor: colors.primary }, !newItem.trim() && { backgroundColor: colors.card, opacity: 0.5 }]}
                         onPress={addChecklistItem}
                         disabled={!newItem.trim()}
                     >
@@ -277,13 +279,13 @@ export function AppointmentForm({
                 {formData.checklist.length > 0 && (
                     <View style={styles.checklistItems}>
                         {formData.checklist.map((item, index) => (
-                            <View key={index} style={styles.checklistItem}>
-                                <Text style={styles.checklistItemText}>• {item}</Text>
+                            <View key={index} style={[styles.checklistItem, { backgroundColor: colors.card }]}>
+                                <Text style={[styles.checklistItemText, { color: colors.text }]}>• {item}</Text>
                                 <TouchableOpacity
                                     onPress={() => removeChecklistItem(index)}
                                     style={styles.removeButton}
                                 >
-                                    <Text style={styles.removeButtonText}>✕</Text>
+                                    <Text style={[styles.removeButtonText, { color: colors.danger }]}>✕</Text>
                                 </TouchableOpacity>
                             </View>
                         ))}
@@ -293,13 +295,13 @@ export function AppointmentForm({
 
             {/* Notes */}
             <View style={styles.field}>
-                <Text style={styles.label}>{t('appointment.notes') || 'Notes'}</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.notes') || 'Notes'}</Text>
                 <TextInput
-                    style={[styles.input, styles.textArea]}
+                    style={[styles.input, styles.textArea, { backgroundColor: colors.card, color: colors.text }]}
                     value={formData.notes}
                     onChangeText={v => updateField('notes', v)}
                     placeholder={t('appointment.notesPlaceholder') || 'Questions to ask, preparation...'}
-                    placeholderTextColor="#6b7280"
+                    placeholderTextColor={colors.subtext}
                     multiline
                     numberOfLines={4}
                     textAlignVertical="top"
@@ -309,14 +311,14 @@ export function AppointmentForm({
             {/* Action Buttons */}
             <View style={styles.actions}>
                 <TouchableOpacity
-                    style={styles.cancelButton}
+                    style={[styles.cancelButton, { backgroundColor: colors.card }]}
                     onPress={onCancel}
                     disabled={isLoading}
                 >
-                    <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
+                    <Text style={[styles.cancelButtonText, { color: colors.text }]}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.submitButton, isLoading && styles.submitButtonDisabled]}
+                    style={[styles.submitButton, { backgroundColor: colors.primary }, isLoading && styles.submitButtonDisabled]}
                     onPress={handleSubmit}
                     disabled={isLoading}
                 >
@@ -351,14 +353,14 @@ export function AppointmentForm({
                     activeOpacity={1}
                     onPress={() => setShowDurationPicker(false)}
                 >
-                    <View style={styles.pickerModal}>
-                        <Text style={styles.pickerModalTitle}>{t('appointment.duration')}</Text>
+                    <View style={[styles.pickerModal, { backgroundColor: colors.card }]}>
+                        <Text style={[styles.pickerModalTitle, { color: colors.text }]}>{t('appointment.duration')}</Text>
                         {DURATIONS.map(duration => (
                             <TouchableOpacity
                                 key={duration}
                                 style={[
                                     styles.pickerOption,
-                                    formData.duration === duration && styles.pickerOptionActive,
+                                    formData.duration === duration && { backgroundColor: `${colors.primary}20` },
                                 ]}
                                 onPress={() => {
                                     updateField('duration', duration);
@@ -368,7 +370,8 @@ export function AppointmentForm({
                                 <Text
                                     style={[
                                         styles.pickerOptionText,
-                                        formData.duration === duration && styles.pickerOptionTextActive,
+                                        { color: colors.text },
+                                        formData.duration === duration && { color: colors.primary, fontWeight: '600' },
                                     ]}
                                 >
                                     {duration} {t('common.minutes')}
@@ -385,7 +388,6 @@ export function AppointmentForm({
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#1a1a2e',
     },
     content: {
         padding: 20,
@@ -405,35 +407,26 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#9ca3af',
         marginBottom: 8,
         textTransform: 'uppercase',
         letterSpacing: 0.5,
     },
     input: {
-        backgroundColor: '#252542',
         borderRadius: 12,
         paddingHorizontal: 16,
         paddingVertical: 16,
         fontSize: 16,
-        color: '#ffffff',
         minHeight: 56,
-    },
-    inputError: {
-        borderWidth: 1,
-        borderColor: '#ef4444',
     },
     textArea: {
         minHeight: 120,
         paddingTop: 16,
     },
     errorText: {
-        color: '#ef4444',
         fontSize: 13,
         marginTop: 6,
     },
     pickerButton: {
-        backgroundColor: '#252542',
         borderRadius: 12,
         paddingHorizontal: 16,
         paddingVertical: 16,
@@ -442,7 +435,6 @@ const styles = StyleSheet.create({
     },
     pickerButtonText: {
         fontSize: 16,
-        color: '#ffffff',
     },
     actions: {
         flexDirection: 'row',
@@ -453,7 +445,6 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingVertical: 16,
         borderRadius: 12,
-        backgroundColor: '#3f3f5a',
         alignItems: 'center',
         minHeight: 56,
         justifyContent: 'center',
@@ -461,13 +452,11 @@ const styles = StyleSheet.create({
     cancelButtonText: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#ffffff',
     },
     submitButton: {
         flex: 2,
         paddingVertical: 16,
         borderRadius: 12,
-        backgroundColor: '#4A90D9',
         alignItems: 'center',
         minHeight: 56,
         justifyContent: 'center',
@@ -488,7 +477,6 @@ const styles = StyleSheet.create({
         padding: 24,
     },
     pickerModal: {
-        backgroundColor: '#252542',
         borderRadius: 16,
         padding: 20,
         width: '100%',
@@ -497,7 +485,6 @@ const styles = StyleSheet.create({
     pickerModalTitle: {
         fontSize: 18,
         fontWeight: '700',
-        color: '#ffffff',
         marginBottom: 16,
         textAlign: 'center',
     },
@@ -507,16 +494,8 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         marginBottom: 4,
     },
-    pickerOptionActive: {
-        backgroundColor: '#4A90D920',
-    },
     pickerOptionText: {
         fontSize: 16,
-        color: '#ffffff',
-    },
-    pickerOptionTextActive: {
-        color: '#4A90D9',
-        fontWeight: '600',
     },
     checklistInputRow: {
         flexDirection: 'row',
@@ -530,13 +509,8 @@ const styles = StyleSheet.create({
         width: 56,
         padding: 0,
         borderRadius: 12,
-        backgroundColor: '#4A90D9',
         alignItems: 'center',
         justifyContent: 'center',
-    },
-    addButtonDisabled: {
-        backgroundColor: '#3f3f5a',
-        opacity: 0.5,
     },
     addButtonText: {
         fontSize: 24,
@@ -549,14 +523,12 @@ const styles = StyleSheet.create({
     checklistItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#3f3f5a',
         padding: 12,
         borderRadius: 8,
         justifyContent: 'space-between',
     },
     checklistItemText: {
         fontSize: 15,
-        color: '#d1d5db',
         flex: 1,
     },
     removeButton: {
@@ -564,7 +536,6 @@ const styles = StyleSheet.create({
     },
     removeButtonText: {
         fontSize: 14,
-        color: '#ef4444',
         fontWeight: 'bold',
     },
 });

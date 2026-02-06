@@ -12,10 +12,12 @@ import { SupplementForm } from '../../src/components/forms/SupplementForm';
 import { useCreateSupplement } from '../../src/hooks/useSupplements';
 import { useActiveProfile } from '../../src/hooks/useProfiles';
 import { CreateSupplementInput } from '../../src/types';
+import { useTheme } from '../../src/context/ThemeContext';
 
 export default function AddSupplementScreen() {
     const { t } = useTranslation();
     const router = useRouter();
+    const { colors } = useTheme();
 
     const { activeProfile } = useActiveProfile();
     const { create, isLoading, error } = useCreateSupplement();
@@ -65,13 +67,13 @@ export default function AddSupplementScreen() {
                         headerShown: true,
                         presentation: 'modal',
                         title: t('supplement.addTitle') || 'Add Supplement',
-                        headerStyle: { backgroundColor: '#1a1a2e' },
-                        headerTintColor: '#fff',
+                        headerStyle: { backgroundColor: colors.background },
+                        headerTintColor: colors.text,
                     }}
                 />
-                <SafeAreaView style={styles.container} edges={['bottom']}>
+                <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['bottom']}>
                     <View style={styles.loadingContainer}>
-                        <ActivityIndicator size="large" color="#4A90D9" />
+                        <ActivityIndicator size="large" color={colors.primary} />
                     </View>
                 </SafeAreaView>
             </>
@@ -85,11 +87,11 @@ export default function AddSupplementScreen() {
                     headerShown: true,
                     presentation: 'modal',
                     title: t('supplement.addTitle') || 'Add Supplement',
-                    headerStyle: { backgroundColor: '#1a1a2e' },
-                    headerTintColor: '#fff',
+                    headerStyle: { backgroundColor: colors.background },
+                    headerTintColor: colors.text,
                 }}
             />
-            <SafeAreaView style={styles.container} edges={['bottom']}>
+            <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['bottom']}>
                 <SupplementForm
                     onSubmit={handleSubmit}
                     onCancel={handleCancel}
@@ -103,7 +105,6 @@ export default function AddSupplementScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#1a1a2e',
     },
     loadingContainer: {
         flex: 1,
