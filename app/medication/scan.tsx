@@ -28,7 +28,7 @@ export default function ScannerScreen() {
     }, [hasPermission, requestPermission]);
 
     const handleCapture = async () => {
-        if (camera.current) {
+        if (camera.current && isActive && device) {
             try {
                 const photo = await camera.current.takePhoto({
                     flash: 'auto',
@@ -40,7 +40,13 @@ export default function ScannerScreen() {
                     pathname: '/medication/scan-review' as any,
                     params: { imageUri: 'file://' + photo.path }, // Ensure file:// scheme
                 });
-            } catch (error) {
+            } catch (error: any) {
+                // Gracefully handle 'Camera is closed' error which can happen due to race conditions
+                if (error?.message?.includes('Camera is closed') || error?.toString().includes('Camera is closed')) {
+                    console.log('Camera capture skipped: session closed');
+                    return;
+                }
+
                 console.error('Capture failed:', error);
                 Alert.alert(t('common.error'), t('scanner.captureError'));
             }

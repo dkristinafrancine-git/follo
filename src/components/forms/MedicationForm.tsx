@@ -25,6 +25,7 @@ import { medicationReferenceRepository } from '../../repositories';
 import { useTheme } from '../../context/ThemeContext';
 
 // Medication form options per PRD
+// Medication form options per PRD
 const MEDICATION_FORMS = [
     'tablet',
     'capsule',
@@ -33,6 +34,18 @@ const MEDICATION_FORMS = [
     'patch',
     'cream',
     'drops',
+    'inhaler',
+    'powder',
+    'spray',
+    'syrup',
+    'ointment',
+    'gel',
+    'lotion',
+    'suppository',
+    'gummy',
+    'device',
+    'implant',
+    'other',
 ] as const;
 
 const FREQUENCIES = [
@@ -225,6 +238,21 @@ export function MedicationForm({
         return date;
     };
 
+    /**
+     * Gracefully handle form display names.
+     * If the translation key doesn't exist (returns the key itself), show the raw value.
+     */
+    const getFormDisplay = (formValue: string) => {
+        const key = `medication.forms.${formValue.toLowerCase()}`;
+        const translated = t(key);
+        // i18next usually returns the key if missing, or we can check if it contains "medication.forms."
+        // A safer check is to see if the translation equals the key
+        if (translated === key) {
+            return formValue;
+        }
+        return translated;
+    };
+
     return (
         <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
             {/* Medication Name with Autocomplete */}
@@ -298,7 +326,7 @@ export function MedicationForm({
                     onPress={() => setShowFormPicker(true)}
                 >
                     <Text style={[styles.pickerButtonText, { color: colors.text }]}>
-                        {t(`medication.forms.${formData.form.toLowerCase()}`) || formData.form}
+                        {getFormDisplay(formData.form)}
                     </Text>
                     <Text style={[styles.pickerArrow, { color: colors.subtext }]}>▼</Text>
                 </TouchableOpacity>
@@ -449,29 +477,31 @@ export function MedicationForm({
                 >
                     <View style={[styles.pickerModal, { backgroundColor: colors.card }]}>
                         <Text style={[styles.pickerModalTitle, { color: colors.text }]}>{t('medication.form')}</Text>
-                        {MEDICATION_FORMS.map(form => (
-                            <TouchableOpacity
-                                key={form}
-                                style={[
-                                    styles.pickerOption,
-                                    formData.form.toLowerCase() === form && { backgroundColor: `${colors.primary}20` },
-                                ]}
-                                onPress={() => {
-                                    updateField('form', form.charAt(0).toUpperCase() + form.slice(1));
-                                    setShowFormPicker(false);
-                                }}
-                            >
-                                <Text
+                        <ScrollView showsVerticalScrollIndicator={false}>
+                            {MEDICATION_FORMS.map(form => (
+                                <TouchableOpacity
+                                    key={form}
                                     style={[
-                                        styles.pickerOptionText,
-                                        { color: colors.text },
-                                        formData.form.toLowerCase() === form && { color: colors.primary, fontWeight: '600' },
+                                        styles.pickerOption,
+                                        formData.form.toLowerCase() === form && { backgroundColor: `${colors.primary}20` },
                                     ]}
+                                    onPress={() => {
+                                        updateField('form', form.charAt(0).toUpperCase() + form.slice(1));
+                                        setShowFormPicker(false);
+                                    }}
                                 >
-                                    {t(`medication.forms.${form}`)}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
+                                    <Text
+                                        style={[
+                                            styles.pickerOptionText,
+                                            { color: colors.text },
+                                            formData.form.toLowerCase() === form && { color: colors.primary, fontWeight: '600' },
+                                        ]}
+                                    >
+                                        {getFormDisplay(form)}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
                     </View>
                 </TouchableOpacity>
             </Modal>
@@ -741,6 +771,7 @@ const styles = StyleSheet.create({
         padding: 20,
         width: '100%',
         maxWidth: 320,
+        maxHeight: '80%',
     },
     pickerModalTitle: {
         fontSize: 18,
