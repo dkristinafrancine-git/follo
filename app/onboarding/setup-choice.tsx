@@ -3,10 +3,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useOnboarding } from '../../src/hooks/useProfiles';
+import { useTheme } from '../../src/context/ThemeContext';
 
 export default function SetupChoiceScreen() {
     const { t } = useTranslation();
     const { completeOnboarding } = useOnboarding();
+    const { colors } = useTheme();
 
     const handleSelect = (path: string) => {
         // We route to the regular Add screens but might want to ensure they handle "post-success" routing correctly.
@@ -41,12 +43,12 @@ export default function SetupChoiceScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={styles.content}>
                 <View style={styles.header}>
-                    <Text style={styles.stage}>{t('onboarding.step', { current: 3, total: 4 })}</Text>
-                    <Text style={styles.title}>{t('onboarding.whatsFirstTitle')}</Text>
-                    <Text style={styles.subtitle}>
+                    <Text style={[styles.stage, { color: colors.primary }]}>{t('onboarding.step', { current: 3, total: 4 })}</Text>
+                    <Text style={[styles.title, { color: colors.text }]}>{t('onboarding.whatsFirstTitle')}</Text>
+                    <Text style={[styles.subtitle, { color: colors.subtext }]}>
                         {t('onboarding.whatsFirstSubtitle')}
                     </Text>
                 </View>
@@ -58,6 +60,7 @@ export default function SetupChoiceScreen() {
                         desc={t('onboarding.addMedicationDesc')}
                         onPress={() => handleSelect('/medication/add')}
                         color="#4A90D9"
+                        colors={colors}
                     />
                     <OptionCard
                         emoji="🧴"
@@ -65,6 +68,7 @@ export default function SetupChoiceScreen() {
                         desc={t('onboarding.addSupplementDesc')}
                         onPress={() => handleSelect('/supplement/add')}
                         color="#F59E0B"
+                        colors={colors}
                     />
                     <OptionCard
                         emoji="🩺"
@@ -72,6 +76,7 @@ export default function SetupChoiceScreen() {
                         desc={t('onboarding.addAppointmentDesc')}
                         onPress={() => handleSelect('/appointment/add')}
                         color="#8b5cf6"
+                        colors={colors}
                     />
                     <OptionCard
                         emoji="🏃"
@@ -79,12 +84,13 @@ export default function SetupChoiceScreen() {
                         desc={t('onboarding.addActivityDesc')}
                         onPress={() => handleSelect('/activity/add')}
                         color="#10b981"
+                        colors={colors}
                     />
                 </ScrollView>
 
                 <View style={styles.footer}>
                     <TouchableOpacity style={styles.skipButton} onPress={() => handleSelect('SKIP')}>
-                        <Text style={styles.skipText}>{t('onboarding.addLater')}</Text>
+                        <Text style={[styles.skipText, { color: colors.subtext }]}>{t('onboarding.addLater')}</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -92,17 +98,17 @@ export default function SetupChoiceScreen() {
     );
 }
 
-function OptionCard({ emoji, title, desc, onPress, color }: any) {
+function OptionCard({ emoji, title, desc, onPress, color, colors }: any) {
     return (
-        <TouchableOpacity style={styles.card} onPress={onPress}>
+        <TouchableOpacity style={[styles.card, { backgroundColor: colors.card }]} onPress={onPress}>
             <View style={[styles.icon, { backgroundColor: color }]}>
                 <Text style={styles.emoji}>{emoji}</Text>
             </View>
             <View style={styles.text}>
-                <Text style={styles.cardTitle}>{title}</Text>
-                <Text style={styles.cardDesc}>{desc}</Text>
+                <Text style={[styles.cardTitle, { color: colors.text }]}>{title}</Text>
+                <Text style={[styles.cardDesc, { color: colors.subtext }]}>{desc}</Text>
             </View>
-            <Text style={styles.arrow}>→</Text>
+            <Text style={[styles.arrow, { color: colors.primary }]}>→</Text>
         </TouchableOpacity>
     );
 }
@@ -110,7 +116,6 @@ function OptionCard({ emoji, title, desc, onPress, color }: any) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#1a1a2e',
     },
     content: {
         flex: 1,
@@ -120,7 +125,6 @@ const styles = StyleSheet.create({
         marginBottom: 24,
     },
     stage: {
-        color: '#6366f1',
         fontWeight: '600',
         textTransform: 'uppercase',
         letterSpacing: 1,
@@ -129,12 +133,10 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 28,
         fontWeight: 'bold',
-        color: '#fff',
         marginBottom: 8,
     },
     subtitle: {
         fontSize: 16,
-        color: '#9ca3af',
         lineHeight: 24,
     },
     options: {
@@ -143,7 +145,6 @@ const styles = StyleSheet.create({
     card: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#252542',
         padding: 20,
         borderRadius: 16,
         marginBottom: 16,
@@ -165,16 +166,13 @@ const styles = StyleSheet.create({
     cardTitle: {
         fontSize: 18,
         fontWeight: '600',
-        color: '#fff',
         marginBottom: 4,
     },
     cardDesc: {
         fontSize: 14,
-        color: '#9ca3af',
     },
     arrow: {
         fontSize: 24,
-        color: '#6366f1',
         marginLeft: 8,
     },
     footer: {
@@ -185,8 +183,8 @@ const styles = StyleSheet.create({
         padding: 16,
     },
     skipText: {
-        color: '#9ca3af',
         fontSize: 16,
         fontWeight: '500',
     },
 });
+

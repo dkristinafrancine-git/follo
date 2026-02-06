@@ -6,10 +6,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useProfileStore, useActiveProfile } from '../../src/hooks/useProfiles';
 import { Profile } from '../../src/types';
+import { useTheme } from '../../src/context/ThemeContext';
 
 export default function ProfilesScreen() {
     const router = useRouter();
     const { t } = useTranslation();
+    const { colors } = useTheme();
     const { profiles, deleteProfile, createProfile } = useProfileStore();
     const { activeProfile, setActiveProfile } = useActiveProfile();
 
@@ -62,17 +64,21 @@ export default function ProfilesScreen() {
 
         return (
             <TouchableOpacity
-                style={[styles.profileCard, isActive && styles.activeCard]}
+                style={[
+                    styles.profileCard,
+                    { backgroundColor: colors.card },
+                    isActive && { borderColor: colors.primary, borderWidth: 2 }
+                ]}
                 onPress={() => handleSwitchProfile(item.id)}
             >
                 <View style={styles.profileInfo}>
-                    <View style={styles.avatarContainer}>
+                    <View style={[styles.avatarContainer, { backgroundColor: colors.primary }]}>
                         {/* Placeholder for avatar, or use Expo Image if URI exists */}
                         <Text style={styles.avatarText}>{item.name[0]?.toUpperCase()}</Text>
                     </View>
                     <View>
-                        <Text style={styles.profileName}>{item.name}</Text>
-                        {isActive && <Text style={styles.activeLabel}>{t('profile.active') || 'Active'}</Text>}
+                        <Text style={[styles.profileName, { color: colors.text }]}>{item.name}</Text>
+                        {isActive && <Text style={[styles.activeLabel, { color: colors.primary }]}>{t('profile.active') || 'Active'}</Text>}
                     </View>
                 </View>
 
@@ -84,7 +90,7 @@ export default function ProfilesScreen() {
                             handleDeleteProfile(item);
                         }}
                     >
-                        <Ionicons name="trash-outline" size={20} color="#ef4444" />
+                        <Ionicons name="trash-outline" size={20} color={colors.danger} />
                     </TouchableOpacity>
                 )}
             </TouchableOpacity>
@@ -92,14 +98,14 @@ export default function ProfilesScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.header}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+            <View style={[styles.header, { borderBottomColor: colors.border }]}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color="#fff" />
+                    <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </TouchableOpacity>
-                <Text style={styles.title}>{t('profile.manageProfiles') || 'Manage Profiles'}</Text>
+                <Text style={[styles.title, { color: colors.text }]}>{t('profile.manageProfiles') || 'Manage Profiles'}</Text>
                 <TouchableOpacity onPress={() => setIsAddModalVisible(true)} style={styles.addButton}>
-                    <Ionicons name="add" size={24} color="#fff" />
+                    <Ionicons name="add" size={24} color={colors.text} />
                 </TouchableOpacity>
             </View>
 
@@ -116,24 +122,24 @@ export default function ProfilesScreen() {
                 animationType="slide"
             >
                 <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>{t('profile.addProfile')}</Text>
+                    <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
+                        <Text style={[styles.modalTitle, { color: colors.text }]}>{t('profile.addProfile')}</Text>
                         <TextInput
-                            style={styles.input}
+                            style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
                             placeholder={t('onboarding.namePlaceholder')}
-                            placeholderTextColor="#64748b"
+                            placeholderTextColor={colors.subtext}
                             value={newProfileName}
                             onChangeText={setNewProfileName}
                         />
                         <View style={styles.modalButtons}>
                             <TouchableOpacity
-                                style={[styles.modalButton, styles.cancelButton]}
+                                style={[styles.modalButton, { backgroundColor: colors.card }]}
                                 onPress={() => setIsAddModalVisible(false)}
                             >
-                                <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
+                                <Text style={[styles.cancelButtonText, { color: colors.text }]}>{t('common.cancel')}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={[styles.modalButton, styles.createButton]}
+                                style={[styles.modalButton, { backgroundColor: colors.primary }]}
                                 onPress={handleCreateProfile}
                             >
                                 <Text style={styles.createButtonText}>{t('common.add')}</Text>
@@ -149,7 +155,6 @@ export default function ProfilesScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#1a1a2e',
     },
     header: {
         flexDirection: 'row',
@@ -158,7 +163,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#252542',
     },
     backButton: {
         padding: 8,
@@ -169,7 +173,6 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 18,
         fontWeight: '600',
-        color: '#fff',
     },
     listContent: {
         padding: 16,
@@ -178,14 +181,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        backgroundColor: '#252542',
         padding: 16,
         borderRadius: 12,
         marginBottom: 12,
-    },
-    activeCard: {
-        borderColor: '#6366f1',
-        borderWidth: 2,
     },
     profileInfo: {
         flexDirection: 'row',
@@ -196,7 +194,6 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: '#6366f1',
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -207,12 +204,10 @@ const styles = StyleSheet.create({
     },
     profileName: {
         fontSize: 16,
-        color: '#fff',
         fontWeight: '500',
     },
     activeLabel: {
         fontSize: 12,
-        color: '#6366f1',
     },
     deleteButton: {
         padding: 8,
@@ -224,22 +219,18 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     modalContent: {
-        backgroundColor: '#1a1a2e',
         borderRadius: 16,
         padding: 20,
     },
     modalTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#fff',
         marginBottom: 16,
         textAlign: 'center',
     },
     input: {
-        backgroundColor: '#252542',
         borderRadius: 8,
         padding: 12,
-        color: '#fff',
         fontSize: 16,
         marginBottom: 20,
     },
@@ -253,14 +244,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         alignItems: 'center',
     },
-    cancelButton: {
-        backgroundColor: '#252542',
-    },
-    createButton: {
-        backgroundColor: '#6366f1',
-    },
     cancelButtonText: {
-        color: '#fff',
         fontWeight: '600',
     },
     createButtonText: {
@@ -268,3 +252,4 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
 });
+

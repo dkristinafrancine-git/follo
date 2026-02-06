@@ -5,9 +5,11 @@ import { router, Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Camera } from 'react-native-vision-camera';
 import notifee, { AuthorizationStatus } from '@notifee/react-native';
+import { useTheme } from '../../src/context/ThemeContext';
 
 export default function PermissionsScreen() {
     const { t } = useTranslation();
+    const { colors } = useTheme();
 
     // Permission states
     const [cameraGranted, setCameraGranted] = useState(false);
@@ -49,52 +51,52 @@ export default function PermissionsScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={styles.content}>
                 <View style={styles.header}>
-                    <Text style={styles.stage}>{t('onboarding.step', { current: 2, total: 4 })}</Text>
-                    <Text style={styles.title}>{t('onboarding.permissionsTitle')}</Text>
-                    <Text style={styles.subtitle}>
+                    <Text style={[styles.stage, { color: colors.primary }]}>{t('onboarding.step', { current: 2, total: 4 })}</Text>
+                    <Text style={[styles.title, { color: colors.text }]}>{t('onboarding.permissionsTitle')}</Text>
+                    <Text style={[styles.subtitle, { color: colors.subtext }]}>
                         {t('onboarding.permissionsSubtitle')}
                     </Text>
                 </View>
 
                 <View style={styles.permissionList}>
                     {/* Camera Permission */}
-                    <View style={styles.permissionItem}>
+                    <View style={[styles.permissionItem, { backgroundColor: colors.card }]}>
                         <View style={styles.textContainer}>
-                            <Text style={styles.permissionTitle}>📸 {t('onboarding.cameraPermission')}</Text>
-                            <Text style={styles.permissionDesc}>
+                            <Text style={[styles.permissionTitle, { color: colors.text }]}>📸 {t('onboarding.cameraPermission')}</Text>
+                            <Text style={[styles.permissionDesc, { color: colors.subtext }]}>
                                 {t('onboarding.cameraPermissionDesc')}
                             </Text>
                         </View>
                         <Switch
                             value={cameraGranted}
                             onValueChange={toggleCamera}
-                            trackColor={{ false: '#3f3f5a', true: '#6366f1' }}
+                            trackColor={{ false: colors.border, true: colors.primary }}
                             thumbColor={'#fff'}
                         />
                     </View>
 
                     {/* Notification Permission */}
-                    <View style={styles.permissionItem}>
+                    <View style={[styles.permissionItem, { backgroundColor: colors.card }]}>
                         <View style={styles.textContainer}>
-                            <Text style={styles.permissionTitle}>🔔 {t('onboarding.notificationPermission')}</Text>
-                            <Text style={styles.permissionDesc}>
+                            <Text style={[styles.permissionTitle, { color: colors.text }]}>🔔 {t('onboarding.notificationPermission')}</Text>
+                            <Text style={[styles.permissionDesc, { color: colors.subtext }]}>
                                 {t('onboarding.notificationPermissionDesc')}
                             </Text>
                         </View>
                         <Switch
                             value={notificationGranted}
                             onValueChange={toggleNotifications}
-                            trackColor={{ false: '#3f3f5a', true: '#6366f1' }}
+                            trackColor={{ false: colors.border, true: colors.primary }}
                             thumbColor={'#fff'}
                         />
                     </View>
                 </View>
 
                 <View style={styles.footer}>
-                    <TouchableOpacity style={styles.button} onPress={handleContinue}>
+                    <TouchableOpacity style={[styles.button, { backgroundColor: colors.primary }]} onPress={handleContinue}>
                         <Text style={styles.buttonText}>{t('onboarding.continue')}</Text>
                     </TouchableOpacity>
                 </View>
@@ -106,7 +108,6 @@ export default function PermissionsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#1a1a2e',
     },
     content: {
         flex: 1,
@@ -116,7 +117,6 @@ const styles = StyleSheet.create({
         marginBottom: 32,
     },
     stage: {
-        color: '#6366f1',
         fontWeight: '600',
         textTransform: 'uppercase',
         letterSpacing: 1,
@@ -125,12 +125,10 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 28,
         fontWeight: 'bold',
-        color: '#fff',
         marginBottom: 8,
     },
     subtitle: {
         fontSize: 16,
-        color: '#9ca3af',
         lineHeight: 24,
     },
     permissionList: {
@@ -139,7 +137,6 @@ const styles = StyleSheet.create({
     permissionItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#252542',
         padding: 20,
         borderRadius: 16,
         marginBottom: 16,
@@ -151,19 +148,16 @@ const styles = StyleSheet.create({
     permissionTitle: {
         fontSize: 18,
         fontWeight: '600',
-        color: '#fff',
         marginBottom: 4,
     },
     permissionDesc: {
         fontSize: 14,
-        color: '#9ca3af',
         lineHeight: 20,
     },
     footer: {
         marginTop: 24,
     },
     button: {
-        backgroundColor: '#6366f1',
         padding: 18,
         borderRadius: 16,
         alignItems: 'center',
@@ -174,3 +168,4 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
 });
+

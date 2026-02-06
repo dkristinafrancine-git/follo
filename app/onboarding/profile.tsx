@@ -16,10 +16,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Href } from 'expo-router';
 import { useOnboarding } from '../../src/hooks/useProfiles';
 import { getProfileAvatarUrl } from '../../src/services/avatarService';
+import { useTheme } from '../../src/context/ThemeContext';
 
 export default function ProfileSetupScreen() {
     const { t } = useTranslation();
     const { createProfile } = useOnboarding();
+    const { colors } = useTheme();
 
     const [profileName, setProfileName] = useState('');
     const [birthDate, setBirthDate] = useState('');
@@ -60,7 +62,7 @@ export default function ProfileSetupScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={styles.keyboardView}
@@ -72,9 +74,9 @@ export default function ProfileSetupScreen() {
                 >
                     {/* Header */}
                     <View style={styles.header}>
-                        <Text style={styles.stepIndicator}>{t('onboarding.step', { current: 1, total: 4 })}</Text>
-                        <Text style={styles.title}>{t('onboarding.createProfile')}</Text>
-                        <Text style={styles.subtitle}>{t('onboarding.profileDescription')}</Text>
+                        <Text style={[styles.stepIndicator, { color: colors.primary }]}>{t('onboarding.step', { current: 1, total: 4 })}</Text>
+                        <Text style={[styles.title, { color: colors.text }]}>{t('onboarding.createProfile')}</Text>
+                        <Text style={[styles.subtitle, { color: colors.subtext }]}>{t('onboarding.profileDescription')}</Text>
                     </View>
 
                     {/* Avatar Preview */}
@@ -82,25 +84,25 @@ export default function ProfileSetupScreen() {
                         {avatarUrl ? (
                             <Image
                                 source={{ uri: avatarUrl }}
-                                style={styles.avatar}
+                                style={[styles.avatar, { backgroundColor: colors.card }]}
                                 resizeMode="contain"
                             />
                         ) : (
-                            <View style={styles.avatarPlaceholder}>
+                            <View style={[styles.avatarPlaceholder, { backgroundColor: colors.card }]}>
                                 <Text style={styles.avatarPlaceholderText}>👤</Text>
                             </View>
                         )}
-                        <Text style={styles.avatarHint}>{t('onboarding.avatarHint')}</Text>
+                        <Text style={[styles.avatarHint, { color: colors.subtext }]}>{t('onboarding.avatarHint')}</Text>
                     </View>
 
                     {/* Form */}
                     <View style={styles.form}>
                         <View style={styles.inputGroup}>
-                            <Text style={styles.label}>{t('onboarding.profileName')} *</Text>
+                            <Text style={[styles.label, { color: colors.subtext }]}>{t('onboarding.profileName')} *</Text>
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: error ? colors.danger : 'transparent' }]}
                                 placeholder={t('onboarding.namePlaceholder') ?? 'Enter your name'}
-                                placeholderTextColor="#6b7280"
+                                placeholderTextColor={colors.subtext}
                                 value={profileName}
                                 onChangeText={(text) => {
                                     setProfileName(text);
@@ -113,31 +115,32 @@ export default function ProfileSetupScreen() {
                         </View>
 
                         <View style={styles.inputGroup}>
-                            <Text style={styles.label}>{t('onboarding.birthDate')}</Text>
+                            <Text style={[styles.label, { color: colors.subtext }]}>{t('onboarding.birthDate')}</Text>
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
                                 placeholder="YYYY-MM-DD"
-                                placeholderTextColor="#6b7280"
+                                placeholderTextColor={colors.subtext}
                                 value={birthDate}
                                 onChangeText={setBirthDate}
                                 keyboardType="numbers-and-punctuation"
                                 editable={!isLoading}
                             />
-                            <Text style={styles.inputHint}>{t('onboarding.birthDateHint')}</Text>
+                            <Text style={[styles.inputHint, { color: colors.subtext }]}>{t('onboarding.birthDateHint')}</Text>
                         </View>
 
                         {error && (
-                            <Text style={styles.errorText}>{error}</Text>
+                            <Text style={[styles.errorText, { color: colors.danger }]}>{error}</Text>
                         )}
                     </View>
                 </ScrollView>
 
                 {/* Continue Button */}
-                <View style={styles.bottomSection}>
+                <View style={[styles.bottomSection, { backgroundColor: colors.background }]}>
                     <TouchableOpacity
                         style={[
                             styles.button,
-                            (!profileName.trim() || isLoading) && styles.buttonDisabled,
+                            { backgroundColor: colors.primary },
+                            (!profileName.trim() || isLoading) && { backgroundColor: colors.border, opacity: 0.5 },
                         ]}
                         onPress={handleContinue}
                         disabled={!profileName.trim() || isLoading}
@@ -157,7 +160,6 @@ export default function ProfileSetupScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#1a1a2e',
     },
     keyboardView: {
         flex: 1,
@@ -175,7 +177,6 @@ const styles = StyleSheet.create({
     },
     stepIndicator: {
         fontSize: 14,
-        color: '#6366f1',
         fontWeight: '600',
         textTransform: 'uppercase',
         letterSpacing: 1,
@@ -184,12 +185,10 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 28,
         fontWeight: '700',
-        color: '#ffffff',
         marginBottom: 8,
     },
     subtitle: {
         fontSize: 16,
-        color: '#9ca3af',
         lineHeight: 24,
     },
     avatarContainer: {
@@ -200,13 +199,11 @@ const styles = StyleSheet.create({
         width: 120,
         height: 120,
         borderRadius: 60,
-        backgroundColor: '#252542',
     },
     avatarPlaceholder: {
         width: 120,
         height: 120,
         borderRadius: 60,
-        backgroundColor: '#252542',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -215,7 +212,6 @@ const styles = StyleSheet.create({
     },
     avatarHint: {
         fontSize: 13,
-        color: '#6b7280',
         marginTop: 8,
     },
     form: {
@@ -227,43 +223,32 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#9ca3af',
         marginBottom: 8,
         textTransform: 'uppercase',
         letterSpacing: 1,
     },
     input: {
-        backgroundColor: '#252542',
         borderRadius: 12,
         padding: 16,
         fontSize: 18,
-        color: '#ffffff',
         borderWidth: 2,
-        borderColor: 'transparent',
     },
     inputHint: {
         fontSize: 13,
-        color: '#6b7280',
         marginTop: 6,
     },
     errorText: {
-        color: '#ef4444',
         fontSize: 14,
         marginTop: 8,
     },
     bottomSection: {
         paddingHorizontal: 24,
         paddingBottom: 24,
-        backgroundColor: '#1a1a2e',
     },
     button: {
-        backgroundColor: '#6366f1',
         borderRadius: 16,
         padding: 18,
         alignItems: 'center',
-    },
-    buttonDisabled: {
-        backgroundColor: '#3e3e5e',
     },
     buttonText: {
         color: '#ffffff',
@@ -271,3 +256,4 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
 });
+
