@@ -1,7 +1,6 @@
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { useKeepAwake } from 'expo-keep-awake';
 import { Audio, InterruptionModeAndroid } from 'expo-av';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, runOnJS, withTiming } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -14,7 +13,10 @@ const SLIDER_WIDTH = width - 48;
 const KNOB_WIDTH = 56;
 
 export default function AlarmScreen() {
-    useKeepAwake(); // Keep screen on!
+    console.log('!!! ALARM SCREEN MOUNTED - V5 - CLEAN BUILD !!!');
+    // Native activity flags handle the wake-up (FLAG_KEEP_SCREEN_ON in MainActivity).
+    // Removed expo-keep-awake to prevent conflicts during full-screen intent launch.
+
     const router = useRouter();
     const params = useLocalSearchParams();
     const eventId = params.eventId as string;

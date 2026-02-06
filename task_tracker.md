@@ -309,3 +309,8 @@
 - **Action:** Updated channel to v3, added `bypassDnd`, `launchActivity: default`, and `FLAG_DISMISS_KEYGUARD`. Rebuilding and reinstalling.
 - **Update (2026-02-06 23:45):** Added `ACCESS_NOTIFICATION_POLICY` to Manifest. Updated action ID to `full-screen` in `notificationService`.
 
+### Cache Migration (2026-02-07 01:25)
+- **Action:** Migrated `.gradle` (~914MB) and `.expo` (~780MB) from C: to D: drive.
+- **Config:** Set `GRADLE_USER_HOME` to `D:\.gradle`. Created Junction for `.expo`.
+- **Action:** Migrating `.android` (~12.7GB) to D:. Emulator stopped. Created Junction `C:\Users\TrustNet\.android` -> `D:\.android`.
+

@@ -1,7 +1,7 @@
 import { Stack, router, Href } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, AppState, AppStateStatus } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { SecurityProvider } from '../src/context/SecurityContext';
@@ -43,15 +43,26 @@ export default function RootLayout() {
         }
         initialization();
 
-        // Check for initial launch from alarm
+        // Check for initial launch from alarm (Cold Start)
         checkInitialNotification();
 
-        // Listen for foreground events
+        // Listen for AppState changes (Warm Start / Background -> Foreground)
+        const appStateSubscription = AppState.addEventListener('change', (nextAppState) => {
+            console.log('[Layout] AppState changed:', nextAppState);
+            if (nextAppState === 'active') {
+                console.log('[Layout] AppState is active. Re-running checkInitialNotification()');
+                checkInitialNotification();
+            }
+        });
+
+        // Listen for foreground events (e.g. user presses action)
         const unsubscribe = notifee.onForegroundEvent(async (event) => {
+            console.log('[Layout] Notifee Foreground Event:', event.type, event.detail.pressAction?.id, event.detail.notification?.android?.channelId);
             await notificationService.handleNotificationEvent(event);
 
             // Also check for alarm usage in foreground (if active)
             if (event.type === EventType.PRESS && (event.detail.pressAction?.id === 'full-screen' || event.detail.notification?.android?.channelId === 'heavy_sleeper_alarm_v3')) {
+                console.log('[Layout] Redirecting to Alarm Screen');
                 router.replace({
                     pathname: '/alarm',
                     params: { eventId: String(event.detail.notification?.data?.eventId) }
@@ -61,6 +72,7 @@ export default function RootLayout() {
 
         return () => {
             unsubscribe();
+            appStateSubscription.remove();
         };
     }, []);
 
@@ -153,24 +165,53 @@ function ThemedStack() {
 }
 
 // Check for initial notification launch
+// Check for initial notification launch
 async function checkInitialNotification() {
-    const initialNotification = await notifee.getInitialNotification();
-    if (initialNotification) {
-        const { notification } = initialNotification;
-        if (notification.android?.channelId === 'heavy_sleeper_alarm_v3' && notification.data?.eventId) {
-            // Give it a moment for navigation to mount
-            setTimeout(() => {
-                router.replace({
-                    pathname: '/alarm',
-                    params: { eventId: String(notification.data?.eventId) }
-                });
-            }, 500);
+    try {
+        const initialNotification = await notifee.getInitialNotification();
+        console.log('[Layout] checkInitialNotification raw:', JSON.stringify(initialNotification, null, 2));
+
+        if (initialNotification) {
+            const { notification } = initialNotification;
+            if (handleNotificationRouting(notification)) return;
+        } else {
+            console.log('[Layout] No initial notification found. Checking ACTIVE notifications (Warm Start)...');
+            const displayed = await notifee.getDisplayedNotifications();
+            console.log('[Layout] Displayed notifications count:', displayed.length);
+
+            const activeAlarm = displayed.find(n =>
+                n.notification.android?.channelId === 'heavy_sleeper_alarm_v3' ||
+                n.notification.data?.type === 'heavy_sleeper'
+            );
+
+            if (activeAlarm) {
+                console.log('[Layout] ACTIVE EVENT FOUND! Routing active alarm:', activeAlarm.notification.id);
+                handleNotificationRouting(activeAlarm.notification);
+            }
         }
+    } catch (e) {
+        console.error('[Layout] Error checking initial notification:', e);
     }
 }
 
-// Call this inside the main component initialization
+function handleNotificationRouting(notification: any): boolean {
+    const channelId = notification.android?.channelId;
+    const eventId = notification.data?.eventId;
 
+    // Broaden check slightly for debugging
+    if ((channelId === 'heavy_sleeper_alarm_v3' || notification.data?.type === 'heavy_sleeper') && eventId) {
+        console.log('[Layout] MATCH FOUND! Attempting navigation in 500ms...');
+        setTimeout(() => {
+            console.log('[Layout] Navigating to /alarm now!');
+            router.replace({
+                pathname: '/alarm',
+                params: { eventId: String(eventId) }
+            });
+        }, 500);
+        return true;
+    }
+    return false;
+}
 
 const styles = StyleSheet.create({
     loadingContainer: {

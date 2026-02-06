@@ -58,9 +58,10 @@ export const notificationService = {
             await notifee.createChannel({
                 id: NOTIFICATION_CHANNELS.HEAVY_SLEEPER_ALARM,
                 name: 'Heavy Sleeper Alarm',
-                importance: AndroidImportance.HIGH, // MAX requires special handling, HIGH is safer for now
+                importance: AndroidImportance.HIGH, // Keep HIGH, allow fullScreenAction to do the work.
+                // MAX can be annoying if not handled.
                 bypassDnd: true,
-                sound: 'default', // In real app, put a custom 'alarm.mp3' in /res/raw
+                sound: 'default',
                 vibration: true,
                 vibrationPattern: [300, 1000, 500, 1000, 500, 1000],
             });
@@ -102,7 +103,14 @@ export const notificationService = {
         const channelId = getChannelId(event, effectiveMode);
         const title = getNotificationTitle(event);
         const body = getNotificationBody(event);
-        const triggerTimestamp = new Date(event.scheduledTime).getTime();
+        let triggerTimestamp = new Date(event.scheduledTime).getTime();
+
+        // Safety check: specific Notifee error "timestamp must be in the future"
+        // If event is in the past (but within the 5 min window allowed above), schedule it for 5 seconds from now
+        if (triggerTimestamp <= Date.now()) {
+            console.log(`[NotificationService] Event ${event.id} is slightly in past, bumping to future`);
+            triggerTimestamp = Date.now() + 5000;
+        }
 
         const trigger: TimestampTrigger = {
             type: TriggerType.TIMESTAMP,
@@ -124,7 +132,7 @@ export const notificationService = {
                     // Full Screen Action (Heavy Sleeper)
                     fullScreenAction: effectiveMode === 'heavy_sleeper' ? {
                         id: 'full-screen',
-                        launchActivity: 'default',
+                        launchActivity: 'com.onedollarapp.follo.MainActivity',
                     } : undefined,
                     actions: (event.eventType === 'medication_due' || event.eventType === 'supplement_due')
                         ? [
