@@ -168,7 +168,7 @@ export default function TimelineScreen() {
     };
 
     return (
-        <SafeAreaView style={[styles.container, dynamicStyles.container]}>
+        <SafeAreaView style={[styles.container, dynamicStyles.container]} edges={['top']}>
             {/* ... existing ScrollView ... */}
             <ScrollView
                 style={styles.content}

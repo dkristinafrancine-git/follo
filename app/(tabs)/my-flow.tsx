@@ -123,7 +123,7 @@ export default function MyFlowScreen() {
     };
 
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
             <ScrollView style={styles.content}>
                 <View style={styles.header}>
                     <View style={styles.headerRow}>
