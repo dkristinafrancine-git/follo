@@ -256,3 +256,47 @@
 - [x] All timeline data comes from calendar_events
 - [x] Profile isolation is enforced
 - [x] Native bridge data shapes match TypeScript
+
+### Recent Build Log (2026-02-06)
+- **Status:** Success (Manual Recovery)
+- **Issue:** `gradlew clean` failed (likely config). `npx expo run:android` failed (config/spawn error).
+- **Workaround:**
+  1. Ran `./gradlew app:assembleDebug --info` manually (Success).
+  2. Manual install failed (`INSTALL_FAILED_INSUFFICIENT_STORAGE`).
+  3. Uninstalled app (`adb uninstall com.onedollarapp.follo`).
+  4. Manual install succeeded (`adb install -r ...`).
+- **Action Item:** Monitor `minSdkVersion` and ensure emulator storage is sufficient. Use manual `assembleDebug` + `adb install` workflow if `npx expo run:android` flakes.
+
+### Metro Connection Issue (2026-02-06 18:55)
+- **Issue:** "Unable to load script" on emulator.
+- **Cause:** Metro bundler process had stopped.
+- **Fix:** Restarted Metro bundler (`npx expo start`) and re-ran `adb reverse tcp:8081 tcp:8081`. 
+  - *Note:* Port 8081 was blocked by a zombie process (PID 2608). Terminated it before restarting.
+
+### Entry Point Shadowing (2026-02-06 19:05)
+- **Issue:** App loads "Hello World" screen instead of real app.
+- **Cause:** `src/app/index.tsx` exists and shadows the root `app/` directory (Expo Router priority).
+- **Fix:** Renamed `src/app` to `src/app_disabled`.
+
+### Device Connectivity (2026-02-06 19:10)
+- **Status:** Physical device not connected via ADB.
+- **Action:** User must configure Bundler Address manually to `192.168.68.102:8081` (Local LAN IP).
+  - *Update:* Windows Firewall likely blocking. Switch to Tunnel.
+- **Dependency:** `expo-av` missing (caused crash). Fixed via `npm install expo-av --legacy-peer-deps`.
+- **Root Cause Analysis:** The "Unable to load script" error was likely caused by the **missing `expo-av` dependency** (which crashed the bundler), not the firewall.
+- **Current Status:** Reverting to LAN mode (`npx expo start`) now that dependency is fixed.
+- **Correction:** The APK was built *before* `expo-av` was installed. **The APK is defective** (missing native code). Rebuilding now.
+- **Build Failed:** `assembleDebug` failed.
+- **Protocol Action:** Executing `gradlew clean` to clear stale native cache (per `DEV_BUILD_PROTOCOL.md`).
+- **Clean Failed:** `gradlew clean` exit code 1.
+- **Manual Clean:** Deleting `android/app/build` and `android/.gradle` directly.
+- **Diagnosis:** `react-native-reanimated` build script failed ("Process 'command 'node'' finished with non-zero exit value 1").
+- **Action:** Stopping Gradle daemon (`./gradlew --stop`) to clear environment cache. Verifying `react-native` resolution.
+- **Analysis:** `node` works, but Reanimated fails. Suspect `node_modules` corruption from `--legacy-peer-deps` on bleeding-edge versions (RN 0.81, Expo 54).
+- **Analysis:** `node` works, but Reanimated fails. Suspect `node_modules` corruption from `--legacy-peer-deps` on bleeding-edge versions (RN 0.81, Expo 54).
+- **Remediation:** Reinstalling `react-native-reanimated` and `react-native-gesture-handler`.
+- **New Finding:** Reanimated 4.x requires `react-native-worklets`. Confirmed missing.
+- **Fix:** Installing `react-native-worklets`. Rebuilding.
+- **Progress:** `assembleDebug` passed configuration phase. Currently compiling native modules (CMake).
+- **Outcome:** Build Successful! `app-debug.apk` created.
+- **Root Cause:** Missing `react-native-worklets` package required by Reanimated 4.x. Install + Rebuild fixed it.
