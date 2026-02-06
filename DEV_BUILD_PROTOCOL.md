@@ -8,8 +8,10 @@ Before starting any build, verify the environment variables in your terminal (Po
 **Required Variables:**
 ```powershell
 $env:ANDROID_HOME = "F:\Gradle\SDK"
+$env:GRADLE_USER_HOME = "D:\GradleCache"
 # Verify
 echo $env:ANDROID_HOME
+echo $env:GRADLE_USER_HOME
 ```
 
 ## 2. Emulator Prep
@@ -34,7 +36,7 @@ Use `npx` directly to avoid npm argument parsing errors.
 
 **Correct Command:**
 ```powershell
-$env:ANDROID_HOME="F:\Gradle\SDK"; npx expo run:android --port 8081
+$env:ANDROID_HOME="F:\Gradle\SDK"; $env:GRADLE_USER_HOME="D:\GradleCache"; npx expo run:android --port 8081
 ```
 
 **Do NOT Use:**

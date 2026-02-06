@@ -22,7 +22,7 @@ import { NotificationMode } from '../repositories/settingsRepository';
 export const NOTIFICATION_CHANNELS = {
     MEDICATION_REMINDER: 'medication_reminder',
     APPOINTMENT_REMINDER: 'appointment_reminder',
-    HEAVY_SLEEPER_ALARM: 'heavy_sleeper_alarm_v2',
+    HEAVY_SLEEPER_ALARM: 'heavy_sleeper_alarm_v3',
 } as const;
 
 export const notificationService = {
@@ -59,6 +59,7 @@ export const notificationService = {
                 id: NOTIFICATION_CHANNELS.HEAVY_SLEEPER_ALARM,
                 name: 'Heavy Sleeper Alarm',
                 importance: AndroidImportance.HIGH, // MAX requires special handling, HIGH is safer for now
+                bypassDnd: true,
                 sound: 'default', // In real app, put a custom 'alarm.mp3' in /res/raw
                 vibration: true,
                 vibrationPattern: [300, 1000, 500, 1000, 500, 1000],
@@ -122,7 +123,8 @@ export const notificationService = {
                     importance: effectiveMode === 'heavy_sleeper' ? AndroidImportance.HIGH : AndroidImportance.DEFAULT,
                     // Full Screen Action (Heavy Sleeper)
                     fullScreenAction: effectiveMode === 'heavy_sleeper' ? {
-                        id: 'default', // Launches main activity
+                        id: 'full-screen',
+                        launchActivity: 'default',
                     } : undefined,
                     actions: (event.eventType === 'medication_due' || event.eventType === 'supplement_due')
                         ? [

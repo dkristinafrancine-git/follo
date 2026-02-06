@@ -33,7 +33,9 @@
         "android.permission.WAKE_LOCK",
         "android.permission.health.READ_STEPS",
         "android.permission.health.READ_EXERCISE",
-        "android.permission.health.READ_VITALS"
+        "android.permission.health.READ_VITALS",
+        "android.permission.USE_FULL_SCREEN_INTENT",
+        "android.permission.ACCESS_NOTIFICATION_POLICY"
       ]
     },
     "web": {
@@ -52,7 +54,8 @@
           "photosPermission": "Allow Follo to access your photos for medication images"
         }
       ],
-      "react-native-health-connect"
+      "react-native-health-connect",
+      "./plugins/withHeavySleeper"
     ],
     "experiments": {
       "typedRoutes": true

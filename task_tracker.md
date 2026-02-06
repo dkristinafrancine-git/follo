@@ -305,4 +305,7 @@
 - **Status:** Success
 - **Action:** Updated `MainActivity.kt` for specific lock screen flags. Updated Notifee channel to v2. Implemented alarm sound.
 - **Build:** Built via `gradlew app:assembleDebug` and installed manually via `adb install` after uninstalling old version to avoid storage limits.
+- **Update (2026-02-06 23:36):** User reported Heavy Sleeper failed to trigger alarm. Only showed notification.
+- **Action:** Updated channel to v3, added `bypassDnd`, `launchActivity: default`, and `FLAG_DISMISS_KEYGUARD`. Rebuilding and reinstalling.
+- **Update (2026-02-06 23:45):** Added `ACCESS_NOTIFICATION_POLICY` to Manifest. Updated action ID to `full-screen` in `notificationService`.
 
