@@ -144,22 +144,35 @@ export default function MyFlowScreen() {
                 {/* Insights Section */}
                 {insights.length > 0 && (
                     <View style={styles.section}>
-                        <Text style={[styles.sectionTitle, { color: colors.subtext }]}>Care Insights</Text>
+                        <Text style={[styles.sectionTitle, { color: colors.subtext }]}>{t('myFlow.careInsights')}</Text>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingRight: 16 }}>
-                            {insights.map((insight, index) => (
-                                <View key={index} style={[styles.insightCard, { backgroundColor: colors.card }]}>
-                                    <View style={styles.insightHeader}>
-                                        <Text style={[styles.insightTitle, { color: colors.subtext }]}>{insight.title}</Text>
-                                        <Ionicons
-                                            name={insight.trend === 'up' ? 'trending-up' : insight.trend === 'down' ? 'trending-down' : 'remove'}
-                                            size={16}
-                                            color={insight.trend === 'up' ? colors.success : insight.trend === 'down' ? colors.danger : colors.subtext}
-                                        />
+                            {insights.map((insight, index) => {
+                                // Special handling for "period" param which might need translation itself
+                                const params = { ...insight.descriptionParams };
+                                if (params.period && typeof params.period === 'string') {
+                                    // Translate period key (e.g., 'morning' -> t('medication.times.morning'))
+                                    // But check if it is a key we know
+                                    const periodKey = `medication.times.${params.period}`;
+                                    params.period = t(periodKey);
+                                }
+
+                                return (
+                                    <View key={index} style={[styles.insightCard, { backgroundColor: colors.card }]}>
+                                        <View style={styles.insightHeader}>
+                                            <Text style={[styles.insightTitle, { color: colors.subtext }]}>{t(insight.titleKey)}</Text>
+                                            <Ionicons
+                                                name={insight.trend === 'up' ? 'trending-up' : insight.trend === 'down' ? 'trending-down' : 'remove'}
+                                                size={16}
+                                                color={insight.trend === 'up' ? colors.success : insight.trend === 'down' ? colors.danger : colors.subtext}
+                                            />
+                                        </View>
+                                        <Text style={[styles.insightValue, { color: colors.text }]}>{insight.value}</Text>
+                                        <Text style={[styles.insightDesc, { color: colors.subtext }]}>
+                                            {t(insight.descriptionKey, params)}
+                                        </Text>
                                     </View>
-                                    <Text style={[styles.insightValue, { color: colors.text }]}>{insight.value}</Text>
-                                    <Text style={[styles.insightDesc, { color: colors.subtext }]}>{insight.description}</Text>
-                                </View>
-                            ))}
+                                );
+                            })}
                         </ScrollView>
                     </View>
                 )}

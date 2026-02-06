@@ -1,4 +1,14 @@
 {
+    "auth": {
+        "createPin": "Create a PIN",
+        "confirmPin": "Confirm your PIN",
+        "enterPin": "Enter PIN",
+        "enterPinUnlock": "Enter PIN to Unlock",
+        "enterPinDisable": "Enter PIN to Disable",
+        "pinMismatch": "PINs do not match",
+        "incorrectPin": "Incorrect PIN",
+        "secureDataHint": "Enter 4-digit PIN to secure your data"
+    },
     "tabs": {
         "timeline": "Timeline",
         "scanner": "Scanner",
@@ -16,7 +26,22 @@
     },
     "scanner": {
         "title": "Scan Medication",
-        "description": "Use your camera to scan prescription labels and automatically fill in medication details"
+        "description": "Use your camera to scan prescription labels and automatically fill in medication details",
+        "tabTitle": "Scanner",
+        "loadingCamera": "Loading Camera...",
+        "scanLabel": "Scan Label",
+        "alignLabel": "Align label within frame",
+        "permissionRequired": "Camera permission is required to scan medications.",
+        "openSettings": "Open Settings",
+        "captureError": "Failed to capture photo.",
+        "reviewTitle": "Review Scan",
+        "analyzing": "Analyzing...",
+        "verifyDetails": "Please verify the extracted details below. Update if necessary.",
+        "scanFailedTitle": "Scan Failed",
+        "scanFailedMessage": "Could not extract text from the image. Please try again or enter details manually.",
+        "confirmContinue": "Confirm & Continue",
+        "nameRequiredTitle": "Required",
+        "nameRequiredMessage": "Please enter a medication name."
     },
     "myFlow": {
         "title": "My Flow",
@@ -24,8 +49,39 @@
         "medicationAdherence": "Medication Adherence",
         "activities": "Activities",
         "activitiesLogged": "Activities Logged This Week",
-        "streak": "Current Streak",
-        "days": "Days"
+        "streak": "Streak",
+        "currentStreak": "Active Streak",
+        "days": "Days",
+        "lastSevenDays": "Last 7 Days",
+        "today": "Today",
+        "careInsights": "Care Insights",
+        "history": "History",
+        "consistencyMap": "Consistency Map",
+        "lastWeeks": "Last {{count}} weeks"
+    },
+    "careInsights": {
+        "mostMissed": {
+            "title": "Most Missed",
+            "description": "Missed {{count}} times recently"
+        },
+        "bestTime": {
+            "title": "Best Time",
+            "description": "You're most consistent in the {{period}}"
+        },
+        "consistency": {
+            "title": "Consistency Score",
+            "excellent": "Excellent consistency!",
+            "improve": "Try to take meds at the same time",
+            "noData": "Not enough data yet"
+        },
+        "postponeRate": {
+            "title": "Postpone Rate",
+            "rarely": "You rarely postpone doses"
+        },
+        "refill": {
+            "title": "Refill Needed",
+            "needed": "Refill {{medication}} soon"
+        }
     },
     "stats": {
         "last7Days": "Last 7 days",
@@ -55,14 +111,36 @@
         "appLock": "App Lock (PIN)",
         "changePin": "Change PIN",
         "biometrics": "Biometric Unlock",
-        "autoLock": "Auto-Lock Timeout"
+        "autoLock": "Auto-Lock Timeout",
+        "version": "Version",
+        "appearance": "Appearance",
+        "darkMode": "Dark Mode",
+        "healthConnect": "Health Connect",
+        "syncHealthConnect": "Sync with Health Connect",
+        "healthConnectDesc": "Sync steps, sleep, and other health data"
+    },
+    "supplement": {
+        "namePlaceholder": "e.g., Vitamin C",
+        "addTitle": "Add Supplement",
+        "dosagePlaceholder": "e.g., 500mg",
+        "stockPlaceholder": "0",
+        "dosage": "Dosage",
+        "stock": "Current Stock",
+        "schedule": "Schedule",
+        "times": "Time of Day"
     },
     "common": {
+        "for": "for",
+        "required": "Required",
+        "minutes": "minutes",
+        "notes": "Notes",
+        "notesPlaceholder": "Add notes...",
         "save": "Save",
         "cancel": "Cancel",
         "delete": "Delete",
         "edit": "Edit",
         "add": "Add",
+        "addTime": "Add Time",
         "skip": "Skip",
         "loading": "Loading...",
         "error": "Something went wrong",
@@ -74,13 +152,26 @@
     },
     "appointment": {
         "title": "Title",
+        "addTitle": "Add Appointment",
+        "titleRequired": "Title is required",
+        "titlePlaceholder": "e.g. Cardiologist Visit",
+        "doctor": "Doctor",
         "doctorName": "Doctor Name",
+        "doctorPlaceholder": "Dr. Smith",
         "specialty": "Specialty",
+        "specialtyPlaceholder": "Cardiology",
+        "date": "Date",
+        "time": "Time",
         "location": "Location",
+        "locationPlaceholder": "e.g. Medical Center, Room 302",
         "datetime": "Date & Time",
         "duration": "Duration",
         "reason": "Reason for Visit",
-        "notes": "Notes"
+        "reasonPlaceholder": "e.g. Annual Checkup",
+        "notes": "Notes",
+        "notesPlaceholder": "Questions to ask, preparation...",
+        "checklist": "Pre-appointment Checklist",
+        "checklistPlaceholder": "e.g. Bring ID"
     },
     "profile": {
         "tapToSwitch": "Tap to switch profiles",
@@ -163,7 +254,9 @@
         "dosagePlaceholder": "e.g., 500mg",
         "quantityPlaceholder": "Number of pills/doses",
         "refillThresholdHint": "Days before reminder",
-        "addTime": "Add Time",
+        "stock": "Current Stock",
+        "schedule": "Schedule",
+        "times": "Time of Day",
         "saveSuccess": "Medication saved successfully",
         "deleteConfirm": "Are you sure you want to delete this medication? This action cannot be undone.",
         "forms": {
@@ -175,23 +268,47 @@
             "cream": "Cream",
             "drops": "Drops"
         },
-        "times": {
-            "morning": "Morning",
-            "afternoon": "Afternoon",
-            "evening": "Evening",
-            "night": "Night"
-        },
         "frequencies": {
             "daily": "Daily",
             "twiceDaily": "Twice Daily",
             "weekly": "Weekly",
-            "asNeeded": "As Needed"
+            "asNeeded": "As Needed",
+            "custom": "Custom"
         },
         "status": {
+            "label": "Status",
             "taken": "Taken",
             "missed": "Missed",
             "skipped": "Skipped",
             "postponed": "Postponed"
+        },
+        "photo": "Medication Photo",
+        "addPhoto": "Add Photo",
+        "photoHint": "Optional: Add photo for visual reference",
+        "hideName": "Hide medication name",
+        "hideNameHint": "Shows \"Medication\" on widget for privacy"
+    },
+    "activity": {
+        "type": "Activity Type",
+        "addTitle": "Add Activity",
+        "title": "Title (Optional)",
+        "duration": "Duration (min)",
+        "intensity": "Intensity",
+        "date": "Date",
+        "time": "Time",
+        "mood": "Mood Before",
+        "types": {
+            "exercise": "Exercise",
+            "meditation": "Meditation",
+            "therapy": "Therapy",
+            "journaling": "Journaling",
+            "meal": "Meal",
+            "other": "Other"
+        },
+        "intensities": {
+            "low": "Low",
+            "medium": "Medium",
+            "high": "High"
         }
     },
     "accessibility": {

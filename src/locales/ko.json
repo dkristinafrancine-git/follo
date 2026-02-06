@@ -1,4 +1,14 @@
 {
+    "auth": {
+        "createPin": "PIN 생성",
+        "confirmPin": "PIN 확인",
+        "enterPin": "PIN 입력",
+        "enterPinUnlock": "잠금 해제를 위해 PIN 입력",
+        "enterPinDisable": "비활성화를 위해 PIN 입력",
+        "pinMismatch": "PIN이 일치하지 않습니다",
+        "incorrectPin": "잘못된 PIN입니다",
+        "secureDataHint": "데이터 보안을 위해 4자리 PIN을 입력하세요"
+    },
     "tabs": {
         "timeline": "타임라인",
         "scanner": "스캐너",
@@ -16,7 +26,22 @@
     },
     "scanner": {
         "title": "약 스캔",
-        "description": "카메라를 사용하여 처방전 라벨을 스캔하고 약 정보를 자동으로 입력하세요"
+        "description": "카메라를 사용하여 처방전 라벨을 스캔하고 약 정보를 자동으로 입력하세요",
+        "tabTitle": "스캐너",
+        "loadingCamera": "카메라 로딩 중...",
+        "scanLabel": "라벨 스캔",
+        "alignLabel": "프레임 안에 라벨을 맞추세요",
+        "permissionRequired": "약을 스캔하려면 카메라 권한이 필요합니다.",
+        "openSettings": "설정 열기",
+        "captureError": "사진 촬영에 실패했습니다.",
+        "reviewTitle": "스캔 확인",
+        "analyzing": "분석 중...",
+        "verifyDetails": "추출된 내용을 확인해 주세요. 필요한 경우 수정하세요.",
+        "scanFailedTitle": "스캔 실패",
+        "scanFailedMessage": "이미지에서 텍스트를 추출할 수 없습니다. 다시 시도하거나 직접 입력해 주세요.",
+        "confirmContinue": "확인 및 계속",
+        "nameRequiredTitle": "필수",
+        "nameRequiredMessage": "약 이름을 입력해 주세요."
     },
     "myFlow": {
         "title": "마이 플로우",
@@ -24,8 +49,39 @@
         "medicationAdherence": "약 복용 준수율",
         "activities": "활동",
         "activitiesLogged": "이번 주 기록된 활동",
-        "streak": "현재 연속 기록",
-        "days": "일"
+        "streak": "연속 기록",
+        "currentStreak": "현재 연속 기록",
+        "days": "일",
+        "lastSevenDays": "최근 7일",
+        "today": "오늘",
+        "careInsights": "케어 인사이트",
+        "history": "기록",
+        "consistencyMap": "일관성 지도",
+        "lastWeeks": "최근 {{count}}주"
+    },
+    "careInsights": {
+        "mostMissed": {
+            "title": "가장 많이 놓친 약",
+            "description": "최근 {{count}}회 놓침"
+        },
+        "bestTime": {
+            "title": "최적의 시간",
+            "description": "{{period}}에 가장 꾸준합니다"
+        },
+        "consistency": {
+            "title": "꾸준함 점수",
+            "excellent": "아주 훌륭해요!",
+            "improve": "같은 시간에 복용해보세요",
+            "noData": "데이터가 부족합니다"
+        },
+        "postponeRate": {
+            "title": "미루기 비율",
+            "rarely": "거의 미루지 않으십니다"
+        },
+        "refill": {
+            "title": "리필 필요",
+            "needed": "{{medication}} 리필이 필요합니다"
+        }
     },
     "settings": {
         "title": "설정",
@@ -48,9 +104,26 @@
         "appLock": "앱 잠금 (PIN)",
         "changePin": "PIN 변경",
         "biometrics": "생체 인식 잠금 해제",
-        "autoLock": "자동 잠금 시간"
+        "autoLock": "자동 잠금 시간",
+        "version": "버전",
+        "appearance": "화면 설정",
+        "darkMode": "다크 모드",
+        "healthConnect": "헬스 커넥트",
+        "syncHealthConnect": "헬스 커넥트 동기화",
+        "healthConnectDesc": "걸음 수, 수면 및 기타 건강 데이터 동기화"
+    },
+    "supplement": {
+        "namePlaceholder": "예: 비타민 C",
+        "addTitle": "영양제 추가",
+        "dosagePlaceholder": "예: 500mg",
+        "stockPlaceholder": "0",
+        "dosage": "용량",
+        "stock": "현재 재고",
+        "schedule": "일정",
+        "times": "복용 시간"
     },
     "common": {
+        "for": "~의",
         "save": "저장",
         "cancel": "취소",
         "delete": "삭제",
@@ -62,7 +135,9 @@
         "on": "켜짐",
         "off": "꺼짐",
         "close": "닫기",
-        "done": "완료"
+        "done": "완료",
+        "notes": "메모",
+        "notesPlaceholder": "메모 추가..."
     },
     "medication": {
         "name": "약 이름",
@@ -80,6 +155,9 @@
         "dosagePlaceholder": "예: 500mg",
         "quantityPlaceholder": "알/용량 수",
         "refillThresholdHint": "알림 받을 날짜 수",
+        "stock": "현재 재고",
+        "schedule": "일정",
+        "times": "복용 시간",
         "addTime": "시간 추가",
         "saveSuccess": "약이 저장되었습니다",
         "deleteConfirm": "이 약을 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.",
@@ -96,24 +174,73 @@
             "daily": "매일",
             "twiceDaily": "하루 두 번",
             "weekly": "매주",
-            "asNeeded": "필요시"
+            "asNeeded": "필요시",
+            "custom": "사용자 지정"
         },
         "status": {
             "taken": "복용 완료",
             "missed": "미복용",
             "skipped": "건너뜀",
             "postponed": "연기됨"
-        }
+        },
+        "photo": "약 사진",
+        "addPhoto": "사진 추가",
+        "photoHint": "선택 사항: 시각적 참조를 위해 사진 추가",
+        "hideName": "약 이름 숨기기",
+        "hideNameHint": "개인 정보 보호를 위해 위젯에 \"Medication\"으로 표시됩니다"
+    },
+    "stats": {
+        "last7Days": "최근 7일",
+        "thisWeek": "이번 주",
+        "keepItUp": "잘하고 있어요!",
+        "upcomingMeds": "복용 예정 약",
+        "next4Hours": "향후 4시간 내"
     },
     "appointment": {
         "title": "제목",
+        "addTitle": "병원 방문 추가",
+        "titleRequired": "제목은 필수입니다",
+        "titlePlaceholder": "예: 심장내과 방문",
+        "doctor": "의사",
         "doctorName": "의사 이름",
+        "doctorPlaceholder": "예: 김철수",
         "specialty": "전문 분야",
+        "specialtyPlaceholder": "예: 심장내과",
+        "date": "날짜",
+        "time": "시간",
         "location": "위치",
+        "locationPlaceholder": "예: 메디컬 센터, 302호",
         "datetime": "날짜 및 시간",
         "duration": "소요 시간",
         "reason": "방문 목적",
-        "notes": "메모"
+        "reasonPlaceholder": "예: 연례 검진",
+        "notes": "메모",
+        "notesPlaceholder": "질문할 내용, 준비물...",
+        "checklist": "방문 전 체크리스트",
+        "checklistPlaceholder": "예: 신분증 지참"
+    },
+    "activity": {
+        "type": "활동 유형",
+        "addTitle": "활동 추가",
+        "title": "제목 (선택사항)",
+        "duration": "시간 (분)",
+        "intensity": "강도",
+        "date": "날짜",
+        "time": "시간",
+        "mood": "기분",
+        "types": {
+            "exercise": "운동",
+            "meditation": "명상",
+            "therapy": "치료",
+            "journaling": "일기 쓰기",
+            "meal": "식사",
+            "other": "기타"
+        },
+        "intensities": {
+            "low": "낮음",
+            "medium": "중간",
+            "high": "높음"
+        }
     },
     "onboarding": {
         "welcome": "Follo에 오신 것을 환영합니다",

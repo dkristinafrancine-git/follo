@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Linking } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Camera, useCameraDevice, useCameraPermission } from 'react-native-vision-camera';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,6 +9,7 @@ import { useIsFocused } from '@react-navigation/native';
 
 export default function ScannerScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const device = useCameraDevice('back');
     const { hasPermission, requestPermission } = useCameraPermission();
     const camera = useRef<Camera>(null);
@@ -40,7 +42,7 @@ export default function ScannerScreen() {
                 });
             } catch (error) {
                 console.error('Capture failed:', error);
-                Alert.alert('Error', 'Failed to capture photo.');
+                Alert.alert(t('common.error'), t('scanner.captureError'));
             }
         }
     };
@@ -48,12 +50,12 @@ export default function ScannerScreen() {
     if (!hasPermission) {
         return (
             <SafeAreaView style={styles.permissionContainer}>
-                <Text style={styles.permissionText}>Camera permission is required to scan medications.</Text>
+                <Text style={styles.permissionText}>{t('scanner.permissionRequired')}</Text>
                 <TouchableOpacity onPress={Linking.openSettings} style={styles.permissionButton}>
-                    <Text style={styles.permissionButtonText}>Open Settings</Text>
+                    <Text style={styles.permissionButtonText}>{t('scanner.openSettings')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => router.back()} style={styles.cancelButton}>
-                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                    <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
             </SafeAreaView>
         );
@@ -63,7 +65,7 @@ export default function ScannerScreen() {
         return (
             <View style={styles.container}>
                 <ActivityIndicator size="large" color="#4A90E2" />
-                <Text>Loading Camera...</Text>
+                <Text>{t('scanner.loadingCamera')}</Text>
             </View>
         );
     }
@@ -87,12 +89,12 @@ export default function ScannerScreen() {
                     <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
                         <Ionicons name="close" size={28} color="#fff" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Scan Label</Text>
+                    <Text style={styles.headerTitle}>{t('scanner.scanLabel')}</Text>
                     <View style={{ width: 28 }} />
                 </View>
 
                 <View style={styles.scanRegionContainer}>
-                    <Text style={styles.hintText}>Align label within frame</Text>
+                    <Text style={styles.hintText}>{t('scanner.alignLabel')}</Text>
                     <View style={styles.scanFrame}>
                         <View style={[styles.corner, styles.topLeft]} />
                         <View style={[styles.corner, styles.topRight]} />

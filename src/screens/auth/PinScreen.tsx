@@ -14,6 +14,7 @@ import Animated, {
     withTiming,
     withRepeat,
 } from 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSecurity } from '../../context/SecurityContext';
@@ -38,6 +39,7 @@ interface PinScreenProps {
 const PIN_LENGTH = 4;
 
 export default function PinScreen({ mode = 'unlock', onSuccess, onCancel }: PinScreenProps) {
+    const { t } = useTranslation();
     const { enablePin, disablePin, unlockWithPin, unlockWithBiometrics, isBiometricsEnabled } = useSecurity();
     const [pin, setPin] = useState('');
     const [confirmPin, setConfirmPin] = useState('');
@@ -98,7 +100,7 @@ export default function PinScreen({ mode = 'unlock', onSuccess, onCancel }: PinS
                         await enablePin(pin);
                         if (onSuccess) onSuccess();
                     } else {
-                        setError('PINs do not match');
+                        setError(t('auth.pinMismatch'));
                         shake();
                         setPin('');
                         setConfirmPin('');
@@ -113,7 +115,7 @@ export default function PinScreen({ mode = 'unlock', onSuccess, onCancel }: PinS
                     }
                     if (onSuccess) onSuccess();
                 } else {
-                    setError('Incorrect PIN');
+                    setError(t('auth.incorrectPin'));
                     shake();
                     setPin('');
                 }
@@ -123,11 +125,11 @@ export default function PinScreen({ mode = 'unlock', onSuccess, onCancel }: PinS
 
     const getTitle = () => {
         if (mode === 'setup') {
-            return step === 'enter' ? 'Create a PIN' : 'Confirm your PIN';
+            return step === 'enter' ? t('auth.createPin') : t('auth.confirmPin');
         }
-        if (mode === 'disable') return 'Enter PIN to Disable';
-        if (mode === 'verify') return 'Enter PIN';
-        return 'Enter PIN to Unlock';
+        if (mode === 'disable') return t('auth.enterPinDisable');
+        if (mode === 'verify') return t('auth.enterPin');
+        return t('auth.enterPinUnlock');
     };
 
     const renderKey = (item: string | React.ReactNode, value?: string) => {
@@ -153,7 +155,7 @@ export default function PinScreen({ mode = 'unlock', onSuccess, onCancel }: PinS
                 <View style={styles.header}>
                     <Text style={styles.title}>{getTitle()}</Text>
                     <Text style={styles.subtitle}>
-                        {error || 'Enter 4-digit PIN to secure your data'}
+                        {error || t('auth.secureDataHint')}
                     </Text>
                 </View>
 
@@ -211,7 +213,7 @@ export default function PinScreen({ mode = 'unlock', onSuccess, onCancel }: PinS
 
                 {onCancel && (
                     <TouchableOpacity onPress={onCancel} style={styles.cancelButton}>
-                        <Text style={styles.cancelText}>Cancel</Text>
+                        <Text style={styles.cancelText}>{t('common.cancel')}</Text>
                     </TouchableOpacity>
                 )}
             </View>

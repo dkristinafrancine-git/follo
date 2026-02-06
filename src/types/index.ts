@@ -110,16 +110,20 @@ export type CreateAppointmentInput = Omit<Appointment, 'id' | 'createdAt' | 'upd
 export type UpdateAppointmentInput = Partial<Omit<Appointment, 'id' | 'profileId' | 'createdAt' | 'updatedAt'>>;
 
 // Activity types
-export type ActivityType = 'exercise' | 'sleep' | 'water' | 'meal' | 'vital_signs' | 'symptom' | 'mood' | 'custom';
+export type ActivityType = 'exercise' | 'sleep' | 'water' | 'meal' | 'vital_signs' | 'symptom' | 'mood' | 'custom' | 'meditation' | 'therapy' | 'journaling' | 'other';
 
 export interface Activity {
     id: string;
     profileId: string;
     type: ActivityType | string;
+    title?: string;
     value?: number;
     unit?: string;
     startTime: string; // UTC ISO
     endTime?: string;
+    durationMinutes?: number;
+    intensity?: 'low' | 'medium' | 'high';
+    moodBefore?: number;
     notes?: string;
     createdAt: string;
 }

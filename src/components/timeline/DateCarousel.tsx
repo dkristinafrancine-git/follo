@@ -8,7 +8,8 @@ import {
     Dimensions,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { addDays, format, isToday, isSameDay, startOfDay } from 'date-fns';
+import { startOfDay, addDays, format, isSameDay, isToday } from 'date-fns';
+import { ko } from 'date-fns/locale';
 import { useTheme } from '../../context/ThemeContext';
 import * as Haptics from 'expo-haptics';
 
@@ -74,7 +75,7 @@ export function DateCarousel({
 
         // Get localized day name (3 letters)
         const dayName = format(item.date, 'EEE', {
-            locale: i18n.language === 'ko' ? undefined : undefined // date-fns auto-detects
+            locale: i18n.language === 'ko' ? ko : undefined
         });
         const dayNumber = format(item.date, 'd');
 

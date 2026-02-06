@@ -116,12 +116,12 @@ export function SupplementForm({ initialValues, onSubmit, onCancel, isLoading = 
     return (
         <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
             <View style={styles.field}>
-                <Text style={[styles.label, { color: colors.subtext }]}>{t('medication.name') || 'Name'} *</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('medication.name')} *</Text>
                 <TextInput
                     style={[styles.input, { backgroundColor: colors.card, color: colors.text }, errors.name && { borderColor: colors.danger, borderWidth: 1 }]}
                     value={name}
                     onChangeText={setName}
-                    placeholder={t('supplement.namePlaceholder') || 'e.g., Vitamin C'}
+                    placeholder={t('supplement.namePlaceholder')}
                     placeholderTextColor={colors.subtext}
                 />
                 {errors.name && <Text style={[styles.errorText, { color: colors.danger }]}>{errors.name}</Text>}
@@ -129,23 +129,23 @@ export function SupplementForm({ initialValues, onSubmit, onCancel, isLoading = 
 
             <View style={styles.row}>
                 <View style={[styles.field, { flex: 1 }]}>
-                    <Text style={[styles.label, { color: colors.subtext }]}>{t('medication.dosage') || 'Dosage'}</Text>
+                    <Text style={[styles.label, { color: colors.subtext }]}>{t('supplement.dosage')}</Text>
                     <TextInput
                         style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
                         value={dosage}
                         onChangeText={setDosage}
-                        placeholder="e.g., 500mg"
+                        placeholder={t('supplement.dosagePlaceholder')}
                         placeholderTextColor={colors.subtext}
                     />
                 </View>
 
                 <View style={[styles.field, { flex: 1 }]}>
-                    <Text style={[styles.label, { color: colors.subtext }]}>{t('medication.stock') || 'Current Stock'}</Text>
+                    <Text style={[styles.label, { color: colors.subtext }]}>{t('supplement.stock')}</Text>
                     <TextInput
                         style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
                         value={stock}
                         onChangeText={setStock}
-                        placeholder="0"
+                        placeholder={t('supplement.stockPlaceholder')}
                         keyboardType="number-pad"
                         placeholderTextColor={colors.subtext}
                     />
@@ -153,7 +153,7 @@ export function SupplementForm({ initialValues, onSubmit, onCancel, isLoading = 
             </View>
 
             <View style={[styles.section, { backgroundColor: colors.card }]}>
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('medication.schedule') || 'Schedule'}</Text>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('supplement.schedule')}</Text>
 
                 <View style={styles.frequencyContainer}>
                     {FREQUENCIES.map((freq) => (
@@ -171,14 +171,14 @@ export function SupplementForm({ initialValues, onSubmit, onCancel, isLoading = 
                                 { color: colors.subtext },
                                 frequency === freq.value && { color: '#fff' }
                             ]}>
-                                {freq.label}
+                                {t(`medication.frequencies.${freq.value}`)}
                             </Text>
                         </TouchableOpacity>
                     ))}
                 </View>
 
                 <View style={styles.timesContainer}>
-                    <Text style={[styles.label, { color: colors.subtext }]}>{t('medication.times') || 'Time of Day'}</Text>
+                    <Text style={[styles.label, { color: colors.subtext }]}>{t('supplement.times')}</Text>
                     {times.map((time, index) => (
                         <View key={index} style={styles.timeRow}>
                             <TouchableOpacity
@@ -200,18 +200,18 @@ export function SupplementForm({ initialValues, onSubmit, onCancel, isLoading = 
                         </View>
                     ))}
                     <TouchableOpacity style={[styles.addTimeBtn, { borderColor: colors.primary }]} onPress={addTime}>
-                        <Text style={[styles.addTimeText, { color: colors.primary }]}>+ {t('common.addTime') || 'Add Time'}</Text>
+                        <Text style={[styles.addTimeText, { color: colors.primary }]}>+ {t('common.addTime')}</Text>
                     </TouchableOpacity>
                 </View>
             </View>
 
             <View style={styles.field}>
-                <Text style={[styles.label, { color: colors.subtext }]}>{t('common.notes') || 'Notes'}</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('common.notes')}</Text>
                 <TextInput
                     style={[styles.input, styles.textArea, { backgroundColor: colors.card, color: colors.text }]}
                     value={notes}
                     onChangeText={setNotes}
-                    placeholder={t('common.notesPlaceholder') || 'e.g., Take with food'}
+                    placeholder={t('common.notesPlaceholder')}
                     placeholderTextColor={colors.subtext}
                     multiline
                     numberOfLines={3}

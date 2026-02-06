@@ -156,12 +156,12 @@ export function AppointmentForm({
         <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
             {/* Title */}
             <View style={styles.field}>
-                <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.title') || 'Title'} *</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.title')} *</Text>
                 <TextInput
                     style={[styles.input, { backgroundColor: colors.card, color: colors.text }, errors.title && { borderColor: colors.danger, borderWidth: 1 }]}
                     value={formData.title}
                     onChangeText={v => updateField('title', v)}
-                    placeholder={t('appointment.titlePlaceholder') || 'e.g. Cardiologist Visit'}
+                    placeholder={t('appointment.titlePlaceholder')}
                     placeholderTextColor={colors.subtext}
                     autoFocus={mode === 'add'}
                 />
@@ -171,22 +171,22 @@ export function AppointmentForm({
             {/* Doctor & Specialty Row */}
             <View style={styles.row}>
                 <View style={[styles.field, styles.halfField]}>
-                    <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.doctor') || 'Doctor'}</Text>
+                    <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.doctor')}</Text>
                     <TextInput
                         style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
                         value={formData.doctorName}
                         onChangeText={v => updateField('doctorName', v)}
-                        placeholder="Dr. Smith"
+                        placeholder={t('appointment.doctorPlaceholder') || 'Dr. Smith'}
                         placeholderTextColor={colors.subtext}
                     />
                 </View>
                 <View style={[styles.field, styles.halfField]}>
-                    <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.specialty') || 'Specialty'}</Text>
+                    <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.specialty')}</Text>
                     <TextInput
                         style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
                         value={formData.specialty}
                         onChangeText={v => updateField('specialty', v)}
-                        placeholder="Cardiology"
+                        placeholder={t('appointment.specialtyPlaceholder') || 'Cardiology'}
                         placeholderTextColor={colors.subtext}
                     />
                 </View>
@@ -195,7 +195,7 @@ export function AppointmentForm({
             {/* Date & Time Row */}
             <View style={styles.row}>
                 <View style={[styles.field, styles.halfField]}>
-                    <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.date') || 'Date'}</Text>
+                    <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.date')}</Text>
                     <TouchableOpacity
                         style={[styles.pickerButton, { backgroundColor: colors.card }]}
                         onPress={() => setShowDatePicker(true)}
@@ -206,7 +206,7 @@ export function AppointmentForm({
                     </TouchableOpacity>
                 </View>
                 <View style={[styles.field, styles.halfField]}>
-                    <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.time') || 'Time'}</Text>
+                    <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.time')}</Text>
                     <TouchableOpacity
                         style={[styles.pickerButton, { backgroundColor: colors.card }]}
                         onPress={() => setShowTimePicker(true)}
@@ -220,50 +220,50 @@ export function AppointmentForm({
 
             {/* Duration */}
             <View style={styles.field}>
-                <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.duration') || 'Duration'}</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.duration')}</Text>
                 <TouchableOpacity
                     style={[styles.pickerButton, { backgroundColor: colors.card }]}
                     onPress={() => setShowDurationPicker(true)}
                 >
                     <Text style={[styles.pickerButtonText, { color: colors.text }]}>
-                        {formData.duration} {t('common.minutes') || 'minutes'}
+                        {formData.duration} {t('common.minutes')}
                     </Text>
                 </TouchableOpacity>
             </View>
 
             {/* Location */}
             <View style={styles.field}>
-                <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.location') || 'Location'}</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.location')}</Text>
                 <TextInput
                     style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
                     value={formData.location}
                     onChangeText={v => updateField('location', v)}
-                    placeholder={t('appointment.locationPlaceholder') || 'e.g. Medical Center, Room 302'}
+                    placeholder={t('appointment.locationPlaceholder')}
                     placeholderTextColor={colors.subtext}
                 />
             </View>
 
             {/* Reason */}
             <View style={styles.field}>
-                <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.reason') || 'Reason'}</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.reason')}</Text>
                 <TextInput
                     style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
                     value={formData.reason}
                     onChangeText={v => updateField('reason', v)}
-                    placeholder={t('appointment.reasonPlaceholder') || 'e.g. Annual Checkup'}
+                    placeholder={t('appointment.reasonPlaceholder')}
                     placeholderTextColor={colors.subtext}
                 />
             </View>
 
             {/* Checklist */}
             <View style={styles.field}>
-                <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.checklist') || 'Pre-appointment Checklist'}</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.checklist')}</Text>
                 <View style={styles.checklistInputRow}>
                     <TextInput
                         style={[styles.input, styles.checklistInput, { backgroundColor: colors.card, color: colors.text }]}
                         value={newItem}
                         onChangeText={setNewItem}
-                        placeholder={t('appointment.checklistPlaceholder') || 'e.g. Bring ID'}
+                        placeholder={t('appointment.checklistPlaceholder')}
                         placeholderTextColor={colors.subtext}
                         onSubmitEditing={addChecklistItem}
                     />
@@ -295,12 +295,12 @@ export function AppointmentForm({
 
             {/* Notes */}
             <View style={styles.field}>
-                <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.notes') || 'Notes'}</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('appointment.notes')}</Text>
                 <TextInput
                     style={[styles.input, styles.textArea, { backgroundColor: colors.card, color: colors.text }]}
                     value={formData.notes}
                     onChangeText={v => updateField('notes', v)}
-                    placeholder={t('appointment.notesPlaceholder') || 'Questions to ask, preparation...'}
+                    placeholder={t('appointment.notesPlaceholder')}
                     placeholderTextColor={colors.subtext}
                     multiline
                     numberOfLines={4}

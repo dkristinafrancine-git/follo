@@ -265,17 +265,17 @@ export function MedicationForm({
 
             {/* Photo Attachment */}
             <View style={styles.field}>
-                <Text style={[styles.label, { color: colors.subtext }]}>Medication Photo</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('medication.photo')}</Text>
                 <TouchableOpacity style={[styles.photoButton, { backgroundColor: colors.card }]} onPress={pickImage}>
                     {formData.photoUri ? (
                         <Image source={{ uri: formData.photoUri }} style={styles.previewImage} />
                     ) : (
                         <View style={styles.photoPlaceholder}>
-                            <Text style={[styles.photoPlaceholderText, { color: colors.primary }]}>+ Add Photo</Text>
+                            <Text style={[styles.photoPlaceholderText, { color: colors.primary }]}>+ {t('medication.addPhoto')}</Text>
                         </View>
                     )}
                 </TouchableOpacity>
-                <Text style={[styles.hint, { color: colors.subtext }]}>Optional: Add photo for visual reference</Text>
+                <Text style={[styles.hint, { color: colors.subtext }]}>{t('medication.photoHint')}</Text>
             </View>
 
             {/* Dosage */}
@@ -285,7 +285,7 @@ export function MedicationForm({
                     style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
                     value={formData.dosage}
                     onChangeText={v => updateField('dosage', v)}
-                    placeholder={t('medication.dosagePlaceholder') || 'e.g., 500mg'}
+                    placeholder={t('medication.dosagePlaceholder')}
                     placeholderTextColor={colors.subtext}
                 />
             </View>
@@ -320,7 +320,7 @@ export function MedicationForm({
 
             {/* Time of Day */}
             <View style={styles.field}>
-                <Text style={[styles.label, { color: colors.subtext }]}>{t('medication.time')}</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('medication.times')}</Text>
                 {formData.timeOfDay.map((time, index) => (
                     <View key={index} style={styles.timeRow}>
                         <TouchableOpacity
@@ -340,7 +340,7 @@ export function MedicationForm({
                     </View>
                 ))}
                 <TouchableOpacity style={styles.addTimeButton} onPress={addTime}>
-                    <Text style={[styles.addTimeButtonText, { color: colors.primary }]}>+ {t('medication.addTime') || 'Add Time'}</Text>
+                    <Text style={[styles.addTimeButtonText, { color: colors.primary }]}>+ {t('common.addTime')}</Text>
                 </TouchableOpacity>
             </View>
 
@@ -351,7 +351,7 @@ export function MedicationForm({
                     style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
                     value={formData.currentQuantity}
                     onChangeText={v => updateField('currentQuantity', v.replace(/[^0-9]/g, ''))}
-                    placeholder={t('medication.quantityPlaceholder') || 'Number of pills/doses'}
+                    placeholder={t('medication.quantityPlaceholder')}
                     placeholderTextColor={colors.subtext}
                     keyboardType="number-pad"
                 />
@@ -369,7 +369,7 @@ export function MedicationForm({
                     >
                         <Text style={[styles.thresholdButtonText, { color: colors.primary }]}>−</Text>
                     </TouchableOpacity>
-                    <Text style={[styles.thresholdValue, { color: colors.text }]}>{formData.refillThreshold} days</Text>
+                    <Text style={[styles.thresholdValue, { color: colors.text }]}>{formData.refillThreshold} {t('myFlow.days')}</Text>
                     <TouchableOpacity
                         style={[styles.thresholdButton, { backgroundColor: colors.card }]}
                         onPress={() => updateField('refillThreshold', formData.refillThreshold + 1)}
@@ -377,7 +377,7 @@ export function MedicationForm({
                         <Text style={[styles.thresholdButtonText, { color: colors.primary }]}>+</Text>
                     </TouchableOpacity>
                 </View>
-                <Text style={[styles.hint, { color: colors.subtext }]}>{t('medication.refillThresholdHint') || 'Days before reminder'}</Text>
+                <Text style={[styles.hint, { color: colors.subtext }]}>{t('medication.refillThresholdHint')}</Text>
             </View>
 
             {/* Notes */}
@@ -387,7 +387,7 @@ export function MedicationForm({
                     style={[styles.input, styles.textArea, { backgroundColor: colors.card, color: colors.text }]}
                     value={formData.notes}
                     onChangeText={v => updateField('notes', v)}
-                    placeholder={t('appointment.notes') || 'Add notes...'}
+                    placeholder={t('common.notesPlaceholder')}
                     placeholderTextColor={colors.subtext}
                     multiline
                     numberOfLines={3}
@@ -401,8 +401,8 @@ export function MedicationForm({
                 onPress={() => updateField('hideName', !formData.hideName)}
             >
                 <View style={styles.toggleInfo}>
-                    <Text style={[styles.toggleLabel, { color: colors.text }]}>Hide medication name</Text>
-                    <Text style={[styles.toggleHint, { color: colors.subtext }]}>Shows "Medication" on widget for privacy</Text>
+                    <Text style={[styles.toggleLabel, { color: colors.text }]}>{t('medication.hideName')}</Text>
+                    <Text style={[styles.toggleHint, { color: colors.subtext }]}>{t('medication.hideNameHint')}</Text>
                 </View>
                 <View style={[styles.toggle, { backgroundColor: colors.border }, formData.hideName && { backgroundColor: colors.primary }]}>
                     <View style={[styles.toggleDot, { backgroundColor: '#ffffff' }, formData.hideName && styles.toggleDotActive]} />

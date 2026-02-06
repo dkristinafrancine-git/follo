@@ -4,9 +4,10 @@ import { differenceInMinutes, parseISO } from 'date-fns';
 
 export interface CareInsight {
     type: 'most_missed' | 'best_time' | 'consistency' | 'streak';
-    title: string;
+    titleKey: string;
     value: string | number;
-    description: string;
+    descriptionKey: string;
+    descriptionParams?: Record<string, string | number>;
     score?: number; // 0-100 for score types
     trend?: 'up' | 'down' | 'neutral';
 }
@@ -25,9 +26,10 @@ export const careMetricsService = {
 
         return {
             type: 'most_missed',
-            title: 'Most Missed',
+            titleKey: 'careInsights.mostMissed.title',
             value: medication.name,
-            description: `Missed ${missed[0].count} times recently`,
+            descriptionKey: 'careInsights.mostMissed.description',
+            descriptionParams: { count: missed[0].count },
             trend: 'down'
         };
     },
@@ -41,14 +43,38 @@ export const careMetricsService = {
         if (!bestTime) return null;
 
         const hour = bestTime.hour;
-        const period = hour < 12 ? 'Morning' : hour < 17 ? 'Afternoon' : hour < 21 ? 'Evening' : 'Night';
+        const periodKey = hour < 12 ? 'medication.times.morning' : hour < 17 ? 'medication.times.afternoon' : hour < 21 ? 'medication.times.evening' : 'medication.times.night';
+        // We will need to translate the period when rendering, so we pass the key as a param
+        // But wait, params usually take raw values. 
+        // Better: let the UI translate the period? Or pass the key as a param and handle recursive translation?
+        // Simpler: The description template is "You're most consistent in the {{period}}".
+        // We can pass the period KEY if the translation system supports nested keys, but standard i18next usually expects values.
+        // Option 3: Return English period and rely on it? No.
+        // Option 4: "period" param will be the translation KEY itself, and we use a helper in UI?
+        // Let's decide to pass the localized period string if we have access to t()? We don't here.
+        // So we pass the key 'medication.times.morning' as a value for {{period}}?
+        // No, that would show "medication.times.morning".
+        // Solution: Change descriptionKey to take NO params for now, or assume UI handles it?
+
+        // Revised Strategy:
+        // Pass period as a raw string 'morning', 'afternoon' etc. (lowercase).
+        // UI code will look up `medication.times.${period}`.
+        // BUT description template expects {{period}}.
+        // So we might need to modify the template to not include the variable, but that breaks flexibility.
+
+        // Actually, we can just pass the key, and in the UI we detect if a param looks like a key? No.
+
+        // Let's pass the raw key and let the COMPONENT translate the param before feeding it to the description t().
+
+        const periodParam = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : hour < 21 ? 'evening' : 'night';
         const formattedTime = `${hour % 12 || 12}:00 ${hour < 12 ? 'AM' : 'PM'}`;
 
         return {
             type: 'best_time',
-            title: 'Best Time',
+            titleKey: 'careInsights.bestTime.title',
             value: formattedTime,
-            description: `You're most consistent in the ${period}`,
+            descriptionKey: 'careInsights.bestTime.description',
+            descriptionParams: { period: periodParam }, // UI must translate this param!
             trend: 'up'
         };
     },
@@ -71,9 +97,9 @@ export const careMetricsService = {
         if (history.length === 0) {
             return {
                 type: 'consistency',
-                title: 'Consistency Score',
+                titleKey: 'careInsights.consistency.title',
                 value: 'N/A',
-                description: 'Not enough data yet',
+                descriptionKey: 'careInsights.consistency.noData',
                 score: 0
             };
         }
@@ -105,9 +131,9 @@ export const careMetricsService = {
 
         return {
             type: 'consistency',
-            title: 'Consistency Score',
+            titleKey: 'careInsights.consistency.title',
             value: `${score}/100`,
-            description: score > 80 ? 'Excellent consistency!' : 'Try to take meds at the same time',
+            descriptionKey: score > 80 ? 'careInsights.consistency.excellent' : 'careInsights.consistency.improve',
             score: score,
             trend: score > 80 ? 'up' : 'neutral'
         };
@@ -141,19 +167,12 @@ export const careMetricsService = {
      * Calculate how often the user postpones medications
      */
     async getPostponeFrequency(profileId: string): Promise<CareInsight> {
-        // Count total history and postponed status
-        // Note: usage requires recording 'postponed' events in history which is not default yet.
-        // This is a placeholder for future data.
-        const history = await medicationHistoryRepository.getMostMissed(profileId, 100); // Re-using query or need new one?
-        // Actually, we need a count by status.
-        // Let's rely on a basic query for now or add a new repository method in future.
-        // For now, return a placeholder "Good" status if no data.
-
+        // Placeholder for future data.
         return {
-            type: 'consistency', // reuse type or add new
-            title: 'Postpone Rate',
+            type: 'consistency',
+            titleKey: 'careInsights.postponeRate.title',
             value: '0%',
-            description: 'You rarely postpone doses',
+            descriptionKey: 'careInsights.postponeRate.rarely',
             trend: 'neutral',
             score: 100
         };
@@ -174,16 +193,6 @@ export const careMetricsService = {
         for (const med of activeMeds) {
             if (!med.currentQuantity || !med.frequencyRule) continue;
 
-            // Simplified estimation: Assume daily frequency if not specified
-            // TODO: Parse RecurrenceRule accurately
-            let dailyDose = 1;
-            if (med.dosage) {
-                // heuristic: try to parse number, else default 1
-                const match = med.dosage.match(/(\d+)/);
-                if (match) dailyDose = 1; // Actually dosage is strength, not count.
-                // Assuming 1 pill per scheduled time
-            }
-
             const timesPerDay = med.timeOfDay.length || 1;
             const dailyConsumption = timesPerDay; // 1 unit * N times
 
@@ -201,9 +210,10 @@ export const careMetricsService = {
 
         return {
             type: 'consistency',
-            title: 'Refill Needed',
+            titleKey: 'careInsights.refill.title',
             value: `${soonestRefillDays} Days`,
-            description: `Refill ${soonestMed.name} soon`,
+            descriptionKey: 'careInsights.refill.needed',
+            descriptionParams: { medication: soonestMed.name },
             trend: soonestRefillDays < 7 ? 'down' : 'neutral'
         };
     }

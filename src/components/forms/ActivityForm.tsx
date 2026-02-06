@@ -77,7 +77,7 @@ export function ActivityForm({ initialValues, onSubmit, onCancel, isLoading = fa
             intensity: intensity as 'low' | 'medium' | 'high',
             moodBefore,
             notes: notes.trim() || undefined,
-            completedAt: completedAt.toISOString(),
+            startTime: completedAt.toISOString(),
         };
 
         await onSubmit(activityData);
@@ -104,7 +104,7 @@ export function ActivityForm({ initialValues, onSubmit, onCancel, isLoading = fa
     return (
         <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
             {/* Activity Type Selection */}
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('activity.type') || 'Activity Type'}</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('activity.type')}</Text>
             <View style={styles.typesGrid}>
                 {ACTIVITY_TYPES.map((item) => (
                     <TouchableOpacity
@@ -122,7 +122,7 @@ export function ActivityForm({ initialValues, onSubmit, onCancel, isLoading = fa
                             { color: colors.subtext },
                             selectedType === item.type && { color: '#ffffff', fontWeight: '700' }
                         ]}>
-                            {item.label}
+                            {t(`activity.types.${item.type}`)}
                         </Text>
                     </TouchableOpacity>
                 ))}
@@ -130,19 +130,19 @@ export function ActivityForm({ initialValues, onSubmit, onCancel, isLoading = fa
 
             {/* Details Section */}
             <View style={styles.field}>
-                <Text style={[styles.label, { color: colors.subtext }]}>{t('activity.title') || 'Title (Optional)'}</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('activity.title')}</Text>
                 <TextInput
                     style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
                     value={title}
                     onChangeText={setTitle}
-                    placeholder={ACTIVITY_TYPES.find(t => t.type === selectedType)?.label}
+                    placeholder={t(`activity.types.${selectedType}`) || ACTIVITY_TYPES.find(t => t.type === selectedType)?.label}
                     placeholderTextColor={colors.subtext}
                 />
             </View>
 
             <View style={styles.row}>
                 <View style={[styles.field, { flex: 1 }]}>
-                    <Text style={[styles.label, { color: colors.subtext }]}>{t('activity.duration') || 'Duration (min)'}</Text>
+                    <Text style={[styles.label, { color: colors.subtext }]}>{t('activity.duration')}</Text>
                     <TextInput
                         style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
                         value={duration}
@@ -154,7 +154,7 @@ export function ActivityForm({ initialValues, onSubmit, onCancel, isLoading = fa
                 </View>
 
                 <View style={[styles.field, { flex: 1 }]}>
-                    <Text style={[styles.label, { color: colors.subtext }]}>{t('activity.intensity') || 'Intensity'}</Text>
+                    <Text style={[styles.label, { color: colors.subtext }]}>{t('activity.intensity')}</Text>
                     <View style={styles.intensityContainer}>
                         {(['low', 'medium', 'high'] as const).map((level) => (
                             <TouchableOpacity
@@ -171,7 +171,7 @@ export function ActivityForm({ initialValues, onSubmit, onCancel, isLoading = fa
                                     { color: colors.subtext },
                                     intensity === level && { color: '#ffffff', fontWeight: '600' }
                                 ]}>
-                                    {level.charAt(0).toUpperCase()}
+                                    {t(`activity.intensities.${level}`)}
                                 </Text>
                             </TouchableOpacity>
                         ))}
@@ -182,7 +182,7 @@ export function ActivityForm({ initialValues, onSubmit, onCancel, isLoading = fa
             {/* Date & Time */}
             <View style={styles.row}>
                 <View style={[styles.field, { flex: 1 }]}>
-                    <Text style={[styles.label, { color: colors.subtext }]}>{t('activity.date') || 'Date'}</Text>
+                    <Text style={[styles.label, { color: colors.subtext }]}>{t('activity.date')}</Text>
                     <TouchableOpacity
                         style={[styles.pickerButton, { backgroundColor: colors.card }]}
                         onPress={() => setShowDatePicker(true)}
@@ -193,7 +193,7 @@ export function ActivityForm({ initialValues, onSubmit, onCancel, isLoading = fa
                     </TouchableOpacity>
                 </View>
                 <View style={[styles.field, { flex: 1 }]}>
-                    <Text style={[styles.label, { color: colors.subtext }]}>{t('activity.time') || 'Time'}</Text>
+                    <Text style={[styles.label, { color: colors.subtext }]}>{t('activity.time')}</Text>
                     <TouchableOpacity
                         style={[styles.pickerButton, { backgroundColor: colors.card }]}
                         onPress={() => setShowTimePicker(true)}
@@ -207,7 +207,7 @@ export function ActivityForm({ initialValues, onSubmit, onCancel, isLoading = fa
 
             {/* Mood Selection */}
             <View style={styles.field}>
-                <Text style={[styles.label, { color: colors.subtext }]}>{t('activity.mood') || 'Mood Before'}</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('activity.mood')}</Text>
                 <View style={[styles.moodContainer, { backgroundColor: colors.card }]}>
                     {MOODS.map((emoji, index) => (
                         <TouchableOpacity
@@ -226,12 +226,12 @@ export function ActivityForm({ initialValues, onSubmit, onCancel, isLoading = fa
 
             {/* Notes */}
             <View style={styles.field}>
-                <Text style={[styles.label, { color: colors.subtext }]}>{t('common.notes') || 'Notes'}</Text>
+                <Text style={[styles.label, { color: colors.subtext }]}>{t('common.notes')}</Text>
                 <TextInput
                     style={[styles.input, styles.textArea, { backgroundColor: colors.card, color: colors.text }]}
                     value={notes}
                     onChangeText={setNotes}
-                    placeholder={t('common.notesPlaceholder') || 'How did it go?'}
+                    placeholder={t('common.notesPlaceholder')}
                     placeholderTextColor={colors.subtext}
                     multiline
                     numberOfLines={3}

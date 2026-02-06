@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, TextInput, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { OCRService, ParsedMedication } from '../../src/services/ocrService';
@@ -7,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 export default function ScanReviewScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const params = useLocalSearchParams();
     const imageUri = params.imageUri as string;
 
@@ -35,7 +37,7 @@ export default function ScanReviewScreen() {
 
         } catch (error) {
             console.error('Processing failed:', error);
-            Alert.alert('Scan Failed', 'Could not extract text from the image. Please try again or enter details manually.');
+            Alert.alert(t('scanner.scanFailedTitle'), t('scanner.scanFailedMessage'));
         } finally {
             setLoading(false);
         }
@@ -43,7 +45,7 @@ export default function ScanReviewScreen() {
 
     const handleConfirm = () => {
         if (!name) {
-            Alert.alert('Required', 'Please enter a medication name.');
+            Alert.alert(t('scanner.nameRequiredTitle'), t('scanner.nameRequiredMessage'));
             return;
         }
 
@@ -68,7 +70,7 @@ export default function ScanReviewScreen() {
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={24} color="#333" />
                 </TouchableOpacity>
-                <Text style={styles.title}>Review Scan</Text>
+                <Text style={styles.title}>{t('scanner.reviewTitle')}</Text>
                 <View style={{ width: 24 }} />
             </View>
 
@@ -78,55 +80,59 @@ export default function ScanReviewScreen() {
                     {loading && (
                         <View style={styles.loadingOverlay}>
                             <ActivityIndicator size="large" color="#ffffff" />
-                            <Text style={styles.loadingText}>Analyzing...</Text>
+                            <Text style={styles.loadingText}>{t('scanner.analyzing')}</Text>
                         </View>
                     )}
                 </View>
 
                 <Text style={styles.instructions}>
-                    Please verify the extracted details below. Update if necessary.
+                    {t('scanner.verifyDetails')}
                 </Text>
 
                 <View style={styles.form}>
                     <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Medication Name</Text>
+                        <Text style={styles.label}>{t('medication.name')}</Text>
                         <TextInput
                             style={styles.input}
                             value={name}
                             onChangeText={setName}
-                            placeholder="e.g. Amoxicillin"
+                            placeholder={t('medication.namePlaceholder')}
+                            placeholderTextColor="#999999"
                         />
                     </View>
 
                     <View style={styles.row}>
                         <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
-                            <Text style={styles.label}>Dosage/Strength</Text>
+                            <Text style={styles.label}>{t('medication.dosage')}</Text>
                             <TextInput
                                 style={styles.input}
                                 value={dosage}
                                 onChangeText={setDosage}
-                                placeholder="e.g. 500mg"
+                                placeholder={t('medication.dosagePlaceholder')}
+                                placeholderTextColor="#999999"
                             />
                         </View>
 
                         <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
-                            <Text style={styles.label}>Form</Text>
+                            <Text style={styles.label}>{t('medication.form')}</Text>
                             <TextInput
                                 style={styles.input}
                                 value={form}
                                 onChangeText={setForm}
                                 placeholder="e.g. Tablet"
+                                placeholderTextColor="#999999"
                             />
                         </View>
                     </View>
 
                     <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Frequency</Text>
+                        <Text style={styles.label}>{t('medication.frequency')}</Text>
                         <TextInput
                             style={styles.input}
                             value={frequency}
                             onChangeText={setFrequency}
                             placeholder="e.g. Daily"
+                            placeholderTextColor="#999999"
                         />
                     </View>
                 </View>
@@ -134,7 +140,7 @@ export default function ScanReviewScreen() {
 
             <View style={styles.footer}>
                 <TouchableOpacity style={styles.confirmButton} onPress={handleConfirm}>
-                    <Text style={styles.confirmButtonText}>Confirm & Continue</Text>
+                    <Text style={styles.confirmButtonText}>{t('scanner.confirmContinue')}</Text>
                 </TouchableOpacity>
             </View>
         </SafeAreaView>

@@ -118,6 +118,7 @@ export default function TabLayout() {
             <Tabs.Screen
                 name="scanner"
                 options={{
+                    title: t('scanner.tabTitle'),
                     tabBarIcon: ({ color }) => <ScannerIcon color={color} />,
                 }}
                 listeners={{

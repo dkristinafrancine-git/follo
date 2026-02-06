@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { format, subDays, eachDayOfInterval, startOfWeek } from 'date-fns';
+import { enUS, ko } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../context/ThemeContext';
 
 // Constants
@@ -24,6 +26,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
     onDayPress,
     endDate = new Date()
 }) => {
+    const { t, i18n } = useTranslation();
     const { colors, themeMode } = useTheme();
 
     // Helper to hex to rgb for opacity (simplified)
@@ -32,6 +35,10 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
         // Or specific logic if needed
         return colors.primary;
     };
+
+    const dateLocale = useMemo(() => {
+        return i18n.language.startsWith('ko') ? ko : enUS;
+    }, [i18n.language]);
 
     const { weeks, monthLabels } = useMemo(() => {
         const end = endDate;
@@ -66,7 +73,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
 
             if (month !== currentMonth) {
                 labels.push({
-                    text: format(firstDayOfWeek, 'MMM'),
+                    text: format(firstDayOfWeek, 'MMM', { locale: dateLocale }),
                     offset: index * (SQUARE_SIZE + GAP_SIZE)
                 });
                 currentMonth = month;
@@ -74,7 +81,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
         });
 
         return { weeks: weeksArray, monthLabels: labels };
-    }, [data, endDate]);
+    }, [data, endDate, dateLocale]);
 
     const getIntensityColor = (count: number) => {
         if (count === 0) {
@@ -117,8 +124,8 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
     return (
         <View style={[styles.container, { backgroundColor: colors.card }]}>
             <View style={styles.header}>
-                <Text style={[styles.title, { color: colors.text }]}>Consistency Map</Text>
-                <Text style={[styles.subtitle, { color: colors.subtext }]}>Last {WEEKS_TO_SHOW} weeks</Text>
+                <Text style={[styles.title, { color: colors.text }]}>{t('myFlow.consistencyMap')}</Text>
+                <Text style={[styles.subtitle, { color: colors.subtext }]}>{t('myFlow.lastWeeks', { count: WEEKS_TO_SHOW })}</Text>
             </View>
 
             <ScrollView
@@ -128,9 +135,9 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
             >
                 {/* Days of Week Labels (Mon/Wed/Fri) */}
                 <View style={styles.dayLabels}>
-                    <Text style={styles.dayLabel}>Mon</Text>
-                    <Text style={styles.dayLabel}>Wed</Text>
-                    <Text style={styles.dayLabel}>Fri</Text>
+                    <Text style={styles.dayLabel}>{i18n.language.startsWith('ko') ? '월' : 'Mon'}</Text>
+                    <Text style={styles.dayLabel}>{i18n.language.startsWith('ko') ? '수' : 'Wed'}</Text>
+                    <Text style={styles.dayLabel}>{i18n.language.startsWith('ko') ? '금' : 'Fri'}</Text>
                 </View>
 
                 <View>
