@@ -52,10 +52,10 @@ export default function PermissionsScreen() {
         <SafeAreaView style={styles.container}>
             <View style={styles.content}>
                 <View style={styles.header}>
-                    <Text style={styles.stage}>Step 2 of 4</Text>
-                    <Text style={styles.title}>Permissions</Text>
+                    <Text style={styles.stage}>{t('onboarding.step', { current: 2, total: 4 })}</Text>
+                    <Text style={styles.title}>{t('onboarding.permissionsTitle')}</Text>
                     <Text style={styles.subtitle}>
-                        Follo needs a few permissions to work its best. You can change these later.
+                        {t('onboarding.permissionsSubtitle')}
                     </Text>
                 </View>
 
@@ -63,9 +63,9 @@ export default function PermissionsScreen() {
                     {/* Camera Permission */}
                     <View style={styles.permissionItem}>
                         <View style={styles.textContainer}>
-                            <Text style={styles.permissionTitle}>📸 Camera Access</Text>
+                            <Text style={styles.permissionTitle}>📸 {t('onboarding.cameraPermission')}</Text>
                             <Text style={styles.permissionDesc}>
-                                Used to scan medication labels and capture emergency ID codes.
+                                {t('onboarding.cameraPermissionDesc')}
                             </Text>
                         </View>
                         <Switch
@@ -79,9 +79,9 @@ export default function PermissionsScreen() {
                     {/* Notification Permission */}
                     <View style={styles.permissionItem}>
                         <View style={styles.textContainer}>
-                            <Text style={styles.permissionTitle}>🔔 Notifications</Text>
+                            <Text style={styles.permissionTitle}>🔔 {t('onboarding.notificationPermission')}</Text>
                             <Text style={styles.permissionDesc}>
-                                Required for medication reminders and heavy sleeper alarms.
+                                {t('onboarding.notificationPermissionDesc')}
                             </Text>
                         </View>
                         <Switch
@@ -95,7 +95,7 @@ export default function PermissionsScreen() {
 
                 <View style={styles.footer}>
                     <TouchableOpacity style={styles.button} onPress={handleContinue}>
-                        <Text style={styles.buttonText}>Continue</Text>
+                        <Text style={styles.buttonText}>{t('onboarding.continue')}</Text>
                     </TouchableOpacity>
                 </View>
             </View>

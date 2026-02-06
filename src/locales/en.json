@@ -148,7 +148,9 @@
         "on": "On",
         "off": "Off",
         "close": "Close",
-        "done": "Done"
+        "done": "Done",
+        "yes": "Yes",
+        "no": "No"
     },
     "appointment": {
         "title": "Title",
@@ -174,6 +176,7 @@
         "checklistPlaceholder": "e.g. Bring ID"
     },
     "profile": {
+        "name": "Name",
         "tapToSwitch": "Tap to switch profiles",
         "yourProfile": "Your profile",
         "selectProfile": "Select Profile",
@@ -220,7 +223,24 @@
                 "title": "Your Data, Your Control",
                 "description": "All data stays on your device. Export anytime, delete whenever you want"
             }
-        }
+        },
+        "permissionsTitle": "Permissions",
+        "permissionsSubtitle": "Follo needs a few permissions to work its best. You can change these later.",
+        "cameraPermission": "Camera Access",
+        "cameraPermissionDesc": "Used to scan medication labels and capture emergency ID codes.",
+        "notificationPermission": "Notifications",
+        "notificationPermissionDesc": "Required for medication reminders and heavy sleeper alarms.",
+        "whatsFirstTitle": "What's First?",
+        "whatsFirstSubtitle": "Start by adding the most important thing to your routine.",
+        "addMedication": "Medication",
+        "addMedicationDesc": "Track pills, recurring prescriptions",
+        "addSupplement": "Supplement",
+        "addSupplementDesc": "Vitamins, minerals, and more",
+        "addAppointment": "Appointment",
+        "addAppointmentDesc": "Doctor visits, checkups",
+        "addActivity": "Activity",
+        "addActivityDesc": "Exercise, therapy, meditation",
+        "addLater": "I'll add things later"
     },
     "emergency": {
         "title": "Emergency ID",
@@ -236,7 +256,25 @@
         "noData": "No emergency data set up yet",
         "notes": "Notes",
         "importSuccess": "Emergency ID imported successfully!",
-        "importError": "Failed to import emergency data"
+        "importError": "Failed to import emergency data",
+        "bloodTypePlaceholder": "e.g. O+",
+        "allergiesPlaceholder": "Comma separated (e.g. Peanuts, Penicillin)",
+        "conditionsPlaceholder": "Comma separated (e.g. Diabetes, Asthma)",
+        "contactNamePlaceholder": "Name",
+        "contactRelationPlaceholder": "Relation",
+        "contactPhonePlaceholder": "Phone",
+        "notesPlaceholder": "Additional medical notes...",
+        "exportError": "Failed to export wallet card.",
+        "noProfile": "No active profile selected.",
+        "invalidCodeTitle": "Invalid Code",
+        "invalidCodeMessage": "This QR code does not contain valid Follo Emergency ID data.",
+        "tryAgain": "Try Again",
+        "permissionRequired": "Camera permission is required to scan emergency IDs.",
+        "cameraUnavailable": "Camera not available",
+        "importTitle": "Import Emergency ID",
+        "scanHint": "Scan a Follo Emergency QR Code",
+        "processing": "Processing...",
+        "overwriteWarning": "Scanning will overwrite existing emergency data for {{name}}."
     },
     "medication": {
         "name": "Medication Name",

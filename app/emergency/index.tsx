@@ -108,7 +108,7 @@ export default function EmergencyScreen() {
             });
         } catch (error) {
             console.error('Export failed:', error);
-            Alert.alert(t('common.error'), 'Failed to export wallet card.');
+            Alert.alert(t('common.error'), t('emergency.exportError'));
         } finally {
             setLoading(false);
         }
@@ -171,7 +171,7 @@ export default function EmergencyScreen() {
                                 style={styles.input}
                                 value={bloodType}
                                 onChangeText={setBloodType}
-                                placeholder="e.g. O+"
+                                placeholder={t('emergency.bloodTypePlaceholder')}
                                 placeholderTextColor="#6b7280"
                             />
                         </View>
@@ -182,7 +182,7 @@ export default function EmergencyScreen() {
                                 style={styles.input}
                                 value={allergies}
                                 onChangeText={setAllergies}
-                                placeholder="Comma separated (e.g. Peanuts, Penicillin)"
+                                placeholder={t('emergency.allergiesPlaceholder')}
                                 placeholderTextColor="#6b7280"
                                 multiline
                             />
@@ -194,7 +194,7 @@ export default function EmergencyScreen() {
                                 style={styles.input}
                                 value={conditions}
                                 onChangeText={setConditions}
-                                placeholder="Comma separated (e.g. Diabetes, Asthma)"
+                                placeholder={t('emergency.conditionsPlaceholder')}
                                 placeholderTextColor="#6b7280"
                                 multiline
                             />
@@ -219,21 +219,21 @@ export default function EmergencyScreen() {
                                     style={styles.contactInput}
                                     value={contact.name}
                                     onChangeText={(v) => handleUpdateContact(index, 'name', v)}
-                                    placeholder="Name"
+                                    placeholder={t('emergency.contactNamePlaceholder')}
                                     placeholderTextColor="#6b7280"
                                 />
                                 <TextInput
                                     style={styles.contactInput}
                                     value={contact.relation}
                                     onChangeText={(v) => handleUpdateContact(index, 'relation', v)}
-                                    placeholder="Relation"
+                                    placeholder={t('emergency.contactRelationPlaceholder')}
                                     placeholderTextColor="#6b7280"
                                 />
                                 <TextInput
                                     style={styles.contactInput}
                                     value={contact.phone}
                                     onChangeText={(v) => handleUpdateContact(index, 'phone', v)}
-                                    placeholder="Phone"
+                                    placeholder={t('emergency.contactPhonePlaceholder')}
                                     keyboardType="phone-pad"
                                     placeholderTextColor="#6b7280"
                                 />
@@ -255,7 +255,7 @@ export default function EmergencyScreen() {
                                 style={[styles.input, styles.textArea]}
                                 value={notes}
                                 onChangeText={setNotes}
-                                placeholder="Additional medical notes..."
+                                placeholder={t('emergency.notesPlaceholder')}
                                 placeholderTextColor="#6b7280"
                                 multiline
                             />

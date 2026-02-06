@@ -72,7 +72,7 @@ export default function ProfileSetupScreen() {
                 >
                     {/* Header */}
                     <View style={styles.header}>
-                        <Text style={styles.stepIndicator}>{t('onboarding.step', { current: 1, total: 3 })}</Text>
+                        <Text style={styles.stepIndicator}>{t('onboarding.step', { current: 1, total: 4 })}</Text>
                         <Text style={styles.title}>{t('onboarding.createProfile')}</Text>
                         <Text style={styles.subtitle}>{t('onboarding.profileDescription')}</Text>
                     </View>

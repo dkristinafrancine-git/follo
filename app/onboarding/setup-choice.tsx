@@ -1,9 +1,11 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Href } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useOnboarding } from '../../src/hooks/useProfiles';
 
 export default function SetupChoiceScreen() {
+    const { t } = useTranslation();
     const { completeOnboarding } = useOnboarding();
 
     const handleSelect = (path: string) => {
@@ -42,39 +44,39 @@ export default function SetupChoiceScreen() {
         <SafeAreaView style={styles.container}>
             <View style={styles.content}>
                 <View style={styles.header}>
-                    <Text style={styles.stage}>Step 3 of 4</Text>
-                    <Text style={styles.title}>What's First?</Text>
+                    <Text style={styles.stage}>{t('onboarding.step', { current: 3, total: 4 })}</Text>
+                    <Text style={styles.title}>{t('onboarding.whatsFirstTitle')}</Text>
                     <Text style={styles.subtitle}>
-                        Start by adding the most important thing to your routine.
+                        {t('onboarding.whatsFirstSubtitle')}
                     </Text>
                 </View>
 
                 <ScrollView style={styles.options}>
                     <OptionCard
                         emoji="💊"
-                        title="Medication"
-                        desc="Track pills, recurring prescriptions"
+                        title={t('onboarding.addMedication')}
+                        desc={t('onboarding.addMedicationDesc')}
                         onPress={() => handleSelect('/medication/add')}
                         color="#4A90D9"
                     />
                     <OptionCard
                         emoji="🧴"
-                        title="Supplement"
-                        desc="Vitamins, minerals, and more"
+                        title={t('onboarding.addSupplement')}
+                        desc={t('onboarding.addSupplementDesc')}
                         onPress={() => handleSelect('/supplement/add')}
                         color="#F59E0B"
                     />
                     <OptionCard
                         emoji="🩺"
-                        title="Appointment"
-                        desc="Doctor visits, checkups"
+                        title={t('onboarding.addAppointment')}
+                        desc={t('onboarding.addAppointmentDesc')}
                         onPress={() => handleSelect('/appointment/add')}
                         color="#8b5cf6"
                     />
                     <OptionCard
                         emoji="🏃"
-                        title="Activity"
-                        desc="Exercise, therapy, meditation"
+                        title={t('onboarding.addActivity')}
+                        desc={t('onboarding.addActivityDesc')}
                         onPress={() => handleSelect('/activity/add')}
                         color="#10b981"
                     />
@@ -82,7 +84,7 @@ export default function SetupChoiceScreen() {
 
                 <View style={styles.footer}>
                     <TouchableOpacity style={styles.skipButton} onPress={() => handleSelect('SKIP')}>
-                        <Text style={styles.skipText}>I'll add things later</Text>
+                        <Text style={styles.skipText}>{t('onboarding.addLater')}</Text>
                     </TouchableOpacity>
                 </View>
             </View>

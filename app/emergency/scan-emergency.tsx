@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Linking, Dimensions } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Camera, useCameraDevice, useCameraPermission, useCodeScanner } from 'react-native-vision-camera';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,6 +13,7 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
 
 export default function EmergencyScanScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const device = useCameraDevice('back');
     const { hasPermission, requestPermission } = useCameraPermission();
     const isFocused = useIsFocused();
@@ -44,7 +46,7 @@ export default function EmergencyScanScreen() {
 
     const handleCodeScanned = async (data: string) => {
         if (!activeProfile) {
-            Alert.alert('Error', 'No active profile selected.');
+            Alert.alert(t('common.error'), t('emergency.noProfile'));
             return;
         }
 
@@ -55,22 +57,22 @@ export default function EmergencyScanScreen() {
             await emergencyService.importEmergencyData(activeProfile.id, data);
 
             Alert.alert(
-                'Success',
-                'Emergency ID imported successfully!',
+                t('common.success'),
+                t('emergency.importSuccess'),
                 [
                     {
-                        text: 'OK',
+                        text: t('common.done'),
                         onPress: () => router.back()
                     }
                 ]
             );
         } catch (error) {
             Alert.alert(
-                'Invalid Code',
-                'This QR code does not contain valid Follo Emergency ID data.',
+                t('emergency.invalidCodeTitle'),
+                t('emergency.invalidCodeMessage'),
                 [
                     {
-                        text: 'Try Again',
+                        text: t('emergency.tryAgain'),
                         onPress: () => {
                             setIsProcessing(false);
                             setIsActive(true);
@@ -84,12 +86,12 @@ export default function EmergencyScanScreen() {
     if (!hasPermission) {
         return (
             <SafeAreaView style={styles.permissionContainer}>
-                <Text style={styles.permissionText}>Camera permission is required to scan emergency IDs.</Text>
+                <Text style={styles.permissionText}>{t('emergency.permissionRequired')}</Text>
                 <TouchableOpacity onPress={Linking.openSettings} style={styles.permissionButton}>
-                    <Text style={styles.permissionButtonText}>Open Settings</Text>
+                    <Text style={styles.permissionButtonText}>{t('scanner.openSettings')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => router.back()} style={styles.cancelButton}>
-                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                    <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
             </SafeAreaView>
         );
@@ -98,7 +100,7 @@ export default function EmergencyScanScreen() {
     if (!device) {
         return (
             <View style={styles.container}>
-                <Text style={{ color: '#fff' }}>Camera not available</Text>
+                <Text style={{ color: '#fff' }}>{t('emergency.cameraUnavailable')}</Text>
             </View>
         );
     }
@@ -119,12 +121,12 @@ export default function EmergencyScanScreen() {
                     <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
                         <Ionicons name="close" size={28} color="#fff" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Import Emergency ID</Text>
+                    <Text style={styles.headerTitle}>{t('emergency.importTitle')}</Text>
                     <View style={{ width: 28 }} />
                 </View>
 
                 <View style={styles.scanRegionContainer}>
-                    <Text style={styles.hintText}>Scan a Follo Emergency QR Code</Text>
+                    <Text style={styles.hintText}>{t('emergency.scanHint')}</Text>
                     <View style={styles.scanFrame}>
                         <View style={[styles.corner, styles.topLeft]} />
                         <View style={[styles.corner, styles.topRight]} />
@@ -132,7 +134,7 @@ export default function EmergencyScanScreen() {
                         <View style={[styles.corner, styles.bottomRight]} />
                         {isProcessing && (
                             <View style={styles.processingContainer}>
-                                <Text style={styles.processingText}>Processing...</Text>
+                                <Text style={styles.processingText}>{t('emergency.processing')}</Text>
                             </View>
                         )}
                     </View>
@@ -140,7 +142,7 @@ export default function EmergencyScanScreen() {
 
                 <View style={styles.footer}>
                     <Text style={styles.footerText}>
-                        Scanning will overwrite existing emergency data for {activeProfile?.name}.
+                        {t('emergency.overwriteWarning', { name: activeProfile?.name })}
                     </Text>
                 </View>
             </SafeAreaView>
