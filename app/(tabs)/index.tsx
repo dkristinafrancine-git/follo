@@ -317,6 +317,18 @@ export default function TimelineScreen() {
                             </View>
                             <Text style={[styles.actionText, { color: colors.text }]}>{t('activity.addTitle') || 'Activity'}</Text>
                         </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={[styles.actionItem, dynamicStyles.actionItem]}
+                            onPress={() => navigateTo('/symptom/add' as Href)}
+                            accessibilityRole="menuitem"
+                            accessibilityLabel={t('symptom.addTitle')}
+                        >
+                            <View style={[styles.actionIcon, { backgroundColor: '#ef4444' }]}>
+                                <Text style={styles.actionIconText}>🤒</Text>
+                            </View>
+                            <Text style={[styles.actionText, { color: colors.text }]}>{t('symptom.addTitle') || 'Symptom'}</Text>
+                        </TouchableOpacity>
                     </View>
                 </TouchableOpacity>
             )}

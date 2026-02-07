@@ -12,6 +12,9 @@ import { ActivityHeatmap } from '../../src/components/analytics/ActivityHeatmap'
 import { Ionicons } from '@expo/vector-icons';
 import { subDays } from 'date-fns';
 import { useTheme } from '../../src/context/ThemeContext';
+import { SymptomChart } from '../../src/components/symptoms/SymptomChart';
+import { symptomRepository } from '../../src/repositories/symptomRepository';
+import { router } from 'expo-router';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -24,6 +27,7 @@ export default function MyFlowScreen() {
 
     const [insights, setInsights] = useState<CareInsight[]>([]);
     const [heatmapData, setHeatmapData] = useState<{ date: string, count: number }[]>([]);
+    const [symptoms, setSymptoms] = useState<any[]>([]);
 
     const loadData = useCallback(async () => {
         if (!activeProfile) return;
@@ -45,6 +49,10 @@ export default function MyFlowScreen() {
                 endDate.toISOString()
             );
             setHeatmapData(activityData);
+
+            // Symptom Data
+            const symptomData = await symptomRepository.getSymptoms(activeProfile.id, startDate.toISOString(), endDate.toISOString());
+            setSymptoms(symptomData);
         } catch (error) {
             console.error('Failed to load My Flow data:', error);
         }
@@ -232,6 +240,19 @@ export default function MyFlowScreen() {
                         <Text style={[styles.subtext, { color: colors.subtext }]}>{t('myFlow.currentStreak')}</Text>
                     </View>
                 </View>
+
+                {/* Symptom Tracker Section */}
+                <View style={styles.section}>
+                    <View style={styles.sectionHeaderRow}>
+                        <Text style={[styles.sectionTitle, { color: colors.subtext, marginBottom: 0 }]}>{t('symptom.trackerTitle')}</Text>
+                        <TouchableOpacity onPress={() => router.push('/symptom/add')}>
+                            <Ionicons name="add-circle-outline" size={24} color={colors.primary} />
+                        </TouchableOpacity>
+                    </View>
+                    <View style={[styles.card, { backgroundColor: colors.card, alignItems: 'flex-start', paddingHorizontal: 10 }]}>
+                        <SymptomChart symptoms={symptoms} />
+                    </View>
+                </View>
             </ScrollView>
         </SafeAreaView>
     );
@@ -340,5 +361,11 @@ const styles = StyleSheet.create({
     insightDesc: {
         color: '#6b7280',
         fontSize: 10,
+    },
+    sectionHeaderRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 12,
     },
 });

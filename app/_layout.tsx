@@ -152,6 +152,16 @@ function ThemedStack() {
                     }}
                 />
                 <Stack.Screen
+                    name="symptom/add"
+                    options={{
+                        headerShown: true,
+                        presentation: 'modal',
+                        title: 'Log Symptom',
+                        headerStyle: { backgroundColor: colors.background },
+                        headerTintColor: colors.text,
+                    }}
+                />
+                <Stack.Screen
                     name="alarm"
                     options={{
                         headerShown: false,

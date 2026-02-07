@@ -361,6 +361,22 @@
             "high": "High"
         }
     },
+    "symptom": {
+        "trackerTitle": "Symptom Tracker",
+        "addTitle": "Log Symptom",
+        "nameLabel": "Symptom Name",
+        "namePlaceholder": "e.g., Headache, Nausea",
+        "severityLabel": "Severity (1-10)",
+        "mild": "Mild",
+        "severe": "Severe",
+        "timeLabel": "Time",
+        "dateLabel": "Date",
+        "notesLabel": "Notes",
+        "notesPlaceholder": "Add context...",
+        "level": "Level {{count}}",
+        "nameRequired": "Please enter a symptom name",
+        "addFailed": "Failed to save symptom"
+    },
     "accessibility": {
         "title": "Accessibility",
         "highContrast": "High Contrast Mode",

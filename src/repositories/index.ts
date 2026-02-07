@@ -14,5 +14,6 @@ export { calendarEventRepository } from './calendarEventRepository';
 export { emergencyDataRepository } from './emergencyDataRepository';
 export { medicationReferenceRepository } from './medicationReferenceRepository';
 export { settingsRepository } from './settingsRepository';
+export { symptomRepository } from './symptomRepository';
 
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Modal, TextInput } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Modal, TextInput, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -72,9 +72,15 @@ export default function ProfilesScreen() {
                 onPress={() => handleSwitchProfile(item.id)}
             >
                 <View style={styles.profileInfo}>
-                    <View style={[styles.avatarContainer, { backgroundColor: colors.primary }]}>
-                        {/* Placeholder for avatar, or use Expo Image if URI exists */}
-                        <Text style={styles.avatarText}>{item.name[0]?.toUpperCase()}</Text>
+                    <View style={[styles.avatarContainer, { backgroundColor: item.avatarUri ? 'transparent' : colors.primary }]}>
+                        {item.avatarUri ? (
+                            <Image
+                                source={{ uri: item.avatarUri }}
+                                style={styles.avatarImage}
+                            />
+                        ) : (
+                            <Text style={styles.avatarText}>{item.name[0]?.toUpperCase()}</Text>
+                        )}
                     </View>
                     <View>
                         <Text style={[styles.profileName, { color: colors.text }]}>{item.name}</Text>
@@ -201,6 +207,11 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontWeight: 'bold',
         fontSize: 18,
+    },
+    avatarImage: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
     },
     profileName: {
         fontSize: 16,
