@@ -320,6 +320,18 @@ export default function TimelineScreen() {
 
                         <TouchableOpacity
                             style={[styles.actionItem, dynamicStyles.actionItem]}
+                            onPress={() => navigateTo('/gratitude/entry' as Href)}
+                            accessibilityRole="menuitem"
+                            accessibilityLabel={t('gratitude.addTitle') || 'Log Gratitude'}
+                        >
+                            <View style={[styles.actionIcon, { backgroundColor: '#ec4899' }]}>
+                                <Text style={styles.actionIconText}>🙏</Text>
+                            </View>
+                            <Text style={[styles.actionText, { color: colors.text }]}>{t('gratitude.addTitle') || 'Gratitude'}</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={[styles.actionItem, dynamicStyles.actionItem]}
                             onPress={() => navigateTo('/symptom/add' as Href)}
                             accessibilityRole="menuitem"
                             accessibilityLabel={t('symptom.addTitle')}

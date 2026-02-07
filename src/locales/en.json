@@ -377,6 +377,17 @@
         "nameRequired": "Please enter a symptom name",
         "addFailed": "Failed to save symptom"
     },
+    "gratitude": {
+        "title": "Gratitude Journal",
+        "addTitle": "Log Gratitude",
+        "chartTitle": "Positivity Flow",
+        "question": "What makes you smile today?",
+        "placeholder": "Write about something you are grateful for...",
+        "positivityLevel": "Positivity Level",
+        "addImage": "Add Image",
+        "enterContent": "Please write something you are grateful for.",
+        "noData": "No gratitude entries yet"
+    },
     "accessibility": {
         "title": "Accessibility",
         "highContrast": "High Contrast Mode",

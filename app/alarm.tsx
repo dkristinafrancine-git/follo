@@ -7,6 +7,7 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { notificationService } from '../src/services/notificationService';
 import { calendarEventRepository } from '../src/repositories';
 import { CalendarEvent } from '../src/types';
+import * as KeepAwake from 'expo-keep-awake';
 
 const { width } = Dimensions.get('window');
 const SLIDER_WIDTH = width - 48;
@@ -44,6 +45,13 @@ export default function AlarmScreen() {
     }, [eventId]);
 
     useEffect(() => {
+        // Keep screen awake while alarm is active
+        try {
+            KeepAwake.activateKeepAwake();
+        } catch (e) {
+            console.warn('Failed to activate keep awake:', e);
+        }
+
         // Play Alarm Sound
         async function playSound() {
             try {
@@ -76,6 +84,11 @@ export default function AlarmScreen() {
 
         return () => {
             sound?.unloadAsync();
+            try {
+                KeepAwake.deactivateKeepAwake();
+            } catch (e) {
+                console.warn('Failed to deactivate keep awake:', e);
+            }
         };
     }, []);
 

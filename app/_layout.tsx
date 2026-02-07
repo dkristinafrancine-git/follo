@@ -13,6 +13,7 @@ import { useProfileStore } from '../src/hooks/useProfiles';
 import { ErrorBoundary } from '../src/components/ErrorBoundary';
 import notifee, { EventType } from '@notifee/react-native';
 import { notificationService } from '../src/services/notificationService';
+import * as KeepAwake from 'expo-keep-awake';
 
 export default function RootLayout() {
     const [isDbReady, setIsDbReady] = useState(false);
@@ -45,6 +46,13 @@ export default function RootLayout() {
 
         // Check for initial launch from alarm (Cold Start)
         checkInitialNotification();
+
+        // Safety: Ensure no accidental keep-awake is stuck
+        try {
+            KeepAwake.deactivateKeepAwake();
+        } catch (e) {
+            // Silence silent errors
+        }
 
         // Listen for AppState changes (Warm Start / Background -> Foreground)
         const appStateSubscription = AppState.addEventListener('change', (nextAppState) => {

@@ -325,6 +325,17 @@
         "active": "활성",
         "deleteConfirm": "이 프로필을 삭제하시겠습니까?"
     },
+    "gratitude": {
+        "title": "감사 일기",
+        "addTitle": "감사 일기 쓰기",
+        "chartTitle": "긍정의 흐름",
+        "question": "오늘 당신을 미소 짓게 한 것은 무엇인가요?",
+        "placeholder": "감사한 일에 대해 적어보세요...",
+        "positivityLevel": "긍정 지수",
+        "addImage": "사진 추가",
+        "enterContent": "감사한 내용을 입력해 주세요.",
+        "noData": "아직 작성된 감사 일기가 없습니다"
+    },
     "accessibility": {
         "title": "접근성",
         "highContrast": "고대비 모드",

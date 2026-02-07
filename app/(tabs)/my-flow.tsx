@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { Svg, Rect, Text as SvgText, Line } from 'react-native-svg';
 import { TouchableOpacity, Alert } from 'react-native';
@@ -15,6 +15,8 @@ import { useTheme } from '../../src/context/ThemeContext';
 import { SymptomChart } from '../../src/components/symptoms/SymptomChart';
 import { symptomRepository } from '../../src/repositories/symptomRepository';
 import { router } from 'expo-router';
+import { useGratitudeChart } from '../../src/hooks/useGratitudes';
+import { PositivityChart } from '../../src/components/charts/PositivityChart';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -28,6 +30,17 @@ export default function MyFlowScreen() {
     const [insights, setInsights] = useState<CareInsight[]>([]);
     const [heatmapData, setHeatmapData] = useState<{ date: string, count: number }[]>([]);
     const [symptoms, setSymptoms] = useState<any[]>([]);
+
+    // Gratitude Chart Data (Last 30 days)
+    // Gratitude Chart Data (Last 30 days)
+    const { startDate: gratitudeStartDate, endDate: gratitudeEndDate } = useMemo(() => {
+        const end = new Date();
+        const start = new Date();
+        start.setDate(end.getDate() - 30);
+        return { startDate: start.toISOString(), endDate: end.toISOString() };
+    }, []);
+
+    const { data: gratitudeData, refetch: refetchGratitudes } = useGratitudeChart(activeProfile?.id || null, gratitudeStartDate, gratitudeEndDate);
 
     const loadData = useCallback(async () => {
         if (!activeProfile) return;
@@ -53,10 +66,12 @@ export default function MyFlowScreen() {
             // Symptom Data
             const symptomData = await symptomRepository.getSymptoms(activeProfile.id, startDate.toISOString(), endDate.toISOString());
             setSymptoms(symptomData);
+
+            refetchGratitudes();
         } catch (error) {
             console.error('Failed to load My Flow data:', error);
         }
-    }, [activeProfile]);
+    }, [activeProfile, refetchGratitudes]);
 
     useFocusEffect(
         useCallback(() => {
@@ -251,6 +266,19 @@ export default function MyFlowScreen() {
                     </View>
                     <View style={[styles.card, { backgroundColor: colors.card, alignItems: 'flex-start', paddingHorizontal: 10 }]}>
                         <SymptomChart symptoms={symptoms} />
+                    </View>
+                </View>
+
+                {/* Gratitude/Positivity Section */}
+                <View style={styles.section}>
+                    <View style={styles.sectionHeaderRow}>
+                        <Text style={[styles.sectionTitle, { color: colors.subtext, marginBottom: 0 }]}>{t('gratitude.chartTitle') || 'Positivity Flow'}</Text>
+                        <TouchableOpacity onPress={() => router.push('/gratitude/entry')}>
+                            <Ionicons name="add-circle-outline" size={24} color={colors.primary} />
+                        </TouchableOpacity>
+                    </View>
+                    <View style={[styles.card, { backgroundColor: colors.card, padding: 16 }]}>
+                        <PositivityChart data={gratitudeData} />
                     </View>
                 </View>
             </ScrollView>

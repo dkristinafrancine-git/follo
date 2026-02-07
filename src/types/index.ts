@@ -183,3 +183,15 @@ export interface MedicationReference {
     category?: string;
     lastUpdated?: string;
 }
+
+// Gratitude types
+export interface Gratitude extends BaseEntity {
+    profileId: string;
+    content: string;
+    positivityLevel: number; // 1-5
+    imageUri?: string;
+    createdAt: string; // UTC ISO
+}
+
+export type CreateGratitudeInput = Omit<Gratitude, 'id' | 'createdAt' | 'updatedAt'>;
+export type UpdateGratitudeInput = Partial<Omit<Gratitude, 'id' | 'profileId' | 'createdAt' | 'updatedAt'>>;

@@ -186,6 +186,18 @@ export async function initDatabase(): Promise<void> {
       FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE
     );
 
+    -- Gratitudes table
+    CREATE TABLE IF NOT EXISTS gratitudes (
+      id TEXT PRIMARY KEY,
+      profile_id TEXT NOT NULL,
+      content TEXT NOT NULL,
+      positivity_level INTEGER DEFAULT 3,
+      image_uri TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE
+    );
+
     -- Indexes for performance
     CREATE INDEX IF NOT EXISTS idx_calendar_profile_time 
       ON calendar_events(profile_id, scheduled_time);
@@ -201,6 +213,8 @@ export async function initDatabase(): Promise<void> {
       ON medication_reference(name);
     CREATE INDEX IF NOT EXISTS idx_symptoms_profile_date
       ON symptoms(profile_id, occurred_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_gratitudes_profile_date
+      ON gratitudes(profile_id, created_at DESC);
   `);
 
   console.log('Database initialized successfully');
@@ -223,7 +237,7 @@ export async function resetDatabase(): Promise<void> {
   const tables = [
     'profiles', 'medications', 'medication_history', 'appointments',
     'activities', 'supplements', 'supplement_history', 'calendar_events',
-    'emergency_data', 'medication_reference', 'symptoms'
+    'emergency_data', 'medication_reference', 'symptoms', 'gratitudes'
   ];
 
   for (const table of tables) {
