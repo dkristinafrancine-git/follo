@@ -21,6 +21,7 @@ export default function TimelineScreen() {
     // State
     const [selectedDate, setSelectedDate] = useState(startOfDay(new Date()));
     const [events, setEvents] = useState<CalendarEvent[]>([]);
+    const [overdueEvents, setOverdueEvents] = useState<CalendarEvent[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
 
@@ -43,6 +44,16 @@ export default function TimelineScreen() {
             setIsLoading(true);
             const { calendarEventRepository } = await import('../../src/repositories');
 
+            // 1. Load today's overdue events if viewing today or future
+            const isToday = format(selectedDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+            if (isToday) {
+                const overdue = await calendarEventRepository.getOverdue(activeProfile.id);
+                setOverdueEvents(overdue);
+            } else {
+                setOverdueEvents([]);
+            }
+
+            // 2. Load events for selected date
             // Format date as YYYY-MM-DD for getByDay
             const dateStr = format(selectedDate, 'yyyy-MM-dd');
             const dayEvents = await calendarEventRepository.getByDay(activeProfile.id, dateStr);
@@ -197,6 +208,27 @@ export default function TimelineScreen() {
                     currentStreak={stats.currentStreak}
                     upcomingMeds={stats.upcomingMeds}
                 />
+
+                {/* Overdue Events */}
+                {!isLoading && overdueEvents.length > 0 && (
+                    <View style={styles.section}>
+                        <View style={styles.overdueHeader}>
+                            <Text style={[styles.sectionTitle, { color: colors.danger || '#ef4444' }]}>
+                                ⚠️ {t('timeline.overdue') || 'Overdue'} ({overdueEvents.length})
+                            </Text>
+                        </View>
+                        {overdueEvents.map((event) => (
+                            <EventCard
+                                key={event.id}
+                                event={event}
+                                onPress={() => router.push(`/medication/${event.sourceId}`)}
+                                onComplete={() => handleEventComplete(event.id)}
+                                onSkip={() => handleEventSkip(event.id)}
+                                onPostpone={(minutes) => handleEventPostpone(event, minutes)}
+                            />
+                        ))}
+                    </View>
+                )}
 
                 {/* Upcoming Events */}
                 <View style={styles.section}>
@@ -360,6 +392,11 @@ const styles = StyleSheet.create({
     },
     section: {
         marginTop: 8,
+    },
+    overdueHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 8,
     },
     sectionTitle: {
         fontSize: 16,

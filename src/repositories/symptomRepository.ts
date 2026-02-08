@@ -1,5 +1,5 @@
 import { getDatabase } from '../database';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'expo-crypto';
 
 export interface Symptom {
     id: string;
@@ -19,7 +19,7 @@ export type UpdateSymptomDTO = Partial<Omit<Symptom, 'id' | 'profile_id' | 'crea
 export const symptomRepository = {
     async addSymptom(symptom: CreateSymptomDTO): Promise<Symptom> {
         const db = await getDatabase();
-        const id = uuidv4();
+        const id = randomUUID();
         const now = new Date().toISOString();
 
         await db.runAsync(

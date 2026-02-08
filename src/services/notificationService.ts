@@ -35,6 +35,10 @@ export const notificationService = {
         // Request permissions
         await notifee.requestPermission();
 
+        // Note: Android 12+ requires USE_FULL_SCREEN_INTENT permission (declared in app.json)
+        // The permission is automatically granted on install for alarm apps
+        // If user revokes it, they must manually re-enable in system settings
+
         if (Platform.OS === 'android') {
             await notifee.createChannel({
                 id: NOTIFICATION_CHANNELS.MEDICATION_REMINDER,
@@ -54,12 +58,11 @@ export const notificationService = {
                 vibration: true,
             });
 
-            // Heavy Sleeper Channel: Max importance, overrides DND if possible
+            // Heavy Sleeper Channel: HIGH importance (highest available) for full-screen intents
             await notifee.createChannel({
                 id: NOTIFICATION_CHANNELS.HEAVY_SLEEPER_ALARM,
                 name: 'Heavy Sleeper Alarm',
-                importance: AndroidImportance.HIGH, // Keep HIGH, allow fullScreenAction to do the work.
-                // MAX can be annoying if not handled.
+                importance: AndroidImportance.HIGH,
                 bypassDnd: true,
                 sound: 'default',
                 vibration: true,
@@ -100,6 +103,7 @@ export const notificationService = {
         }
 
         const effectiveMode = mode ?? await settingsRepository.getNotificationMode();
+
         const channelId = getChannelId(event, effectiveMode);
         const title = getNotificationTitle(event);
         const body = getNotificationBody(event);
@@ -134,6 +138,12 @@ export const notificationService = {
                         id: 'full-screen',
                         launchActivity: 'com.onedollarapp.follo.MainActivity',
                     } : undefined,
+                    // Alarm-specific settings for Heavy Sleeper
+                    ...(effectiveMode === 'heavy_sleeper' && {
+                        autoCancel: false,
+                        ongoing: true,
+                        showTimestamp: true,
+                    }),
                     actions: (event.eventType === 'medication_due' || event.eventType === 'supplement_due')
                         ? [
                             { title: 'Take', pressAction: { id: 'TAKE' } },
@@ -173,15 +183,13 @@ export const notificationService = {
     },
 
     /**
-     * Schedule notifications for all upcoming pending events
+     * Schedule notifications for a list of events
+     * NOTE: This is now non-destructive to other events NOT in the list.
      */
     async scheduleUpcomingNotifications(
         events: CalendarEvent[],
         mode?: NotificationMode
     ): Promise<number> {
-        // Cancel all first to ensure sync
-        await this.cancelAll();
-
         // Resolve mode if not provided
         const effectiveMode = mode ?? await settingsRepository.getNotificationMode();
 
@@ -189,9 +197,18 @@ export const notificationService = {
         const now = Date.now();
 
         for (const event of events) {
-            if (event.status === 'pending' && new Date(event.scheduledTime).getTime() > now) {
-                await this.scheduleEventNotification(event, effectiveMode);
-                scheduled++;
+            // We schedule if it's pending. 
+            // scheduleEventNotification has its own logic to handle past events (up to 5 mins)
+            // but we filter here based on a slightly wider window to catch overdue items
+            if (event.status === 'pending') {
+                const eventTime = new Date(event.scheduledTime).getTime();
+
+                // If it's in the future OR within the last 24 hours (overdue)
+                // we attempt to schedule it. scheduleEventNotification will handle the future offset.
+                if (eventTime > now - 24 * 60 * 60 * 1000) {
+                    await this.scheduleEventNotification(event, effectiveMode);
+                    scheduled++;
+                }
             }
         }
 

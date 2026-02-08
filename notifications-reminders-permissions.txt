@@ -1,0 +1,18 @@
+npx expo prebuild --platform android --clean
+
+Need to Manually set Do Not Disturb Access?
+Practively ask to set Special Access, Fullscreen intent, and Alarm intent.
+
+
+add a Gratitude logger with some sort of positivity level indicator, with a chart in my flow that shows progress of positivity level.
+
+
+The error Unable to activate keep awake is likely an issue with the installed package itself or a conflict. I am uninstalling expo-keep-awake
+
+
+make the main add popup from timeline a little compact
+
+
+Ask user to enable Do Not Disturb Access or ask permission to automatically enable it.
+Practively ask to set Special Access, Fullscreen intent, and Alarm intent.
+also proactive ask to enable or auto-enable if available: Appear on Top

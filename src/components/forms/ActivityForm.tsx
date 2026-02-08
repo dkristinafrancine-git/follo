@@ -42,13 +42,13 @@ export function ActivityForm({ initialValues, onSubmit, onCancel, isLoading = fa
     const { colors } = useTheme();
 
     // Form State
-    const [selectedType, setSelectedType] = useState<ActivityType>(initialValues?.type || 'exercise');
+    const [selectedType, setSelectedType] = useState<ActivityType>(initialValues?.type as ActivityType || 'exercise');
     const [title, setTitle] = useState(initialValues?.title || '');
     const [duration, setDuration] = useState(initialValues?.durationMinutes?.toString() || '30');
     const [intensity, setIntensity] = useState(initialValues?.intensity || 'medium');
     const [moodBefore, setMoodBefore] = useState(initialValues?.moodBefore || 3);
     const [notes, setNotes] = useState(initialValues?.notes || '');
-    const [completedAt, setCompletedAt] = useState(initialValues?.completedAt ? new Date(initialValues.completedAt) : new Date());
+    const [completedAt, setCompletedAt] = useState(initialValues?.startTime ? new Date(initialValues.startTime) : new Date());
 
     // Picker State
     const [showDatePicker, setShowDatePicker] = useState(false);
