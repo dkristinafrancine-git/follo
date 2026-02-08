@@ -1,59 +1,203 @@
 /**
  * Widget Service
- * Syncs app data to a JSON file for the Native Android Widget to read.
+ * Syncs app data to Native Android Widget via WidgetModule bridge
  */
 
-import * as FileSystem from 'expo-file-system';
-import { CalendarEvent } from '../types';
-import { format } from 'date-fns';
+import { NativeModules } from 'react-native';
+import { calendarEventRepository } from '../repositories/calendarEventRepository';
+import { medicationRepository } from '../repositories/medicationRepository';
+import { activityRepository } from '../repositories/activityRepository';
+import { appointmentRepository } from '../repositories/appointmentRepository';
+import { format, addDays } from 'date-fns';
 
-// @ts-ignore
-const WIDGET_DATA_FILE = (FileSystem.documentDirectory ?? '') + 'widget_data.json';
+const { WidgetModule } = NativeModules;
+
+interface WidgetMedication {
+    id: string;
+    name: string;
+    dosage: string;
+    scheduledTime: string;
+    hideName: boolean;
+    photoUri?: string;
+}
+
+interface WidgetRefillAlert {
+    medicationName: string;
+    daysRemaining: number;
+    isCritical: boolean;
+}
+
+interface WidgetQuickStats {
+    adherencePercent: number;
+    activitiesLogged: number;
+    nextAppointment?: string;
+}
+
+interface WidgetConfig {
+    showHealthLogReminders: boolean;
+    showRefillAlerts: boolean;
+    showQuickStats: boolean;
+}
+
+interface WidgetData {
+    medications: WidgetMedication[];
+    refillAlerts: WidgetRefillAlert[];
+    quickStats: WidgetQuickStats;
+    widgetConfig: WidgetConfig;
+}
 
 export const widgetService = {
     /**
-     * Update the widget data file with the latest events
-     * Should be called whenever events change
+     * Update the widget with latest data for active profile
      */
-    async updateWidgetData(events: CalendarEvent[]): Promise<void> {
+    async updateWidget(profileId: string): Promise<void> {
         try {
-            // Filter for today's pending/completed events
-            // We want to show a summary: "3 Meds left", "Next: Vitamin C at 8:00"
+            if (!WidgetModule) {
+                console.warn('[WidgetService] WidgetModule not available');
+                return;
+            }
 
-            const todayStr = format(new Date(), 'yyyy-MM-dd');
+            // Check if widget is installed
+            const isInstalled = await WidgetModule.isWidgetInstalled();
+            if (!isInstalled) {
+                console.log('[WidgetService] Widget not installed, skipping update');
+                return;
+            }
 
-            // Basic data structure for the widget
-            const widgetData = {
-                lastUpdated: new Date().toISOString(),
-                events: events.map(e => ({
-                    title: e.title,
-                    time: format(new Date(e.scheduledTime), 'HH:mm'),
-                    status: e.status,
-                    type: e.eventType
-                })),
-                stats: {
-                    pending: events.filter(e => e.status === 'pending').length,
-                    completed: events.filter(e => e.status === 'completed').length,
-                    nextEvent: events.find(e => e.status === 'pending')?.title || 'All done!',
-                    nextEventId: events.find(e => e.status === 'pending')?.id || ''
-                }
-            };
+            // Build widget data
+            const widgetData = await this.buildWidgetData(profileId);
 
-            await FileSystem.writeAsStringAsync(WIDGET_DATA_FILE, JSON.stringify(widgetData));
-            console.log('[WidgetService] Widget data updated', WIDGET_DATA_FILE);
-
-            // TODO: In a native module, we would send a broadcast intent to update the widget immediately.
-            // For now, the widget will rely on periodic updates or we need a native module to trigger an update.
-
+            // Send to native module
+            await WidgetModule.updateWidget(widgetData);
+            console.log('[WidgetService] Widget updated successfully');
         } catch (error) {
-            console.error('[WidgetService] Failed to update widget data', error);
+            console.error('[WidgetService] Failed to update widget', error);
         }
     },
 
     /**
-     * Get path to widget data (for debugging)
+     * Build comprehensive widget data from repositories
      */
-    getDataPath(): string {
-        return WIDGET_DATA_FILE;
-    }
+    async buildWidgetData(profileId: string): Promise<WidgetData> {
+        const todayStr = format(new Date(), 'yyyy-MM-dd');
+
+        // Get pending medications for today
+        const pendingEvents = await calendarEventRepository.getPendingToday(profileId);
+        const medicationEvents = pendingEvents.filter(e => e.eventType === 'medication_due');
+
+        // Get medication details for each event
+        const medications: WidgetMedication[] = [];
+        for (const event of medicationEvents.slice(0, 5)) { // Limit to 5 for widget
+            const medication = await medicationRepository.getById(event.sourceId);
+            if (medication) {
+                medications.push({
+                    id: event.id,
+                    name: medication.name,
+                    dosage: medication.dosage || '',
+                    scheduledTime: new Date(event.scheduledTime).getTime().toString(),
+                    hideName: medication.hideName || false,
+                    photoUri: medication.photoUri || undefined,
+                });
+            }
+        }
+
+        // Get refill alerts
+        const allMedications = await medicationRepository.getAllByProfile(profileId);
+        const refillAlerts: WidgetRefillAlert[] = allMedications
+            .filter((med: any) =>
+                med.isActive &&
+                med.currentQuantity !== null &&
+                med.currentQuantity <= (med.refillThreshold || 7)
+            )
+            .map((med: any) => ({
+                medicationName: med.name,
+                daysRemaining: med.currentQuantity || 0,
+                isCritical: (med.currentQuantity || 0) <= 3,
+            }))
+            .sort((a: WidgetRefillAlert, b: WidgetRefillAlert) => a.daysRemaining - b.daysRemaining)
+            .slice(0, 3); // Top 3 critical refills
+
+        // Calculate adherence for today
+        const stats = await calendarEventRepository.getStats(profileId, todayStr, todayStr);
+        const adherencePercent = stats.total > 0
+            ? Math.round((stats.completed / stats.total) * 100)
+            : 0;
+
+        // Get today's activity count
+        const todayActivities = await activityRepository.getByDay(profileId, todayStr);
+        const activitiesLogged = todayActivities.length;
+
+        // Get next appointment
+        const upcomingAppointments = await appointmentRepository.getUpcoming(profileId, 1);
+        let nextAppointment: string | undefined;
+        if (upcomingAppointments.length > 0) {
+            const appt = upcomingAppointments[0];
+            const apptDate = new Date(appt.scheduledTime);
+            const today = new Date();
+            const tomorrow = addDays(today, 1);
+
+            if (format(apptDate, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd')) {
+                nextAppointment = `Today, ${format(apptDate, 'h:mm a')}`;
+            } else if (format(apptDate, 'yyyy-MM-dd') === format(tomorrow, 'yyyy-MM-dd')) {
+                nextAppointment = `Tomorrow, ${format(apptDate, 'h:mm a')}`;
+            } else {
+                nextAppointment = format(apptDate, 'MMM d, h:mm a');
+            }
+        }
+
+        // Get widget configuration (default all enabled)
+        const widgetConfig = await this.getWidgetConfig();
+
+        return {
+            medications,
+            refillAlerts,
+            quickStats: {
+                adherencePercent,
+                activitiesLogged,
+                nextAppointment,
+            },
+            widgetConfig,
+        };
+    },
+
+    /**
+     * Get widget configuration from storage
+     */
+    async getWidgetConfig(): Promise<WidgetConfig> {
+        // TODO: Read from settings repository when widget config is added
+        // For now, return defaults
+        return {
+            showHealthLogReminders: true,
+            showRefillAlerts: true,
+            showQuickStats: true,
+        };
+    },
+
+    /**
+     * Force widget refresh
+     */
+    async refreshWidget(): Promise<void> {
+        try {
+            if (WidgetModule) {
+                await WidgetModule.refreshWidget();
+            }
+        } catch (error) {
+            console.error('[WidgetService] Failed to refresh widget', error);
+        }
+    },
+
+    /**
+     * Check if widget is installed
+     */
+    async isWidgetInstalled(): Promise<boolean> {
+        try {
+            if (WidgetModule) {
+                return await WidgetModule.isWidgetInstalled();
+            }
+            return false;
+        } catch (error) {
+            console.error('[WidgetService] Failed to check widget installation', error);
+            return false;
+        }
+    },
 };

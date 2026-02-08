@@ -5,6 +5,7 @@ import notifee from '@notifee/react-native';
 
 const ACTION_TAKE = 'com.onedollarapp.follo.widget.ACTION_TAKE';
 const ACTION_SKIP = 'com.onedollarapp.follo.widget.ACTION_SKIP';
+const ACTION_POSTPONE = 'com.onedollarapp.follo.widget.ACTION_POSTPONE';
 
 module.exports = async (taskData: any) => {
     console.log('[WidgetHeadlessTask] Received task', taskData);
@@ -18,6 +19,13 @@ module.exports = async (taskData: any) => {
     }
 
     try {
+        // Get event to find profileId
+        const event = await calendarEventRepository.getById(eventId);
+        if (!event) {
+            console.warn('[WidgetHeadlessTask] Event not found:', eventId);
+            return;
+        }
+
         if (action === ACTION_TAKE) {
             console.log('[WidgetHeadlessTask] Taking Medication', eventId);
             await calendarEventRepository.update(eventId, {
@@ -33,19 +41,15 @@ module.exports = async (taskData: any) => {
                 status: 'skipped'
             });
             await notificationService.cancelNotification(eventId);
+
+        } else if (action === ACTION_POSTPONE) {
+            console.log('[WidgetHeadlessTask] Postponing Medication', eventId);
+            await calendarEventRepository.postponeEvent(eventId, 15); // 15 minutes
+            // Notification will be rescheduled by notification service
         }
 
         // Refresh Widget Data
-        // We assume "Active Profile" logic applies or we update for the profile this event belongs to.
-        // But Repository needs profileId. Since headless task doesn't have React context, we might rely on default behavior 
-        // or we need to look up the event first to get profileId.
-
-        const event = await calendarEventRepository.getById(eventId);
-        if (event) {
-            const todayStr = new Date().toISOString().split('T')[0];
-            const events = await calendarEventRepository.getByDay(event.profileId, todayStr);
-            await widgetService.updateWidgetData(events);
-        }
+        await widgetService.updateWidget(event.profileId);
 
     } catch (error) {
         console.error('[WidgetHeadlessTask] Error processing action', error);

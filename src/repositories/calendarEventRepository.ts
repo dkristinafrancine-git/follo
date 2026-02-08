@@ -201,6 +201,7 @@ export const calendarEventRepository = {
     ): Promise<boolean> {
         const db = await getDatabase();
         const now = new Date().toISOString();
+        const event = await this.getById(id);
 
         const result = await db.runAsync(
             `UPDATE calendar_events 
@@ -208,6 +209,12 @@ export const calendarEventRepository = {
        WHERE id = ?`,
             [status, completedTime ?? null, now, id]
         );
+
+        // Update widget when event status changes
+        if (event && result.changes > 0) {
+            widgetService.updateWidget(event.profileId).catch(console.error);
+        }
+
         return result.changes > 0;
     },
 
@@ -250,6 +257,12 @@ export const calendarEventRepository = {
        WHERE id = ?`,
             [newScheduled, now, id]
         );
+
+        // Update widget when event is postponed
+        if (result.changes > 0) {
+            widgetService.updateWidget(event.profileId).catch(console.error);
+        }
+
         return result.changes > 0;
     },
 

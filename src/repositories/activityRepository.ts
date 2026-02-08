@@ -103,6 +103,9 @@ export const activityRepository = {
             ]
         );
 
+        // Update widget (quick stats activity count)
+        widgetService.updateWidget(input.profileId).catch(console.error);
+
         return {
             id,
             ...input,

@@ -6,6 +6,7 @@ import {
     UpdateMedicationInput,
     RecurrenceRule
 } from '../types';
+import { widgetService } from '../services/widgetService';
 
 // Convert database row to Medication entity
 function rowToMedication(row: Record<string, unknown>): Medication {
@@ -121,6 +122,9 @@ export const medicationRepository = {
             ]
         );
 
+        // Update widget
+        widgetService.updateWidget(input.profileId).catch(console.error);
+
         return {
             id,
             ...input,
@@ -195,6 +199,9 @@ export const medicationRepository = {
             values
         );
 
+        // Update widget
+        widgetService.updateWidget(existing.profileId).catch(console.error);
+
         return this.getById(id);
     },
 
@@ -215,7 +222,14 @@ export const medicationRepository = {
      */
     async delete(id: string): Promise<boolean> {
         const db = await getDatabase();
+        const medication = await this.getById(id);
         const result = await db.runAsync('DELETE FROM medications WHERE id = ?', [id]);
+
+        // Update widget
+        if (medication) {
+            widgetService.updateWidget(medication.profileId).catch(console.error);
+        }
+
         return result.changes > 0;
     },
 
@@ -236,6 +250,7 @@ export const medicationRepository = {
      */
     async decrementQuantity(id: string): Promise<boolean> {
         const db = await getDatabase();
+        const medication = await this.getById(id);
         const result = await db.runAsync(
             `UPDATE medications 
        SET current_quantity = CASE 
@@ -247,6 +262,12 @@ export const medicationRepository = {
        WHERE id = ?`,
             [new Date().toISOString(), id]
         );
+
+        // Update widget (refill alerts may have changed)
+        if (medication) {
+            widgetService.updateWidget(medication.profileId).catch(console.error);
+        }
+
         return result.changes > 0;
     },
 
