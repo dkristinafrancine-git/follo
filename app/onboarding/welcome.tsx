@@ -134,7 +134,14 @@ export default function WelcomeScreen() {
         <SafeAreaView style={styles.container}>
             {/* Header with Skip */}
             <View style={styles.header}>
-                <Text style={styles.logo} accessibilityRole="header">🩺 Follo</Text>
+                <View style={styles.brandingContainer}>
+                    <Image
+                        source={require('../../assets/favicon.png')}
+                        style={styles.logoImage}
+                        resizeMode="contain"
+                    />
+                    <Text style={styles.logoText} accessibilityRole="header">Follo</Text>
+                </View>
                 {currentIndex < SLIDES.length - 1 && (
                     <TouchableOpacity
                         onPress={handleSkip}
@@ -202,7 +209,16 @@ const styles = StyleSheet.create({
         paddingHorizontal: 24,
         paddingVertical: 16,
     },
-    logo: {
+    brandingContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    logoImage: {
+        width: 32,
+        height: 32,
+        marginRight: 8,
+    },
+    logoText: {
         fontSize: 24,
         fontWeight: '700',
         color: '#ffffff',

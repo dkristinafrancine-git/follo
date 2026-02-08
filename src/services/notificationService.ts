@@ -124,6 +124,11 @@ export const notificationService = {
             } : undefined,
         };
 
+        console.log(`[NotificationService] Scheduling notification with mode=${effectiveMode}, channelId=${channelId}, timestamp=${new Date(triggerTimestamp).toISOString()}`);
+        if (effectiveMode === 'heavy_sleeper') {
+            console.log('[NotificationService] ⚠️ HEAVY SLEEPER MODE - Using exact alarm manager with full-screen intent');
+        }
+
         try {
             const id = await notifee.createTriggerNotification({
                 id: event.id, // Use event ID as notification ID for easier tracking
@@ -160,7 +165,10 @@ export const notificationService = {
                 },
             }, trigger);
 
-            console.log(`[NotificationService] Scheduled ${id} for ${event.scheduledTime}`);
+            console.log(`[NotificationService] ✅ Scheduled ${id} for ${event.scheduledTime}`);
+            if (effectiveMode === 'heavy_sleeper') {
+                console.log(`[NotificationService] ✅ Heavy sleeper alarm created with fullScreenAction. Event ID: ${event.id}`);
+            }
             return id;
         } catch (error) {
             console.error('[NotificationService] Failed to schedule', error);

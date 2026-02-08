@@ -91,6 +91,35 @@ override fun getTaskConfig(intent: Intent?): HeadlessJsTaskConfig? {
 - Check `launch_summary.md` (or similar logs) to confirm it's actually doing something.
 - Do not kill the process unless it has been silent for >15 minutes.
 
-## 5. Post-Build
+## 5. Testing Heavy Sleeper Mode (Fullscreen Alarms)
+
+After building, test the Heavy Sleeper fullscreen alarm functionality:
+
+### Required Permissions
+Navigate to Android Settings and enable:
+1. **Alarms & Reminders** (Android 12+):
+   - Settings → Apps → Special App Access → Alarms & reminders → Follo → Allow
+2. **Full Screen Intents** (Android 14+):
+   - Settings → Apps → Special App Access → Full screen intents → Follo → Allow
+3. **Do Not Disturb Access**:
+   - Settings → Apps → Special App Access → Do Not Disturb Access → Follo → Allow
+4. **Display over other apps**:
+   - Settings → Apps → Special App Access → Display over other apps → Follo → Allow
+
+### Testing Procedure
+1. Open Follo → Settings → Notification Mode → Select "Heavy Sleeper"
+2. Add/edit medication with time set to 2 minutes from now
+3. **Lock the device** or press home button
+4. Wait for alarm time
+5. **Expected**: Screen wakes, fullscreen red alarm appears, sound plays
+6. Verify slide-to-take gesture works
+
+### Debugging Logs
+View notification logs with:
+```powershell
+F:\Gradle\SDK\platform-tools\adb logcat | Select-String -Pattern "NotificationService|FullScreenIntent|AlarmScreen"
+```
+
+## 6. Post-Build
 - Update `task_tracker.md` with the successful build status.
 - Log any new "gotchas" encountered to this file.

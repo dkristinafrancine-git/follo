@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Switch, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Camera } from 'react-native-vision-camera';
 import notifee, { AuthorizationStatus } from '@notifee/react-native';
 import { useTheme } from '../../src/context/ThemeContext';
+import { checkHeavySleeperPermissions, requestFullScreenIntentPermission, requestExactAlarmPermission, type HeavySleeperPermissions } from '../../src/modules/FullScreenIntentModule';
 
 export default function PermissionsScreen() {
     const { t } = useTranslation();
@@ -14,7 +15,10 @@ export default function PermissionsScreen() {
     // Permission states
     const [cameraGranted, setCameraGranted] = useState(false);
     const [notificationGranted, setNotificationGranted] = useState(false);
+    const [heavySleeperPermissions, setHeavySleeperPermissions] = useState<HeavySleeperPermissions | null>(null);
     const [isRequesting, setIsRequesting] = useState(false);
+
+    const needsHeavySleeperPermissions = Platform.OS === 'android' && Platform.Version >= 31;
 
     // Check initial status
     useEffect(() => {
@@ -29,6 +33,12 @@ export default function PermissionsScreen() {
         // Notifee
         const settings = await notifee.getNotificationSettings();
         setNotificationGranted(settings.authorizationStatus === AuthorizationStatus.AUTHORIZED);
+
+        // Heavy Sleeper permissions (Android 12+)
+        if (needsHeavySleeperPermissions) {
+            const hsPermissions = await checkHeavySleeperPermissions();
+            setHeavySleeperPermissions(hsPermissions);
+        }
     };
 
     const toggleCamera = async (value: boolean) => {
@@ -42,6 +52,37 @@ export default function PermissionsScreen() {
         if (value && !notificationGranted) {
             const settings = await notifee.requestPermission();
             setNotificationGranted(settings.authorizationStatus === AuthorizationStatus.AUTHORIZED);
+        }
+    };
+
+    const handleHeavySleeperSetup = async () => {
+        if (!heavySleeperPermissions) return;
+
+        const missingPermissions = [];
+        if (!heavySleeperPermissions.exactAlarm) missingPermissions.push('Exact Alarm');
+        if (!heavySleeperPermissions.fullScreenIntent) missingPermissions.push('Full-Screen Intent');
+
+        if (missingPermissions.length > 0) {
+            Alert.alert(
+                'Heavy Sleeper Mode Permissions',
+                `To use Heavy Sleeper mode, you need to grant these permissions:\n\n• ${missingPermissions.join('\n• ')}\n\nYou will be taken to system settings to grant these permissions.`,
+                [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                        text: 'Grant Permissions',
+                        onPress: async () => {
+                            if (!heavySleeperPermissions.exactAlarm) {
+                                await requestExactAlarmPermission();
+                            }
+                            if (!heavySleeperPermissions.fullScreenIntent) {
+                                await requestFullScreenIntentPermission();
+                            }
+                            // Re-check after user returns
+                            setTimeout(checkPermissions, 1000);
+                        }
+                    }
+                ]
+            );
         }
     };
 
@@ -93,13 +134,28 @@ export default function PermissionsScreen() {
                             thumbColor={'#fff'}
                         />
                     </View>
-                </View>
 
-                <View style={styles.footer}>
-                    <TouchableOpacity style={[styles.button, { backgroundColor: colors.primary }]} onPress={handleContinue}>
-                        <Text style={styles.buttonText}>{t('onboarding.continue')}</Text>
-                    </TouchableOpacity>
+                    {/* Heavy Sleeper Permissions (Android 12+) */}
+                    {needsHeavySleeperPermissions && heavySleeperPermissions && (
+                        <View style={[styles.permissionItem, { backgroundColor: colors.card }]}>
+                            <View style={styles.textContainer}>
+                                <Text style={[styles.permissionTitle, { color: colors.text }]}>\u23f0 Heavy Sleeper Mode</Text>
+                                <Text style={[styles.permissionDesc, { color: colors.subtext }]}>
+                                    Required for full-screen alarms. Exact Alarm: {heavySleeperPermissions.exactAlarm ? '\u2705' : '\u274c'}, Full-Screen: {heavySleeperPermissions.fullScreenIntent ? '\u2705' : '\u274c'}
+                                </Text>
+                            </View>
+                            <TouchableOpacity onPress={handleHeavySleeperSetup}>
+                                <Text style={{ color: colors.primary, fontSize: 16, fontWeight: '600' }}>Setup</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
                 </View>
+            </View>
+
+            <View style={styles.footer}>
+                <TouchableOpacity style={[styles.button, { backgroundColor: colors.primary }]} onPress={handleContinue}>
+                    <Text style={styles.buttonText}>{t('onboarding.continue')}</Text>
+                </TouchableOpacity>
             </View>
         </SafeAreaView>
     );

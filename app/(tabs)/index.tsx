@@ -10,8 +10,10 @@ import { useTheme } from '../../src/context/ThemeContext';
 import { ProfileSelector } from '../../src/components/common/ProfileSelector';
 import { DateCarousel, StatsSlider, EventCard } from '../../src/components/timeline';
 import { Skeleton } from '../../src/components/ui/Skeleton';
+import { QuickActionSelector } from '../../src/components/ui/QuickActionSelector';
 import * as Haptics from 'expo-haptics';
 import { CalendarEvent } from '../../src/types';
+import { useTimelineStats } from '../../src/hooks/useTimelineStats';
 
 export default function TimelineScreen() {
     const { t } = useTranslation();
@@ -25,13 +27,8 @@ export default function TimelineScreen() {
     const [isLoading, setIsLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
 
-    // Stats (would come from repositories in production)
-    const [stats, setStats] = useState({
-        adherenceRate: 0,
-        activitiesThisWeek: 0,
-        currentStreak: 0,
-        upcomingMeds: 0,
-    });
+    // Stats
+    const { stats, refresh: refreshStats } = useTimelineStats(activeProfile?.id || null);
 
     // FAB Modal State
     const [showFabMenu, setShowFabMenu] = useState(false);
@@ -85,6 +82,7 @@ export default function TimelineScreen() {
         const eventSubscription = DeviceEventEmitter.addListener('REFRESH_TIMELINE', () => {
             console.log('Received REFRESH_TIMELINE event');
             loadEvents();
+            refreshStats();
         });
 
         return () => {
@@ -95,7 +93,7 @@ export default function TimelineScreen() {
 
     const handleRefresh = async () => {
         setRefreshing(true);
-        await loadEvents();
+        await Promise.all([loadEvents(), refreshStats()]);
         setRefreshing(false);
     };
 
@@ -291,91 +289,10 @@ export default function TimelineScreen() {
             </TouchableOpacity>
 
             {/* FAB Action Sheet Modal */}
-            {showFabMenu && (
-                <TouchableOpacity
-                    style={styles.modalOverlay}
-                    activeOpacity={1}
-                    onPress={() => setShowFabMenu(false)}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('common.close') || 'Close menu'}
-                >
-                    <View style={[styles.actionSheet, dynamicStyles.actionsheet]} accessibilityRole="menu">
-                        <Text style={[styles.actionSheetTitle, dynamicStyles.text]} accessibilityRole="header">{t('common.add') || 'Add New'}</Text>
-
-                        <TouchableOpacity
-                            style={[styles.actionItem, dynamicStyles.actionItem]}
-                            onPress={() => navigateTo('/medication/add' as Href)}
-                            accessibilityRole="menuitem"
-                            accessibilityLabel={t('accessibility.actions.addMedication')}
-                        >
-                            <View style={[styles.actionIcon, { backgroundColor: '#4A90D9' }]}>
-                                <Text style={styles.actionIconText}>💊</Text>
-                            </View>
-                            <Text style={[styles.actionText, { color: colors.text }]}>{t('medication.addTitle') || 'Medication'}</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={[styles.actionItem, dynamicStyles.actionItem]}
-                            onPress={() => navigateTo('/supplement/add' as Href)}
-                            accessibilityRole="menuitem"
-                            accessibilityLabel={t('supplement.addTitle') || 'Supplement'}
-                        >
-                            <View style={[styles.actionIcon, { backgroundColor: '#F59E0B' }]}>
-                                <Text style={styles.actionIconText}>🧴</Text>
-                            </View>
-                            <Text style={[styles.actionText, { color: colors.text }]}>{t('supplement.addTitle') || 'Supplement'}</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={[styles.actionItem, dynamicStyles.actionItem]}
-                            onPress={() => navigateTo('/appointment/add' as Href)}
-                            accessibilityRole="menuitem"
-                            accessibilityLabel={t('accessibility.actions.addAppointment')}
-                        >
-                            <View style={[styles.actionIcon, { backgroundColor: '#8b5cf6' }]}>
-                                <Text style={styles.actionIconText}>🩺</Text>
-                            </View>
-                            <Text style={[styles.actionText, { color: colors.text }]}>{t('appointment.addTitle') || 'Appointment'}</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={[styles.actionItem, dynamicStyles.actionItem]}
-                            onPress={() => navigateTo('/activity/add' as Href)}
-                            accessibilityRole="menuitem"
-                            accessibilityLabel={t('accessibility.actions.addActivity')}
-                        >
-                            <View style={[styles.actionIcon, { backgroundColor: '#10b981' }]}>
-                                <Text style={styles.actionIconText}>🏃</Text>
-                            </View>
-                            <Text style={[styles.actionText, { color: colors.text }]}>{t('activity.addTitle') || 'Activity'}</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={[styles.actionItem, dynamicStyles.actionItem]}
-                            onPress={() => navigateTo('/gratitude/entry' as Href)}
-                            accessibilityRole="menuitem"
-                            accessibilityLabel={t('gratitude.addTitle') || 'Log Gratitude'}
-                        >
-                            <View style={[styles.actionIcon, { backgroundColor: '#ec4899' }]}>
-                                <Text style={styles.actionIconText}>🙏</Text>
-                            </View>
-                            <Text style={[styles.actionText, { color: colors.text }]}>{t('gratitude.addTitle') || 'Gratitude'}</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={[styles.actionItem, dynamicStyles.actionItem]}
-                            onPress={() => navigateTo('/symptom/add' as Href)}
-                            accessibilityRole="menuitem"
-                            accessibilityLabel={t('symptom.addTitle')}
-                        >
-                            <View style={[styles.actionIcon, { backgroundColor: '#ef4444' }]}>
-                                <Text style={styles.actionIconText}>🤒</Text>
-                            </View>
-                            <Text style={[styles.actionText, { color: colors.text }]}>{t('symptom.addTitle') || 'Symptom'}</Text>
-                        </TouchableOpacity>
-                    </View>
-                </TouchableOpacity>
-            )}
+            <QuickActionSelector
+                isOpen={showFabMenu}
+                onClose={() => setShowFabMenu(false)}
+            />
         </SafeAreaView>
     );
 }
@@ -440,53 +357,5 @@ const styles = StyleSheet.create({
         color: '#ffffff',
         fontSize: 28,
         fontWeight: '300',
-    },
-    modalOverlay: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.7)',
-        justifyContent: 'flex-end',
-        zIndex: 20,
-    },
-    actionSheet: {
-        backgroundColor: '#252542',
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
-        padding: 24,
-        paddingBottom: 40,
-    },
-    actionSheetTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#fff',
-        marginBottom: 20,
-        textAlign: 'center',
-    },
-    actionItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 20,
-        backgroundColor: '#3f3f5a',
-        padding: 16,
-        borderRadius: 16,
-    },
-    actionIcon: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 16,
-    },
-    actionIconText: {
-        fontSize: 20,
-    },
-    actionText: {
-        fontSize: 16,
-        color: '#fff',
-        fontWeight: '600',
     },
 });

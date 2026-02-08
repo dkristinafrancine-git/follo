@@ -7,6 +7,7 @@ import {
     CalendarEventType,
     CalendarEventStatus
 } from '../types';
+import { widgetService } from '../services/widgetService';
 
 // Convert database row to CalendarEvent entity
 function rowToCalendarEvent(row: Record<string, unknown>): CalendarEvent {

@@ -1,6 +1,7 @@
 import { randomUUID } from 'expo-crypto';
 import { getDatabase } from '../database';
 import { Activity, CreateActivityInput, ActivityType } from '../types';
+import { widgetService } from '../services/widgetService';
 
 // Convert database row to Activity entity
 function rowToActivity(row: Record<string, unknown>): Activity {
