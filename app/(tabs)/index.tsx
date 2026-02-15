@@ -213,7 +213,7 @@ export default function TimelineScreen() {
                     <View style={styles.section}>
                         <View style={styles.overdueHeader}>
                             <Text style={[styles.sectionTitle, { color: colors.danger || '#ef4444' }]}>
-                                ⚠️ {t('timeline.overdue') || 'Overdue'} ({overdueEvents.length})
+                                {t('timeline.overdue') || 'Overdue'} ({overdueEvents.length})
                             </Text>
                         </View>
                         {overdueEvents.map((event) => (

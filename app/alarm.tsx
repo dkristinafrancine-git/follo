@@ -5,7 +5,7 @@ import { Audio, InterruptionModeAndroid } from 'expo-av';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, runOnJS, withTiming } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { notificationService } from '../src/services/notificationService';
-import { calendarEventRepository } from '../src/repositories';
+import { calendarEventRepository, profileRepository } from '../src/repositories';
 import { CalendarEvent } from '../src/types';
 import * as KeepAwake from 'expo-keep-awake';
 
@@ -27,6 +27,8 @@ export default function AlarmScreen() {
     const [sound, setSound] = useState<Audio.Sound | null>(null);
     const [currentTime, setCurrentTime] = useState(new Date());
 
+    const [loadingError, setLoadingError] = useState<string | null>(null);
+
     // Animation for Slider
     const translateX = useSharedValue(0);
     const isCompleted = useSharedValue(false);
@@ -38,11 +40,75 @@ export default function AlarmScreen() {
     }, []);
 
     useEffect(() => {
-        // Load event data
-        if (eventId) {
-            calendarEventRepository.getById(eventId).then(setEvent);
-        }
-    }, [eventId]);
+        let isMounted = true;
+
+        const loadEvent = async () => {
+            try {
+                if (eventId) {
+                    const loadedEvent = await calendarEventRepository.getById(eventId);
+                    if (isMounted) {
+                        if (loadedEvent) {
+                            setEvent(loadedEvent);
+                        } else {
+                            // Event ID provided but not found? distinct error
+                            console.warn(`[AlarmScreen] Event ${eventId} not found`);
+                            setLoadingError("Event not found");
+                        }
+                    }
+                } else {
+                    console.log('[AlarmScreen] No eventId provided, searching for overdue pending events...');
+                    // Fallback: Find the most recent overdue pending medication/supplement event
+                    try {
+                        // We need a profile to find overdue events.
+                        // Since we cannot easily rely on the store state here (might be fresh launch),
+                        // let's fetch profiles directly from the repository.
+                        const profiles = await profileRepository.getAll();
+                        // Find primary or first
+                        const activeProfile = profiles.find(p => p.isPrimary) ?? profiles[0];
+
+                        if (activeProfile) {
+                            const overdue = await calendarEventRepository.getOverdue(activeProfile.id);
+                            if (overdue.length > 0) {
+                                console.log(`[AlarmScreen] Fallback found ${overdue.length} overdue events. Using first.`);
+                                setEvent(overdue[0]);
+                            } else {
+                                const pending = await calendarEventRepository.getUpcoming(activeProfile.id, 1);
+                                if (pending.length > 0) {
+                                    setEvent(pending[0]);
+                                } else {
+                                    setLoadingError("No active alarms found");
+                                }
+                            }
+                        } else {
+                            setLoadingError("No profiles found");
+                        }
+                    } catch (fallbackErr) {
+                        console.error('[AlarmScreen] Fallback failed:', fallbackErr);
+                        setLoadingError("Could not find alarm details");
+                    }
+                }
+            } catch (err) {
+                console.error('[AlarmScreen] Error loading event:', err);
+                if (isMounted) setLoadingError("Failed to load event");
+            }
+        };
+
+        loadEvent();
+
+        // Safety Timeout: If not loaded in 5 seconds, show error/dismiss
+        const timeout = setTimeout(() => {
+            if (isMounted && !event) {
+                setLoadingError("Loading timed out");
+            }
+        }, 5000);
+
+        return () => {
+            isMounted = false;
+            clearTimeout(timeout);
+        };
+    }, [eventId, event]); // Run when eventId changes or event is set (to clear timeout effectively via cleanup? no, dependency logic is slighty off)
+    // Actually, we want to run this once on mount/eventId change. 
+    // If 'event' is a dep, it might re-run. Removing 'event' from dep array.
 
     useEffect(() => {
         // Keep screen awake while alarm is active
@@ -158,8 +224,22 @@ export default function AlarmScreen() {
         transform: [{ translateX: translateX.value }]
     }));
 
-    if (!event) {
-        return <View style={styles.container}><Text style={styles.loading}>Loading Alarm...</Text></View>;
+    if (!event || loadingError) {
+        return (
+            <View style={styles.container}>
+                <View style={styles.content}>
+                    <Text style={styles.loading}>
+                        {loadingError ? `Error: ${loadingError}` : 'Loading Alarm...'}
+                    </Text>
+                    <TouchableOpacity
+                        style={[styles.snoozeButton, { marginTop: 32, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 16 }]}
+                        onPress={() => router.replace('/(tabs)')}
+                    >
+                        <Text style={styles.snoozeText}>Dismiss & Open App</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        );
     }
 
     return (

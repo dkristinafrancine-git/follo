@@ -28,23 +28,23 @@ export function EventCard({ event, subtitle, onPress, onComplete, onSkip, onPost
     const { colors, isHighContrast } = useTheme();
 
     const getEventStyle = () => {
-        if (isHighContrast) return { color: colors.primary, icon: '⭐' };
+        if (isHighContrast) return { color: colors.primary }; // icon: '⭐'
 
         switch (event.eventType) {
             case 'medication_due':
-                return { color: '#6366f1', icon: '💊' };
+                return { color: '#6366f1' }; // icon: '💊'
             case 'supplement_due':
-                return { color: '#10b981', icon: '💊' };
+                return { color: '#10b981' }; // icon: '💊'
             case 'appointment':
-                return { color: '#f59e0b', icon: '📅' };
+                return { color: '#f59e0b' }; // icon: '📅'
             case 'activity':
-                return { color: '#ef4444', icon: '🏃' };
+                return { color: '#ef4444' }; // icon: '🏃'
             case 'gratitude':
-                return { color: '#d946ef', icon: '🙏' };
+                return { color: '#d946ef' }; // icon: '🙏'
             case 'symptom':
-                return { color: '#f97316', icon: '🤒' };
+                return { color: '#f97316' }; // icon: '🤒'
             default:
-                return { color: '#9ca3af', icon: '📌' };
+                return { color: '#9ca3af' }; // icon: '📌'
         }
     };
 
@@ -132,7 +132,6 @@ export function EventCard({ event, subtitle, onPress, onComplete, onSkip, onPost
 
             <View style={styles.content}>
                 <View style={styles.header}>
-                    <Text style={styles.icon}>{eventStyle.icon}</Text>
                     <View style={styles.titleContainer}>
                         <Text style={[styles.title, dynamicStyles.text]} numberOfLines={1}>{event.title}</Text>
                         {subtitle && <Text style={[styles.subtitle, dynamicStyles.subtext]} numberOfLines={1}>{subtitle}</Text>}
@@ -193,7 +192,7 @@ export function EventCard({ event, subtitle, onPress, onComplete, onSkip, onPost
 
             {isOverdue && (
                 <View style={styles.overdueIndicator}>
-                    <Text style={styles.overdueText}>⚠️</Text>
+                    {/* removed emoji */}
                 </View>
             )}
         </AnimatedTouchable>
