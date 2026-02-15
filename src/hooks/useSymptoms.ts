@@ -1,5 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
-import { symptomRepository, Symptom, CreateSymptomDTO, UpdateSymptomDTO } from '../repositories/symptomRepository';
+import { symptomRepository } from '../repositories/symptomRepository';
+import { Symptom, CreateSymptomDTO, UpdateSymptomDTO } from '../types';
+import { calendarService } from '../services';
+import { calendarEventRepository } from '../repositories';
 import { useFocusEffect } from 'expo-router';
 
 export function useSymptoms(profileId?: string) {
@@ -50,6 +53,7 @@ export function useSymptoms(profileId?: string) {
                 ...symptom,
                 profile_id: profileId,
             });
+            await calendarService.generateSymptomEvent(newSymptom);
             setSymptoms(prev => [newSymptom, ...prev]);
             await loadRecentSymptoms();
             await loadDistinctNames();
@@ -79,6 +83,7 @@ export function useSymptoms(profileId?: string) {
         setLoading(true);
         try {
             await symptomRepository.deleteSymptom(id);
+            await calendarEventRepository.deleteBySource(id);
             setSymptoms(prev => prev.filter(s => s.id !== id));
             await loadRecentSymptoms();
         } catch (err) {

@@ -41,9 +41,10 @@ export const PositivityChart: React.FC<PositivityChartProps> = ({
     const chartWidth = width - padding * 2;
     const chartHeight = height - padding * 2;
 
-    // Y-axis: 1 to 5
-    const minY = 1;
-    const maxY = 5;
+    // Y-axis: 0 to max + 1
+    const minY = 0;
+    const maxValInSet = Math.max(...chartData.map(d => d.positivityLevel), 5); // Default to at least 5
+    const maxY = maxValInSet + 1;
 
     const getX = (index: number) => {
         if (chartData.length <= 1) return padding + chartWidth / 2;
@@ -71,29 +72,32 @@ export const PositivityChart: React.FC<PositivityChartProps> = ({
                     </LinearGradient>
                 </Defs>
 
-                {/* Grid Lines */}
-                {[1, 2, 3, 4, 5].map((val) => (
-                    <React.Fragment key={val}>
-                        <Line
-                            x1={padding}
-                            y1={getY(val)}
-                            x2={width - padding}
-                            y2={getY(val)}
-                            stroke={colors.border}
-                            strokeWidth="1"
-                            strokeDasharray="4 4"
-                        />
-                        <SvgText
-                            x={padding - 10}
-                            y={getY(val) + 4}
-                            fill={colors.subtext}
-                            fontSize="10"
-                            textAnchor="end"
-                        >
-                            {val}
-                        </SvgText>
-                    </React.Fragment>
-                ))}
+                {/* Grid Lines - Show 5 evenly spaced lines */}
+                {[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
+                    const val = Math.round(minY + (maxY - minY) * ratio);
+                    return (
+                        <React.Fragment key={ratio}>
+                            <Line
+                                x1={padding}
+                                y1={getY(val)}
+                                x2={width - padding}
+                                y2={getY(val)}
+                                stroke={colors.border}
+                                strokeWidth="1"
+                                strokeDasharray="4 4"
+                            />
+                            <SvgText
+                                x={padding - 10}
+                                y={getY(val) + 4}
+                                fill={colors.subtext}
+                                fontSize="10"
+                                textAnchor="end"
+                            >
+                                {val}
+                            </SvgText>
+                        </React.Fragment>
+                    );
+                })}
 
                 {/* Data Line */}
                 {chartData.length > 1 && (
@@ -104,8 +108,6 @@ export const PositivityChart: React.FC<PositivityChartProps> = ({
                         fill="none"
                     />
                 )}
-
-                {/* Fill Area (Optional, skipping for clean line look) */}
 
                 {/* Data Points */}
                 {chartData.map((point, index) => (

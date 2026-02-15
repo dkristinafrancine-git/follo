@@ -131,7 +131,7 @@ export interface Activity {
 export type CreateActivityInput = Omit<Activity, 'id' | 'createdAt'>;
 
 // Calendar event types (SSOT)
-export type CalendarEventType = 'medication_due' | 'supplement_due' | 'appointment' | 'activity';
+export type CalendarEventType = 'medication_due' | 'supplement_due' | 'appointment' | 'activity' | 'reminder' | 'gratitude' | 'symptom';
 export type CalendarEventStatus = 'pending' | 'completed' | 'missed' | 'skipped';
 
 export interface CalendarEvent extends BaseEntity {
@@ -195,3 +195,40 @@ export interface Gratitude extends BaseEntity {
 
 export type CreateGratitudeInput = Omit<Gratitude, 'id' | 'createdAt' | 'updatedAt'>;
 export type UpdateGratitudeInput = Partial<Omit<Gratitude, 'id' | 'profileId' | 'createdAt' | 'updatedAt'>>;
+
+// Reminder types
+export type ReminderType = 'supplement' | 'activity' | 'gratitude' | 'symptom';
+
+export interface Reminder extends BaseEntity {
+    profileId: string;
+    type: ReminderType;
+    frequencyRule: RecurrenceRule;
+    timeOfDay: string[]; // ["08:00", "20:00"]
+    isActive: boolean;
+}
+
+export type CreateReminderInput = Omit<Reminder, 'id' | 'createdAt' | 'updatedAt'>;
+export type UpdateReminderInput = Partial<Omit<Reminder, 'id' | 'profileId' | 'createdAt' | 'updatedAt'>>;
+
+// Symptom types
+export interface Symptom {
+    id: string;
+    profile_id: string; // Note: Repository uses snake_case, but other types use camelCase. Keeping snake_case to match DB/Repo for now, or should I normalize? 
+    // The repo uses snake_case: profile_id, occurred_at.
+    // Let's stick to the repo definition for now to avoid breaking changes, usually types in index.ts are camelCase though. 
+    // Actually, looking at other types in index.ts, they are camelCase (profileId). 
+    // The symptomRepository defines it as snake_case. 
+    // I should probably map it. But `calendarService` uses it. 
+    // Let's define it as it is in the repository for now to ensure compatibility, OR update the repository to match the project standard.
+    // Given the task is just to add logs, I will define it as is.
+    name: string;
+    severity: number; // 1-10
+    frequency?: string;
+    notes?: string;
+    occurred_at: string; // ISO string
+    created_at: string;
+    updated_at: string;
+}
+
+export type CreateSymptomDTO = Omit<Symptom, 'id' | 'created_at' | 'updated_at'>;
+export type UpdateSymptomDTO = Partial<Omit<Symptom, 'id' | 'profile_id' | 'created_at' | 'updated_at'>>;

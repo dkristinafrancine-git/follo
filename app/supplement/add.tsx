@@ -4,10 +4,11 @@
  */
 
 import { useState, useCallback } from 'react';
-import { View, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Alert, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { Ionicons } from '@expo/vector-icons';
 import { SupplementForm } from '../../src/components/forms/SupplementForm';
 import { useCreateSupplement } from '../../src/hooks/useSupplements';
 import { useActiveProfile } from '../../src/hooks/useProfiles';
@@ -89,6 +90,15 @@ export default function AddSupplementScreen() {
                     title: t('supplement.addTitle') || 'Add Supplement',
                     headerStyle: { backgroundColor: colors.background },
                     headerTintColor: colors.text,
+                    headerRight: () => (
+                        <TouchableOpacity
+                            onPress={() => router.push({ pathname: '/reminders/manage', params: { type: 'supplement' } })}
+                            style={{ marginRight: 16 }}
+                        >
+                            {/* direct import of Ionicons or similar if available, else text */}
+                            <Ionicons name="notifications-outline" size={24} color={colors.primary} />
+                        </TouchableOpacity>
+                    ),
                 }}
             />
             <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['bottom']}>

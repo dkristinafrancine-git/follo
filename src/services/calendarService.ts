@@ -9,10 +9,15 @@ import {
     Supplement,
     Appointment,
     Activity,
+    Gratitude,
+    Symptom, // Added Symptom
     CalendarEventType,
     CreateCalendarEventInput
 } from '../types';
 import { calendarEventRepository } from '../repositories';
+// Import repositories to get details if needed, though we usually pass the object
+import { gratitudeRepository } from '../repositories/gratitudeRepository';
+import { symptomRepository } from '../repositories/symptomRepository';
 import { notificationService } from './notificationService';
 import { addDays, format, parse, startOfDay, endOfDay, isBefore, isAfter } from 'date-fns';
 
@@ -303,6 +308,55 @@ export const calendarService = {
         }
 
         return overdueEvents.length;
+    },
+
+    /**
+     * Generate a calendar event for a gratitude log (completed event)
+     */
+    async generateGratitudeEvent(gratitude: Gratitude): Promise<void> {
+        // Delete any existing event for this gratitude
+        await calendarEventRepository.deleteBySource(gratitude.id);
+
+        await calendarEventRepository.create({
+            profileId: gratitude.profileId,
+            eventType: 'gratitude' as CalendarEventType,
+            sourceId: gratitude.id,
+            title: 'Gratitude',
+            scheduledTime: gratitude.createdAt,
+            status: 'completed', // Gratitude is always a completed past event
+            completedTime: gratitude.createdAt,
+            metadata: {
+                content: gratitude.content,
+                positivityLevel: gratitude.positivityLevel,
+                imageUri: gratitude.imageUri,
+            },
+        });
+    },
+
+    /**
+     * Generate a calendar event for a symptom log (completed event)
+     */
+    async generateSymptomEvent(symptom: Symptom): Promise<void> {
+        // Delete any existing event for this symptom
+        await calendarEventRepository.deleteBySource(symptom.id);
+
+        // Normalize time
+        const eventTime = symptom.occurred_at || symptom.created_at || new Date().toISOString();
+
+        await calendarEventRepository.create({
+            profileId: symptom.profile_id,
+            eventType: 'symptom' as CalendarEventType,
+            sourceId: symptom.id,
+            title: symptom.name || 'Symptom',
+            scheduledTime: eventTime,
+            status: 'completed',
+            completedTime: eventTime,
+            metadata: {
+                severity: symptom.severity,
+                notes: symptom.notes,
+                // duration is not in Symptom type, checking repository
+            },
+        });
     },
 };
 

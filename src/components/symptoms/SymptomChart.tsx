@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
-import { View, Dimensions, StyleSheet, Text } from 'react-native';
-import { Svg, Line, Circle, Text as SvgText, G } from 'react-native-svg';
+import { View, Dimensions, StyleSheet, Text, Alert } from 'react-native';
+import { Svg, Line, Circle, Text as SvgText, G, Path, Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
 import { useTheme } from '../../context/ThemeContext';
 import { Symptom } from '../../repositories/symptomRepository';
-import { format, parseISO, differenceInDays } from 'date-fns';
+import { format, parseISO } from 'date-fns';
+import * as Haptics from 'expo-haptics';
 
 interface SymptomChartProps {
     symptoms: Symptom[];
@@ -13,31 +14,37 @@ interface SymptomChartProps {
 export const SymptomChart: React.FC<SymptomChartProps> = ({ symptoms, days = 14 }) => {
     const { colors } = useTheme();
     const SCREEN_WIDTH = Dimensions.get('window').width;
-    const chartHeight = 200;
+    const chartHeight = 220; // Slightly taller
     const chartWidth = SCREEN_WIDTH - 64; // Padding
-    const paddingLeft = 30;
-    const paddingBottom = 30;
+    const paddingLeft = 40; // More room for labels
+    const paddingBottom = 40;
     const effectiveWidth = chartWidth - paddingLeft;
     const effectiveHeight = chartHeight - paddingBottom;
 
     const processedData = useMemo(() => {
         if (!symptoms.length) return [];
-
         const now = new Date();
         const cutoff = new Date();
         cutoff.setDate(now.getDate() - days);
 
-        // Filter and sort
+        // Filter and sort by date
         const filtered = symptoms
             .filter(s => new Date(s.occurred_at) >= cutoff)
             .sort((a, b) => new Date(a.occurred_at).getTime() - new Date(b.occurred_at).getTime());
+
+        // We need to handle multiple data points (different symptoms) on same chart
+        // For a simplified view, let's plot "Max Daily Severity" or create separate lines per symptom?
+        // User asked for "Easy to understand". Let's do a single "Overall Symptom Load" line, 
+        // OR better yet, just plot the points but connect them with a smooth curve if they are same symptom type.
+        // Actually, easiest for general view is "Average Severity" per day if multiple, or just plot incidents.
+        // Let's stick to incidents but make the layout cleaner.
 
         return filtered;
     }, [symptoms, days]);
 
     if (processedData.length === 0) {
         return (
-            <View style={[styles.container, { height: 200, justifyContent: 'center', alignItems: 'center' }]}>
+            <View style={[styles.container, { height: chartHeight, justifyContent: 'center', alignItems: 'center' }]}>
                 <Text style={{ color: colors.subtext }}>No recent symptoms logged</Text>
             </View>
         );
@@ -56,37 +63,52 @@ export const SymptomChart: React.FC<SymptomChartProps> = ({ symptoms, days = 14 
     const getY = (severity: number) => {
         // Severity 1-10
         const percent = (severity - 1) / 9; // 1->0, 10->1
-        return effectiveHeight - (percent * effectiveHeight); // Invert for SVG Y
+        return effectiveHeight - (percent * effectiveHeight);
     };
 
-    // Group by name to assign colors
-    const uniqueNames = Array.from(new Set(processedData.map(s => s.name)));
-    const getColor = (name: string) => {
-        const index = uniqueNames.indexOf(name);
-        const palette = [
-            '#ef4444', // Red
-            '#f59e0b', // Amber
-            '#3b82f6', // Blue
-            '#10b981', // Green
-            '#8b5cf6', // Violet
-            '#ec4899', // Pink
-        ];
-        return palette[index % palette.length];
+    // Helper for color coding severity
+    const getSeverityColor = (severity: number) => {
+        if (severity >= 8) return colors.danger || '#ef4444'; // Severe
+        if (severity >= 5) return colors.warning || '#f59e0b'; // Moderate
+        return colors.success || '#10b981'; // Mild
+    };
+
+    const handlePointPress = (symptom: Symptom) => {
+        Haptics.selectionAsync();
+        Alert.alert(
+            symptom.name,
+            `Time: ${format(parseISO(symptom.occurred_at), 'MMM d, h:mm a')}\nSeverity: ${symptom.severity}/10 (${symptom.severity >= 8 ? 'Severe' : symptom.severity >= 5 ? 'Moderate' : 'Mild'})\n${symptom.notes ? `\nNotes: ${symptom.notes}` : ''}`
+        );
     };
 
     return (
         <View style={styles.container}>
-            <View style={styles.legendContainer}>
-                {uniqueNames.slice(0, 4).map(name => (
-                    <View key={name} style={styles.legendItem}>
-                        <View style={[styles.legendDot, { backgroundColor: getColor(name) }]} />
-                        <Text style={[styles.legendText, { color: colors.subtext }]}>{name}</Text>
-                    </View>
-                ))}
+            {/* Descriptive Header */}
+            <View style={styles.header}>
+                <Text style={[styles.headerTitle, { color: colors.subtext }]}>Recent Trends</Text>
+                <View style={styles.severityLegend}>
+                    <View style={[styles.legendDot, { backgroundColor: colors.danger }]} /><Text style={[styles.legendText, { color: colors.subtext }]}>Severe</Text>
+                    <View style={[styles.legendDot, { backgroundColor: colors.warning }]} /><Text style={[styles.legendText, { color: colors.subtext }]}>Moderate</Text>
+                    <View style={[styles.legendDot, { backgroundColor: colors.success }]} /><Text style={[styles.legendText, { color: colors.subtext }]}>Mild</Text>
+                </View>
             </View>
+
             <Svg height={chartHeight} width={chartWidth}>
-                {/* Y Axis Grid (Severity 1, 5, 10) */}
-                {[1, 5, 10].map(val => (
+                <Defs>
+                    <LinearGradient id="chartGradient" x1="0" y1="1" x2="0" y2="0">
+                        <Stop offset="0" stopColor={colors.success} stopOpacity="0.1" />
+                        <Stop offset="0.5" stopColor={colors.warning} stopOpacity="0.1" />
+                        <Stop offset="1" stopColor={colors.danger} stopOpacity="0.1" />
+                    </LinearGradient>
+                </Defs>
+
+                {/* Severity Zones Background (Optional but nice) */}
+                <Rect x={paddingLeft} y={0} width={effectiveWidth} height={effectiveHeight / 3} fill={colors.danger} fillOpacity={0.05} />
+                <Rect x={paddingLeft} y={effectiveHeight / 3} width={effectiveWidth} height={effectiveHeight / 3} fill={colors.warning} fillOpacity={0.05} />
+                <Rect x={paddingLeft} y={(effectiveHeight / 3) * 2} width={effectiveWidth} height={effectiveHeight / 3} fill={colors.success} fillOpacity={0.05} />
+
+                {/* Y Axis Grid & Labels */}
+                {[1, 5, 8].map(val => (
                     <G key={val}>
                         <Line
                             x1={paddingLeft}
@@ -96,30 +118,74 @@ export const SymptomChart: React.FC<SymptomChartProps> = ({ symptoms, days = 14 
                             stroke={colors.border}
                             strokeDasharray="4 4"
                             strokeWidth="1"
+                            opacity={0.5}
                         />
                         <SvgText
-                            x={0}
+                            x={paddingLeft - 8}
                             y={getY(val) + 4}
                             fill={colors.subtext}
                             fontSize="10"
+                            textAnchor="end"
+                            fontWeight="500"
                         >
-                            {val}
+                            {val === 8 ? 'Severe' : val === 5 ? 'Mod' : 'Mild'}
                         </SvgText>
                     </G>
                 ))}
 
+                {/* X Axis Labels */}
+                {[0, 0.5, 1].map(percent => {
+                    const time = startTime + (percent * timeRange);
+                    const date = new Date(time);
+                    const x = paddingLeft + (percent * effectiveWidth);
+                    const safeX = Math.min(Math.max(x, paddingLeft + 20), chartWidth - 20);
+                    return (
+                        <SvgText
+                            key={percent}
+                            x={safeX}
+                            y={chartHeight - 15}
+                            fill={colors.subtext}
+                            fontSize="10"
+                            textAnchor="middle"
+                        >
+                            {format(date, 'MMM d')}
+                        </SvgText>
+                    );
+                })}
+
                 {/* Data Points */}
-                {processedData.map((symptom) => (
-                    <Circle
-                        key={symptom.id}
-                        cx={getX(symptom.occurred_at)}
-                        cy={getY(symptom.severity)}
-                        r="5"
-                        fill={getColor(symptom.name)}
-                        stroke={colors.card}
-                        strokeWidth="2"
-                    />
-                ))}
+                {processedData.map((symptom, index) => {
+                    // Connect lines between same symptoms? 
+                    // For clarity, let's just draw distinct, clear points with "lollipop" lines to the bottom visually anchoring them in time.
+                    const cx = getX(symptom.occurred_at);
+                    const cy = getY(symptom.severity);
+                    const color = getSeverityColor(symptom.severity);
+
+                    return (
+                        <G key={symptom.id}>
+                            {/* Lollipop Line */}
+                            <Line
+                                x1={cx}
+                                y1={cy}
+                                x2={cx}
+                                y2={effectiveHeight}
+                                stroke={color}
+                                strokeWidth="1"
+                                opacity={0.3}
+                            />
+                            {/* Point */}
+                            <Circle
+                                cx={cx}
+                                cy={cy}
+                                r="6"
+                                fill={color}
+                                stroke={colors.card}
+                                strokeWidth="2"
+                                onPress={() => handlePointPress(symptom)}
+                            />
+                        </G>
+                    );
+                })}
             </Svg>
         </View>
     );
@@ -129,24 +195,33 @@ const styles = StyleSheet.create({
     container: {
         marginTop: 10,
     },
-    legendContainer: {
+    header: {
         flexDirection: 'row',
-        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 0,
         marginBottom: 10,
-        gap: 12,
-        paddingLeft: 30,
     },
-    legendItem: {
+    headerTitle: {
+        fontSize: 14,
+        fontWeight: '600',
+    },
+    severityLegend: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 6,
+        gap: 8,
     },
     legendDot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
+        width: 6,
+        height: 6,
+        borderRadius: 3,
     },
     legendText: {
-        fontSize: 12,
+        fontSize: 10,
+        marginLeft: 2,
+    },
+    legendContainer: {
+        // Unused now
     },
 });
+

@@ -144,6 +144,27 @@ export const calendarEventRepository = {
     },
 
     /**
+     * Find existing event to prevent duplicates (Single)
+     */
+    async findExisting(
+        profileId: string,
+        sourceId: string,
+        eventType: CalendarEventType,
+        scheduledTime: string
+    ): Promise<CalendarEvent | null> {
+        const db = await getDatabase();
+        const result = await db.getFirstAsync<Record<string, unknown>>(
+            `SELECT * FROM calendar_events 
+       WHERE profile_id = ? 
+       AND source_id = ? 
+       AND event_type = ?
+       AND scheduled_time = ?`,
+            [profileId, sourceId, eventType, scheduledTime]
+        );
+        return result ? rowToCalendarEvent(result) : null;
+    },
+
+    /**
      * Get a single event by ID
      */
     async getById(id: string): Promise<CalendarEvent | null> {

@@ -23,6 +23,7 @@ import { Image } from 'react-native';
 import { Medication, CreateMedicationInput, RecurrenceRule, MedicationReference } from '../../types';
 import { medicationReferenceRepository } from '../../repositories';
 import { useTheme } from '../../context/ThemeContext';
+import { DaySelector } from './DaySelector';
 
 // Medication form options per PRD
 // Medication form options per PRD
@@ -52,6 +53,9 @@ const FREQUENCIES = [
     { key: 'daily', value: { frequency: 'daily' as const } },
     { key: 'twiceDaily', value: { frequency: 'daily' as const, interval: 1 } },
     { key: 'weekly', value: { frequency: 'weekly' as const } },
+    { key: 'weekdays', value: { frequency: 'weekly' as const, daysOfWeek: [1, 2, 3, 4, 5] as number[] } },
+    { key: 'weekends', value: { frequency: 'weekly' as const, daysOfWeek: [0, 6] as number[] } },
+    { key: 'specificDays', value: { frequency: 'weekly' as const, daysOfWeek: [] as number[] } },
     { key: 'asNeeded', value: { frequency: 'custom' as const, interval: 0 } },
 ] as const;
 
@@ -340,10 +344,28 @@ export function MedicationForm({
                     onPress={() => setShowFrequencyPicker(true)}
                 >
                     <Text style={[styles.pickerButtonText, { color: colors.text }]}>
-                        {t(`medication.frequencies.${formData.frequency.frequency === 'daily' && !formData.frequency.interval ? 'daily' : formData.frequency.frequency}`)}
+                        {formData.frequency.daysOfWeek !== undefined
+                            ? formData.frequency.daysOfWeek.length === 5 && !formData.frequency.daysOfWeek.includes(0) && !formData.frequency.daysOfWeek.includes(6)
+                                ? t('medication.frequencies.weekdays')
+                                : formData.frequency.daysOfWeek.length === 2 && formData.frequency.daysOfWeek.includes(0) && formData.frequency.daysOfWeek.includes(6)
+                                    ? t('medication.frequencies.weekends')
+                                    : t('medication.frequencies.specificDays')
+                            : t(`medication.frequencies.${formData.frequency.frequency === 'daily' && !formData.frequency.interval ? 'daily' : formData.frequency.frequency}`)}
                     </Text>
                     <Text style={[styles.pickerArrow, { color: colors.subtext }]}>▼</Text>
                 </TouchableOpacity>
+
+                {/* Day Selector for Specific Days */}
+                {formData.frequency.frequency === 'weekly' &&
+                    formData.frequency.daysOfWeek !== undefined && (
+                        <View style={{ marginTop: 8 }}>
+                            <Text style={[styles.label, { color: colors.subtext, fontSize: 12 }]}>{t('medication.selectDays')}</Text>
+                            <DaySelector
+                                selectedDays={formData.frequency.daysOfWeek || []}
+                                onChange={(days) => updateField('frequency', { ...formData.frequency, daysOfWeek: days })}
+                            />
+                        </View>
+                    )}
             </View>
 
             {/* Time of Day */}
@@ -540,6 +562,15 @@ export function MedicationForm({
                                 </Text>
                             </TouchableOpacity>
                         ))}
+                        {/* Custom Interval Option if not already covered */}
+                        <TouchableOpacity
+                            style={styles.pickerOption}
+                            onPress={() => {
+                                // Handle custom logic if needed, for now just close
+                                setShowFrequencyPicker(false);
+                            }}
+                        >
+                        </TouchableOpacity>
                     </View>
                 </TouchableOpacity>
             </Modal>

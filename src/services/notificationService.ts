@@ -236,6 +236,7 @@ export const notificationService = {
                 console.log(`[NotificationService] Action ${pressAction.id} on event ${eventId}`);
 
                 if (pressAction.id === 'TAKE') {
+                    // ... existing logic ...
                     // update inventory if it's a medication
                     console.log(`[NotificationService] Processing TAKE for event ${eventId}`);
                     const event = await calendarEventRepository.getById(eventId);
@@ -257,6 +258,7 @@ export const notificationService = {
                     console.log(`[NotificationService] Notification cancelled`);
                     DeviceEventEmitter.emit('REFRESH_TIMELINE');
                 } else if (pressAction.id === 'SKIP') {
+                    // ... existing logic ...
                     console.log(`[NotificationService] Processing SKIP for event ${eventId}`);
                     await calendarEventRepository.update(eventId, {
                         status: 'skipped',
@@ -264,6 +266,9 @@ export const notificationService = {
                     console.log(`[NotificationService] Event updated to skipped`);
                     await notifee.cancelNotification(notification.id!);
                     DeviceEventEmitter.emit('REFRESH_TIMELINE');
+                } else if (pressAction.id === 'default' && notification.data?.type === 'reminder') {
+                    // Just log for now. Navigation is handled by the UI listener.
+                    console.log('[NotificationService] Reminder notification tapped');
                 }
             }
         } catch (error) {
@@ -291,6 +296,8 @@ function getNotificationTitle(event: CalendarEvent): string {
             return '🌿 Supplement Reminder';
         case 'appointment':
             return '📅 Appointment Reminder';
+        case 'reminder':
+            return '⏰ Reminder';
         default:
             return '⏰ Reminder';
     }
@@ -301,5 +308,6 @@ function getNotificationBody(event: CalendarEvent): string {
     if (event.eventType === 'appointment') {
         return `Upcoming: ${event.title} at ${time}`;
     }
-    return `Time to take ${event.title} (${time})`;
+    // Generic body for reminders using the title (e.g., "Gratitude Journal")
+    return `Time for: ${event.title} (${time})`;
 }

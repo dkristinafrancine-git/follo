@@ -322,9 +322,13 @@
             "daily": "Daily",
             "twiceDaily": "Twice Daily",
             "weekly": "Weekly",
+            "weekdays": "Weekdays (Mon-Fri)",
+            "weekends": "Weekends (Sat-Sun)",
+            "specificDays": "Specific Days",
             "asNeeded": "As Needed",
-            "custom": "Custom"
+            "custom": "Custom Interval"
         },
+        "selectDays": "Select Days",
         "status": {
             "label": "Status",
             "taken": "Taken",

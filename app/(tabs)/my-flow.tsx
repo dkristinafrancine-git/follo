@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useCallback, useMemo } from 'react';
 import { useFocusEffect } from 'expo-router';
-import { Svg, Rect, Text as SvgText, Line } from 'react-native-svg';
+import { Svg, Rect, Text as SvgText, Line, G } from 'react-native-svg';
 import { TouchableOpacity, Alert } from 'react-native';
 import { useActiveProfile } from '../../src/hooks/useProfiles';
 import { myFlowService, careMetricsService, exportService, MyFlowStats, AdherenceDataPoint, CareInsight } from '../../src/services';
@@ -120,7 +120,7 @@ export default function MyFlowScreen() {
                 {history.map((point, index) => {
                     const barHeight = (point.percentage / maxValue) * chartHeight;
                     return (
-                        <View key={index}>
+                        <G key={index}>
                             <Rect
                                 x={index * (barWidth + 10)}
                                 y={chartHeight - barHeight}
@@ -138,7 +138,7 @@ export default function MyFlowScreen() {
                             >
                                 {point.date.split('-')[2]}
                             </SvgText>
-                        </View>
+                        </G>
                     );
                 })}
             </Svg>
@@ -265,7 +265,7 @@ export default function MyFlowScreen() {
                         </TouchableOpacity>
                     </View>
                     <View style={[styles.card, { backgroundColor: colors.card, alignItems: 'flex-start', paddingHorizontal: 10 }]}>
-                        <SymptomChart symptoms={symptoms} />
+                        <SymptomChart symptoms={symptoms} days={14} />
                     </View>
                 </View>
 
@@ -273,9 +273,14 @@ export default function MyFlowScreen() {
                 <View style={styles.section}>
                     <View style={styles.sectionHeaderRow}>
                         <Text style={[styles.sectionTitle, { color: colors.subtext, marginBottom: 0 }]}>{t('gratitude.chartTitle') || 'Positivity Flow'}</Text>
-                        <TouchableOpacity onPress={() => router.push('/gratitude/entry')}>
-                            <Ionicons name="add-circle-outline" size={24} color={colors.primary} />
-                        </TouchableOpacity>
+                        <View style={{ flexDirection: 'row', gap: 16 }}>
+                            <TouchableOpacity onPress={() => router.push('/gratitude/index')}>
+                                <Ionicons name="list-outline" size={24} color={colors.primary} />
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => router.push('/gratitude/entry')}>
+                                <Ionicons name="add-circle-outline" size={24} color={colors.primary} />
+                            </TouchableOpacity>
+                        </View>
                     </View>
                     <View style={[styles.card, { backgroundColor: colors.card, padding: 16 }]}>
                         <PositivityChart data={gratitudeData} />

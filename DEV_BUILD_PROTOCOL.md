@@ -123,3 +123,26 @@ F:\Gradle\SDK\platform-tools\adb logcat | Select-String -Pattern "NotificationSe
 ## 6. Post-Build
 - Update `task_tracker.md` with the successful build status.
 - Log any new "gotchas" encountered to this file.
+
+---
+
+### Build Log
+
+| Date | Result | Notes |
+|------|--------|-------|
+| 2026-02-15 | ✅ SUCCESS | Fixed Notifee Maven repo (see §4.8). Native compile ~5min, Metro bundle OK. |
+
+### 8. Notifee `app.notifee:core:+` Resolution Failure
+**Error:** `Could not find any matches for app.notifee:core:+ as no versions of app.notifee:core are available.`
+**Fix:**
+Ensure `android/build.gradle` `allprojects.repositories` includes the Notifee local Maven repo:
+```gradle
+allprojects {
+  repositories {
+    google()
+    mavenCentral()
+    maven { url 'https://www.jitpack.io' }
+    maven { url "$rootDir/../node_modules/@notifee/react-native/android/libs" }
+  }
+}
+```

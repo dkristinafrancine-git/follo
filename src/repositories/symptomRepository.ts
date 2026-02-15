@@ -1,20 +1,6 @@
 import { getDatabase } from '../database';
 import { randomUUID } from 'expo-crypto';
-
-export interface Symptom {
-    id: string;
-    profile_id: string;
-    name: string;
-    severity: number; // 1-10
-    frequency?: string;
-    notes?: string;
-    occurred_at: string; // ISO string
-    created_at: string;
-    updated_at: string;
-}
-
-export type CreateSymptomDTO = Omit<Symptom, 'id' | 'created_at' | 'updated_at'>;
-export type UpdateSymptomDTO = Partial<Omit<Symptom, 'id' | 'profile_id' | 'created_at' | 'updated_at'>>;
+import { Symptom, CreateSymptomDTO, UpdateSymptomDTO } from '../types';
 
 export const symptomRepository = {
     async addSymptom(symptom: CreateSymptomDTO): Promise<Symptom> {

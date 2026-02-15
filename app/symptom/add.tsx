@@ -1,12 +1,14 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'expo-router';
+import { useRouter, Stack } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useSymptoms } from '../../src/hooks/useSymptoms';
 import { useActiveProfile } from '../../src/hooks/useProfiles';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import * as Haptics from 'expo-haptics';
+import { Toast } from '../../src/components/ui/Toast';
 
 export default function AddSymptomScreen() {
     const { t } = useTranslation();
@@ -24,6 +26,11 @@ export default function AddSymptomScreen() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
+
+    // Toast state
+    const [toastVisible, setToastVisible] = useState(false);
+    const [toastMessage, setToastMessage] = useState('');
+    const [toastType, setToastType] = useState<'success' | 'error'>('success');
 
     useEffect(() => {
         if (activeProfile) {
@@ -43,9 +50,16 @@ export default function AddSymptomScreen() {
         }
     }, [name, distinctNames]);
 
+    const showToast = (message: string, type: 'success' | 'error') => {
+        setToastMessage(message);
+        setToastType(type);
+        setToastVisible(true);
+    };
+
     const handleSave = async () => {
         if (!name.trim()) {
-            Alert.alert(t('common.error'), t('symptom.nameRequired'));
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+            showToast(t('symptom.nameRequired'), 'error');
             return;
         }
 
@@ -57,10 +71,24 @@ export default function AddSymptomScreen() {
                 notes: notes.trim(),
                 occurred_at: date.toISOString(),
             });
-            router.back();
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            showToast(t('common.saved') || 'Saved successfully', 'success');
+
+            // Delay navigation slightly to let user see the toast
+            setTimeout(() => {
+                router.back();
+            }, 1000);
         } catch (error) {
-            Alert.alert(t('common.error'), t('symptom.addFailed'));
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+            showToast(t('symptom.addFailed'), 'error');
             setIsSubmitting(false);
+        }
+    };
+
+    const handleSeveritySelect = (num: number) => {
+        if (severity !== num) {
+            Haptics.selectionAsync();
+            setSeverity(num);
         }
     };
 
@@ -72,6 +100,7 @@ export default function AddSymptomScreen() {
             newDate.setHours(date.getHours());
             newDate.setMinutes(date.getMinutes());
             setDate(newDate);
+            Haptics.selectionAsync();
         }
     };
 
@@ -82,6 +111,7 @@ export default function AddSymptomScreen() {
             newDate.setHours(selectedDate.getHours());
             newDate.setMinutes(selectedDate.getMinutes());
             setDate(newDate);
+            Haptics.selectionAsync();
         }
     };
 
@@ -100,10 +130,16 @@ export default function AddSymptomScreen() {
                                 styles.severityButton,
                                 {
                                     backgroundColor: severity === num ? colors.primary : colors.card,
-                                    borderColor: severity === num ? colors.primary : colors.border
+                                    borderColor: severity === num ? colors.primary : colors.border,
+                                    // Visual improvements
+                                    transform: [{ scale: severity === num ? 1.1 : 1 }],
+                                    shadowColor: severity === num ? colors.primary : 'transparent',
+                                    shadowOpacity: 0.3,
+                                    shadowRadius: 4,
+                                    elevation: severity === num ? 4 : 0
                                 }
                             ]}
-                            onPress={() => setSeverity(num)}
+                            onPress={() => handleSeveritySelect(num)}
                             accessibilityLabel={t('symptom.level', { count: num })}
                             accessibilityRole="button"
                             accessibilityState={{ selected: severity === num }}
@@ -129,6 +165,28 @@ export default function AddSymptomScreen() {
             style={[styles.container, { backgroundColor: colors.background }]}
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
+            <Stack.Screen
+                options={{
+                    title: t('symptom.addTitle') || 'Log Symptom',
+                    headerStyle: { backgroundColor: colors.background },
+                    headerTintColor: colors.text,
+                    headerRight: () => (
+                        <TouchableOpacity
+                            onPress={() => router.push({ pathname: '/reminders/manage', params: { type: 'symptom' } })}
+                            style={{ marginRight: 16 }}
+                        >
+                            <Ionicons name="notifications-outline" size={24} color={colors.primary} />
+                        </TouchableOpacity>
+                    ),
+                }}
+            />
+            <Toast
+                visible={toastVisible}
+                message={toastMessage}
+                type={toastType}
+                onHide={() => setToastVisible(false)}
+            />
+
             <ScrollView contentContainerStyle={styles.content}>
                 {/* Name Input with Autocomplete */}
                 <View style={styles.section}>
@@ -138,7 +196,10 @@ export default function AddSymptomScreen() {
                         placeholder={t('symptom.namePlaceholder')}
                         placeholderTextColor={colors.subtext}
                         value={name}
-                        onChangeText={setName}
+                        onChangeText={(text) => {
+                            setName(text);
+                            // Debouncing is handled in useEffect but simple updates are fine
+                        }}
                         accessibilityLabel={t('symptom.nameLabel')}
                     />
                     {showSuggestions && (
@@ -150,6 +211,7 @@ export default function AddSymptomScreen() {
                                     onPress={() => {
                                         setName(suggestion);
                                         setShowSuggestions(false);
+                                        Haptics.selectionAsync();
                                     }}
                                 >
                                     <Text style={{ color: colors.text }}>{suggestion}</Text>
@@ -285,22 +347,24 @@ const styles = StyleSheet.create({
     },
     severityScroll: {
         gap: 8,
-        paddingVertical: 8,
+        paddingVertical: 12, // Increased padding
+        paddingHorizontal: 4,
     },
     severityButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: 44, // Larger tap target
+        height: 44,
+        borderRadius: 22,
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 1,
+        marginHorizontal: 2,
     },
     severityText: {
-        fontSize: 16,
+        fontSize: 18, // Larger text
         fontWeight: '700',
     },
     severityValue: {
-        marginTop: 8,
+        marginTop: 12,
         fontSize: 16,
         fontWeight: '600',
     },
@@ -355,3 +419,4 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
 });
+

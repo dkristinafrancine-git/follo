@@ -4,10 +4,11 @@
  */
 
 import { useState, useCallback } from 'react';
-import { View, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Alert, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { Ionicons } from '@expo/vector-icons';
 import { ActivityForm } from '../../src/components/forms/ActivityForm';
 import { useCreateActivity } from '../../src/hooks/useActivities';
 import { useActiveProfile } from '../../src/hooks/useProfiles';
@@ -91,6 +92,14 @@ export default function AddActivityScreen() {
                     title: t('activity.addTitle') || 'Log Activity',
                     headerStyle: { backgroundColor: colors.background },
                     headerTintColor: colors.text,
+                    headerRight: () => (
+                        <TouchableOpacity
+                            onPress={() => router.push({ pathname: '/reminders/manage', params: { type: 'activity' } })}
+                            style={{ marginRight: 16 }}
+                        >
+                            <Ionicons name="notifications-outline" size={24} color={colors.primary} />
+                        </TouchableOpacity>
+                    ),
                 }}
             />
             <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['bottom']}>

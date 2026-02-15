@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Platform, Image } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useEffect } from 'react';
@@ -12,6 +12,7 @@ import { resetDatabase } from '../../src/database/index';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useSettings } from '../../src/hooks/useSettings';
 import { checkHeavySleeperPermissions, requestDndAccess, requestExactAlarmPermission, requestFullScreenIntentPermission, requestAppearOnTopPermission, type HeavySleeperPermissions } from '../../src/modules/FullScreenIntentModule';
+import { NotificationModeModal } from '../../src/components/NotificationModeModal';
 
 export default function SettingsScreen() {
     const { t, i18n } = useTranslation();
@@ -37,6 +38,7 @@ export default function SettingsScreen() {
         fullScreenIntent: true,
         appearOnTop: true
     });
+    const [showModeModal, setShowModeModal] = useState(false);
 
     const loadProfiles = useProfileStore(state => state.loadProfiles);
 
@@ -119,11 +121,86 @@ export default function SettingsScreen() {
         );
     };
 
+    const handleModeSelect = async (mode: 'home' | 'heavy_sleeper') => {
+        setShowModeModal(false);
+        if (mode === 'home') {
+            await setNotificationMode('home');
+        } else {
+            await setNotificationMode('heavy_sleeper');
+
+            // Check all permissions on Android 12+
+            if (Platform.OS === 'android' && Platform.Version >= 31) {
+                const perms = await checkHeavySleeperPermissions();
+                setPermissions(perms);
+
+                const missingPerms: string[] = [];
+                if (!perms.dndAccess) missingPerms.push('Do Not Disturb Access');
+                if (!perms.exactAlarm) missingPerms.push('Exact Alarms');
+                if (!perms.fullScreenIntent) missingPerms.push('Full-Screen Alarms');
+                if (!perms.appearOnTop) missingPerms.push('Appear on Top');
+
+                if (missingPerms.length > 0) {
+                    Alert.alert(
+                        'Permissions Required',
+                        `Heavy Sleeper mode requires the following permissions:\n\n${missingPerms.map(p => `• ${p}`).join('\n')}\n\nYou'll be guided through enabling each one.`,
+                        [
+                            { text: 'Cancel', style: 'cancel' },
+                            {
+                                text: 'Continue',
+                                onPress: async () => {
+                                    // Request permissions sequentially
+                                    if (!perms.dndAccess) {
+                                        Alert.alert(
+                                            'Step 1: Do Not Disturb Access',
+                                            'Enable "Do Not Disturb access" for Follo to allow alarms to override silent mode.',
+                                            [
+                                                { text: 'Skip', style: 'cancel' },
+                                                { text: 'Open Settings', onPress: () => requestDndAccess() }
+                                            ]
+                                        );
+                                    } else if (!perms.exactAlarm) {
+                                        Alert.alert(
+                                            'Step 2: Exact Alarms',
+                                            'Enable "Alarms & reminders" permission to schedule precise alarm times.',
+                                            [
+                                                { text: 'Skip', style: 'cancel' },
+                                                { text: 'Open Settings', onPress: () => requestExactAlarmPermission() }
+                                            ]
+                                        );
+                                    } else if (!perms.fullScreenIntent) {
+                                        Alert.alert(
+                                            'Step 3: Full-Screen Alarms',
+                                            'Enable "Show on lock screen" to wake your device with full-screen alarms.',
+                                            [
+                                                { text: 'Skip', style: 'cancel' },
+                                                { text: 'Open Settings', onPress: () => requestFullScreenIntentPermission() }
+                                            ]
+                                        );
+                                    } else if (!perms.appearOnTop) {
+                                        Alert.alert(
+                                            'Step 4: Appear on Top',
+                                            'Enable "Display over other apps" to show full-screen alarms on top of all apps.',
+                                            [
+                                                { text: 'Skip', style: 'cancel' },
+                                                { text: 'Open Settings', onPress: () => requestAppearOnTopPermission() }
+                                            ]
+                                        );
+                                    }
+                                }
+                            }
+                        ]
+                    );
+                }
+            }
+        }
+    };
+
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
             <ScrollView style={styles.content}>
                 <View style={styles.header}>
                     <Text style={[styles.title, { color: colors.text }]}>{t('settings.title')}</Text>
+                    <Image source={require('../../assets/favicon.png')} style={styles.logo} />
                 </View>
 
                 {/* Appearance Section */}
@@ -277,87 +354,7 @@ export default function SettingsScreen() {
                     <Text style={[styles.sectionTitle, { color: colors.subtext }]}>{t('settings.notifications')}</Text>
                     <TouchableOpacity
                         style={[styles.settingRow, { backgroundColor: colors.card }]}
-                        onPress={async () => {
-                            Alert.alert(
-                                t('settings.notificationMode'),
-                                t('settings.selectMode'),
-                                [
-                                    { text: t('settings.homeMode'), onPress: () => setNotificationMode('home') },
-                                    {
-                                        text: t('settings.heavySleeperMode'),
-                                        onPress: async () => {
-                                            await setNotificationMode('heavy_sleeper');
-
-                                            // Check all permissions on Android 12+
-                                            if (Platform.OS === 'android' && Platform.Version >= 31) {
-                                                const perms = await checkHeavySleeperPermissions();
-                                                setPermissions(perms);
-
-                                                const missingPerms: string[] = [];
-                                                if (!perms.dndAccess) missingPerms.push('Do Not Disturb Access');
-                                                if (!perms.exactAlarm) missingPerms.push('Exact Alarms');
-                                                if (!perms.fullScreenIntent) missingPerms.push('Full-Screen Alarms');
-                                                if (!perms.appearOnTop) missingPerms.push('Appear on Top');
-
-                                                if (missingPerms.length > 0) {
-                                                    Alert.alert(
-                                                        'Permissions Required',
-                                                        `Heavy Sleeper mode requires the following permissions:\n\n${missingPerms.map(p => `• ${p}`).join('\n')}\n\nYou'll be guided through enabling each one.`,
-                                                        [
-                                                            { text: 'Cancel', style: 'cancel' },
-                                                            {
-                                                                text: 'Continue',
-                                                                onPress: async () => {
-                                                                    // Request permissions sequentially
-                                                                    if (!perms.dndAccess) {
-                                                                        Alert.alert(
-                                                                            'Step 1: Do Not Disturb Access',
-                                                                            'Enable "Do Not Disturb access" for Follo to allow alarms to override silent mode.',
-                                                                            [
-                                                                                { text: 'Skip', style: 'cancel' },
-                                                                                { text: 'Open Settings', onPress: () => requestDndAccess() }
-                                                                            ]
-                                                                        );
-                                                                    } else if (!perms.exactAlarm) {
-                                                                        Alert.alert(
-                                                                            'Step 2: Exact Alarms',
-                                                                            'Enable "Alarms & reminders" permission to schedule precise alarm times.',
-                                                                            [
-                                                                                { text: 'Skip', style: 'cancel' },
-                                                                                { text: 'Open Settings', onPress: () => requestExactAlarmPermission() }
-                                                                            ]
-                                                                        );
-                                                                    } else if (!perms.fullScreenIntent) {
-                                                                        Alert.alert(
-                                                                            'Step 3: Full-Screen Alarms',
-                                                                            'Enable "Show on lock screen" to wake your device with full-screen alarms.',
-                                                                            [
-                                                                                { text: 'Skip', style: 'cancel' },
-                                                                                { text: 'Open Settings', onPress: () => requestFullScreenIntentPermission() }
-                                                                            ]
-                                                                        );
-                                                                    } else if (!perms.appearOnTop) {
-                                                                        Alert.alert(
-                                                                            'Step 4: Appear on Top',
-                                                                            'Enable "Display over other apps" to show full-screen alarms on top of all apps.',
-                                                                            [
-                                                                                { text: 'Skip', style: 'cancel' },
-                                                                                { text: 'Open Settings', onPress: () => requestAppearOnTopPermission() }
-                                                                            ]
-                                                                        );
-                                                                    }
-                                                                }
-                                                            }
-                                                        ]
-                                                    );
-                                                }
-                                            }
-                                        }
-                                    },
-                                    { text: t('common.cancel'), style: 'cancel' }
-                                ]
-                            );
-                        }}
+                        onPress={() => setShowModeModal(true)}
                     >
                         <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.notificationMode')}</Text>
                         <Text style={[styles.settingValue, { color: colors.primary }]}>
@@ -439,6 +436,36 @@ export default function SettingsScreen() {
                     </TouchableOpacity>
                 </View>
 
+
+                {/* About & Legal Section */}
+                <View style={styles.section}>
+                    <Text style={[styles.sectionTitle, { color: colors.subtext }]}>{t('settings.aboutLegal') || 'About & Legal'}</Text>
+
+                    <TouchableOpacity
+                        style={[styles.settingRow, { backgroundColor: colors.card }]}
+                        onPress={() => router.push('/settings/about' as Href)}
+                    >
+                        <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.aboutUs') || 'About Us'}</Text>
+                        <Text style={[styles.arrow, { color: colors.subtext }]}>→</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={[styles.settingRow, { backgroundColor: colors.card }]}
+                        onPress={() => router.push('/settings/privacy' as Href)}
+                    >
+                        <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.privacyPolicy') || 'Privacy Policy'}</Text>
+                        <Text style={[styles.arrow, { color: colors.subtext }]}>→</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={[styles.settingRow, { backgroundColor: colors.card }]}
+                        onPress={() => router.push('/settings/terms' as Href)}
+                    >
+                        <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.termsOfService') || 'Terms of Service'}</Text>
+                        <Text style={[styles.arrow, { color: colors.subtext }]}>→</Text>
+                    </TouchableOpacity>
+                </View>
+
                 {/* Danger Zone */}
                 <View style={[styles.section, styles.dangerSection]}>
                     <Text style={[styles.sectionTitle, styles.dangerTitle]}>{t('settings.dangerZone')}</Text>
@@ -450,6 +477,13 @@ export default function SettingsScreen() {
                     </TouchableOpacity>
                 </View>
             </ScrollView>
+
+            <NotificationModeModal
+                visible={showModeModal}
+                onClose={() => setShowModeModal(false)}
+                onSelectMode={handleModeSelect}
+                currentMode={notificationMode}
+            />
         </SafeAreaView>
     );
 }
@@ -465,6 +499,15 @@ const styles = StyleSheet.create({
     },
     header: {
         paddingVertical: 24,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    logo: {
+        width: 40,
+        height: 40,
+        borderRadius: 0,
+        resizeMode: 'contain',
     },
     title: {
         fontSize: 28,

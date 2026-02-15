@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Image, KeyboardAvoidingView, Platform, Alert } from 'react-native';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,142 +8,51 @@ import { useTheme } from '../../src/context/ThemeContext';
 import { useActiveProfile } from '../../src/hooks/useProfiles';
 import { useCreateGratitude } from '../../src/hooks/useGratitudes';
 import * as Haptics from 'expo-haptics';
-import { ZenAura } from '../../src/components/ui/ZenAura';
+import { QuoteCarousel } from '../../src/components/ui/QuoteCarousel';
+import Animated, { FadeIn, FadeOut, Keyframe } from 'react-native-reanimated';
 
-export default function GratitudeEntryScreen() {
-    const { t } = useTranslation();
+// Animated Placeholder Component
+const AnimatedPlaceholderInput = ({ value, onChangeText, placeholder: defaultPlaceholder }: { value: string, onChangeText: (text: string) => void, placeholder: string }) => {
     const { colors } = useTheme();
-    const router = useRouter();
-    const { activeProfile } = useActiveProfile();
-    const { create, isLoading } = useCreateGratitude();
-
-    const [content, setContent] = useState('');
-    const [positivityLevel, setPositivityLevel] = useState(3);
-    const [imageUri, setImageUri] = useState<string | undefined>(undefined);
-
-    const handleSave = async () => {
-        if (!content.trim()) {
-            Alert.alert(t('common.error'), t('gratitude.enterContent') || 'Please write what made you smile.');
-            return;
-        }
-
-        if (!activeProfile) return;
-
-        try {
-            await create({
-                profileId: activeProfile.id,
-                content: content.trim(),
-                positivityLevel,
-                imageUri,
-            });
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            router.back();
-        } catch (error) {
-            console.error('Failed to save gratitude:', error);
-            Alert.alert(t('common.error'), 'Failed to save gratitude entry.');
-        }
-    };
-
-    const emojis = ['😐', '🙂', '😊', '😁', '🤩'];
-    const descriptions = [
-        'Okay',
-        'Good',
-        'Great',
-        'Amazing',
-        'Incredible'
+    const [placeholderIndex, setPlaceholderIndex] = useState(0);
+    const placeholders = [
+        "my red pen, it's making me excited to write something again.",
+        "the smell of rain on improved soil.",
+        "a warm cup of coffee on a cold morning."
     ];
 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setPlaceholderIndex((prev) => (prev + 1) % placeholders.length);
+        }, 4000);
+        return () => clearInterval(interval);
+    }, []);
+
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color={colors.text} />
-                </TouchableOpacity>
-                <Text style={[styles.title, { color: colors.text }]}>
-                    {t('gratitude.title') || 'Gratitude Log'}
-                </Text>
-                <TouchableOpacity onPress={handleSave} disabled={isLoading}>
-                    <Text style={[styles.saveButton, { color: isLoading ? colors.subtext : colors.primary }]}>
-                        {t('common.save') || 'Save'}
-                    </Text>
-                </TouchableOpacity>
-            </View>
-
-            <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={{ flex: 1 }}
-            >
-                <ScrollView contentContainerStyle={styles.content}>
-                    {/* Wellness Animation Cue */}
-                    <View style={styles.imageCueContainer}>
-                        <ZenAura />
-                    </View>
-
-                    {/* Question Prompt */}
-                    <Text style={[styles.question, { color: colors.text }]}>
-                        {t('gratitude.question') || 'What makes you smile today?'}
-                    </Text>
-
-                    {/* Text Input */}
-                    <TextInput
-                        style={[styles.input, { color: colors.text, backgroundColor: colors.card, borderColor: colors.border }]}
-                        placeholder={t('gratitude.placeholder') || 'I am grateful for...'}
-                        placeholderTextColor={colors.subtext}
-                        multiline
-                        textAlignVertical="top"
-                        value={content}
-                        onChangeText={setContent}
-                        autoFocus
-                    />
-
-                    {/* Positivity Level */}
-                    <Text style={[styles.sectionTitle, { color: colors.subtext }]}>
-                        {t('gratitude.positivityLevel') || 'Positivity Level'}
-                    </Text>
-
-                    <View style={styles.sliderContainer}>
-                        <View style={styles.emojiRow}>
-                            {emojis.map((emoji, index) => (
-                                <TouchableOpacity
-                                    key={index}
-                                    onPress={() => {
-                                        setPositivityLevel(index + 1);
-                                        Haptics.selectionAsync();
-                                    }}
-                                    style={[
-                                        styles.emojiContainer,
-                                        positivityLevel === index + 1 && { transform: [{ scale: 1.2 }], backgroundColor: colors.card }
-                                    ]}
-                                >
-                                    <Text style={styles.emoji}>{emoji}</Text>
-                                    {positivityLevel === index + 1 && (
-                                        <Text style={[styles.emojiLabel, { color: colors.primary }]}>
-                                            {descriptions[index]}
-                                        </Text>
-                                    )}
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-
-                        {/* Custom Slider Visual (simplified as discrete selection above) */}
-                        <View style={[styles.sliderTrack, { backgroundColor: colors.border }]}>
-                            <View
-                                style={[
-                                    styles.sliderFill,
-                                    {
-                                        backgroundColor: colors.primary,
-                                        width: `${(positivityLevel / 5) * 100}%`
-                                    }
-                                ]}
-                            />
-                        </View>
-                    </View>
-
-                </ScrollView>
-            </KeyboardAvoidingView>
-        </SafeAreaView>
+        <View style={styles.inputContainer}>
+            {value.length === 0 && (
+                <Animated.Text
+                    entering={FadeIn.duration(500)}
+                    exiting={FadeOut.duration(500)}
+                    key={placeholderIndex}
+                    style={[styles.animatedPlaceholder, { color: colors.subtext }]}
+                >
+                    {placeholders[placeholderIndex]}
+                </Animated.Text>
+            )}
+            <TextInput
+                style={[styles.input, { color: colors.text, backgroundColor: colors.card, borderColor: colors.border }]}
+                placeholder={""}
+                placeholderTextColor="transparent"
+                multiline
+                textAlignVertical="top"
+                value={value}
+                onChangeText={onChangeText}
+                autoFocus
+            />
+        </View>
     );
-}
+};
 
 const styles = StyleSheet.create({
     container: {
@@ -192,50 +101,295 @@ const styles = StyleSheet.create({
         marginBottom: 24,
         textAlign: 'center',
     },
+    inputContainer: {
+        position: 'relative',
+        marginBottom: 32,
+    },
+    animatedPlaceholder: {
+        position: 'absolute',
+        top: 16,
+        left: 16,
+        right: 16,
+        fontSize: 16,
+        fontStyle: 'italic',
+        zIndex: 1,
+        pointerEvents: 'none',
+    },
     input: {
         height: 150,
         borderRadius: 16,
         padding: 16,
         fontSize: 16,
-        marginBottom: 32,
         borderWidth: 1,
+        zIndex: 2,
     },
-    sectionTitle: {
-        fontSize: 14,
-        fontWeight: '600',
-        textTransform: 'uppercase',
-        marginBottom: 16,
-        letterSpacing: 1,
-    },
-    sliderContainer: {
-        marginBottom: 32,
-    },
-    emojiRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 16,
-    },
-    emojiContainer: {
+    heartContainer: {
         alignItems: 'center',
-        padding: 8,
-        borderRadius: 12,
+        marginBottom: 40,
+        position: 'relative', // Context for absolute particles
+        zIndex: 10,
     },
-    emoji: {
-        fontSize: 32,
+    particleLayer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 20,
     },
-    emojiLabel: {
-        fontSize: 10,
-        fontWeight: '600',
-        marginTop: 4,
+    particle: {
+        position: 'absolute',
     },
-    sliderTrack: {
-        height: 8,
-        borderRadius: 4,
-        width: '100%',
-        overflow: 'hidden',
+    heartButton: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+        shadowOpacity: 0.30,
+        shadowRadius: 4.65,
+        elevation: 8,
+        zIndex: 10,
     },
-    sliderFill: {
-        height: '100%',
-        borderRadius: 4,
+    heartBadge: {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: [{ translateX: -10 }, { translateY: -12 }], // Center roughly over heart visual center
+    },
+    heartCount: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#fff',
+        textAlign: 'center',
+    },
+    heartLabel: {
+        marginTop: 16,
+        fontSize: 14,
+        textAlign: 'center',
+    }
+});
+
+// Heart Particle Component
+const HeartParticle = ({ id, onComplete }: { id: string, onComplete: (id: string) => void }) => {
+    const { colors } = useTheme();
+    const randomX = Math.random() * 60 - 30; // -30 to 30
+    const randomRotate = Math.random() * 60 - 30; // -30deg to 30deg
+    const randomScale = 0.5 + Math.random() * 0.5; // 0.5 to 1.0
+
+    useEffect(() => {
+        // Cleanup after animation duration (1000ms)
+        const timeout = setTimeout(() => {
+            onComplete(id);
+        }, 1000);
+        return () => clearTimeout(timeout);
+    }, []);
+
+    return (
+        <Animated.View
+            entering={FadeIn.duration(200)}
+            exiting={FadeOut.duration(500)}
+            style={[
+                styles.particle,
+                {
+                    transform: [
+                        { translateX: randomX },
+                        { rotate: `${randomRotate}deg` },
+                        { scale: randomScale }
+                    ]
+                }
+            ]}
+        >
+            <Animated.View
+                entering={FadeIn.duration(200).withInitialValues({ transform: [{ translateY: 0 }] })}
+                style={{
+                    // ...
+                }}
+            >
+                <Ionicons name="heart" size={24} color={colors.primary} style={{ opacity: 0.8 }} />
+            </Animated.View>
+        </Animated.View>
+    );
+};
+
+// Define Keyframe for rising smoke
+const SmokeRising = new Keyframe({
+    0: {
+        transform: [{ translateY: 0 }, { scale: 0.5 }],
+        opacity: 0.8,
+    },
+    100: {
+        transform: [{ translateY: -150 }, { scale: 1.2 }], // Float up 150px
+        opacity: 0,
     },
 });
+
+const HeartSmoke = ({ id, onComplete }: { id: string, onComplete: (id: string) => void }) => {
+    const { colors } = useTheme();
+    // Randomize initial horizontal offset slightly
+    const randomX = useRef(Math.random() * 80 - 40).current;
+
+    return (
+        <Animated.View
+            entering={SmokeRising.duration(1000)}
+            style={[
+                styles.particle,
+                {
+                    left: '50%',
+                    top: '50%',
+                    marginLeft: randomX,
+                    marginTop: -20, // Start slightly above center
+                }
+            ]}
+        >
+            <Ionicons name="heart" size={24} color={colors.primary} />
+        </Animated.View>
+    );
+};
+
+
+export default function GratitudeEntryScreen() {
+    const { t } = useTranslation();
+    const { colors } = useTheme();
+    const router = useRouter();
+    const { activeProfile } = useActiveProfile();
+    const { create, isLoading } = useCreateGratitude();
+
+    const [content, setContent] = useState('');
+    const [positivityLevel, setPositivityLevel] = useState(3);
+    const [imageUri, setImageUri] = useState<string | undefined>(undefined);
+
+    // Particle System State
+    const [particles, setParticles] = useState<{ id: string }[]>([]);
+
+    const addParticle = () => {
+        const id = Math.random().toString(36).substr(2, 9);
+        setParticles(prev => [...prev, { id }]);
+
+        // Auto-cleanup limit to prevent memory issues if spamming
+        if (particles.length > 20) {
+            setParticles(prev => prev.slice(1));
+        }
+
+        // Cleanup individual particle after animation
+        setTimeout(() => {
+            setParticles(prev => prev.filter(p => p.id !== id));
+        }, 1000);
+    };
+
+    const handleSave = async () => {
+        if (!content.trim()) {
+            Alert.alert(t('common.error'), t('gratitude.enterContent') || 'Please write what made you smile.');
+            return;
+        }
+
+        if (!activeProfile) return;
+
+        try {
+            await create({
+                profileId: activeProfile.id,
+                content: content.trim(),
+                positivityLevel,
+                imageUri,
+            });
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            router.back();
+        } catch (error) {
+            console.error('Failed to save gratitude:', error);
+            Alert.alert(t('common.error'), 'Failed to save gratitude entry.');
+        }
+    };
+
+    const emojis = ['😐', '🙂', '😊', '😁', '🤩'];
+    const descriptions = [
+        'Okay',
+        'Good',
+        'Great',
+        'Amazing',
+        'Incredible'
+    ];
+
+    return (
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                    <Ionicons name="arrow-back" size={24} color={colors.text} />
+                </TouchableOpacity>
+                <Text style={[styles.title, { color: colors.text }]}>
+                    {t('gratitude.title') || 'Gratitude Log'}
+                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <TouchableOpacity
+                        onPress={() => router.push({ pathname: '/reminders/manage', params: { type: 'gratitude' } })}
+                        style={{ marginRight: 16 }}
+                    >
+                        <Ionicons name="notifications-outline" size={24} color={colors.primary} />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={handleSave} disabled={isLoading}>
+                        <Text style={[styles.saveButton, { color: isLoading ? colors.subtext : colors.primary }]}>
+                            {t('common.save') || 'Save'}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={{ flex: 1 }}
+            >
+                <ScrollView contentContainerStyle={styles.content}>
+                    {/* Wellness Animation Cue - Replaced with Quote Carousel */}
+                    <QuoteCarousel />
+
+                    {/* Question Prompt */}
+                    <Text style={[styles.question, { color: colors.text }]}>
+                        {t('gratitude.question') || "Today, I'm grateful for..."}
+                    </Text>
+
+                    {/* Text Input with Animated Placeholder */}
+                    <AnimatedPlaceholderInput
+                        value={content}
+                        onChangeText={setContent}
+                        placeholder={t('gratitude.placeholder') || "I am grateful for..."}
+                    />
+
+                    {/* Positivity Level (Heart Button) with Smoke Effect */}
+                    <View style={styles.heartContainer}>
+                        {/* Particles Render Layer - Behind or Over button? Over looks like smoke coming out. */}
+                        <View style={styles.particleLayer} pointerEvents="none">
+                            {particles.map(p => (
+                                <HeartSmoke key={p.id} id={p.id} onComplete={() => { }} />
+                            ))}
+                        </View>
+
+                        <TouchableOpacity
+                            onPress={() => {
+                                setPositivityLevel(prev => prev + 1);
+                                addParticle();
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                            }}
+                            style={[styles.heartButton, { backgroundColor: colors.card }]}
+                            activeOpacity={0.8}
+                        >
+                            <Ionicons name="heart" size={80} color={colors.primary} />
+                            <View style={styles.heartBadge}>
+                                <Text style={styles.heartCount}>{positivityLevel}</Text>
+                            </View>
+                        </TouchableOpacity>
+                        <Text style={[styles.heartLabel, { color: colors.subtext }]}>
+                            {t('gratitude.tapHeart') || 'Tap the heart to show how grateful you are!'}
+                        </Text>
+                    </View>
+
+                </ScrollView>
+            </KeyboardAvoidingView>
+        </SafeAreaView>
+    );
+}

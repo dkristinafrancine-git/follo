@@ -39,6 +39,10 @@ export function EventCard({ event, subtitle, onPress, onComplete, onSkip, onPost
                 return { color: '#f59e0b', icon: '📅' };
             case 'activity':
                 return { color: '#ef4444', icon: '🏃' };
+            case 'gratitude':
+                return { color: '#d946ef', icon: '🙏' };
+            case 'symptom':
+                return { color: '#f97316', icon: '🤒' };
             default:
                 return { color: '#9ca3af', icon: '📌' };
         }
@@ -60,6 +64,9 @@ export function EventCard({ event, subtitle, onPress, onComplete, onSkip, onPost
 
         switch (event.status) {
             case 'completed':
+                if (['activity', 'gratitude', 'symptom'].includes(event.eventType)) {
+                    return { color: '#10b981', text: t('common.logged') || 'Logged' };
+                }
                 return { color: '#10b981', text: t('medication.status.taken') };
             case 'missed':
                 return { color: '#ef4444', text: t('medication.status.missed') };

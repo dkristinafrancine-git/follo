@@ -167,14 +167,76 @@ export const careMetricsService = {
      * Calculate how often the user postpones medications
      */
     async getPostponeFrequency(profileId: string): Promise<CareInsight> {
-        // Placeholder for future data.
+        // 1. Get history for last 30 days
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - 30);
+
+        const history = await medicationHistoryRepository.getByProfileDateRange(
+            profileId,
+            startDate.toISOString(),
+            endDate.toISOString()
+        );
+
+        if (history.length === 0) {
+            return {
+                type: 'consistency',
+                titleKey: 'careInsights.postponeRate.title',
+                value: 'N/A',
+                descriptionKey: 'careInsights.postponeRate.noData',
+                trend: 'neutral'
+            };
+        }
+
+        // 2. Count postponed vs total actions (taken + skipped + postponed)
+        // Note: 'missed' is system generated, usually we care about active choices.
+        // But let's include all status for total to be safe, or maybe just interactive ones?
+        // Let's count all non-missed as "interactions".
+        const interactions = history.filter(h => h.status !== 'missed');
+
+        if (interactions.length === 0) {
+            return {
+                type: 'consistency',
+                titleKey: 'careInsights.postponeRate.title', // "POSTPONE RATE"
+                value: '0%',
+                descriptionKey: 'careInsights.postponeRate.rarely', // "You rarely postpone medications"
+                trend: 'neutral',
+                score: 100
+            };
+        }
+
+        // 3. Count postponements
+        // We need to check if we log 'postponed' in history.
+        // The repository method recordStatus allows 'postponed'.
+        const postponedCount = interactions.filter(h => h.status === 'postponed').length;
+
+        const frequency = (postponedCount / interactions.length) * 100;
+        const roundedFreq = Math.round(frequency);
+
+        // 4. Determine insight
+        let descriptionKey = 'careInsights.postponeRate.rarely';
+        let trend: 'up' | 'down' | 'neutral' = 'neutral';
+        let score = 100;
+
+        if (roundedFreq > 20) {
+            descriptionKey = 'careInsights.postponeRate.frequent'; // "Consider adjusting your schedule"
+            trend = 'down'; // High postponement is "bad" for consistency
+            score = 60;
+        } else if (roundedFreq > 5) {
+            descriptionKey = 'careInsights.postponeRate.occasional'; // "Occasional postponements"
+            trend = 'neutral';
+            score = 80;
+        } else {
+            trend = 'up'; // Low postponement is good
+        }
+
         return {
             type: 'consistency',
             titleKey: 'careInsights.postponeRate.title',
-            value: '0%',
-            descriptionKey: 'careInsights.postponeRate.rarely',
-            trend: 'neutral',
-            score: 100
+            value: `${roundedFreq}%`,
+            descriptionKey,
+            trend,
+            score
         };
     },
 
