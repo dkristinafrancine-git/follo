@@ -175,6 +175,57 @@ export const medicationHistoryRepository = {
     },
 
     /**
+     * Update or create a history entry (Upsert) to ensure adherence stats are accurate
+     * and prevent duplicate entries for the same scheduled dose.
+     */
+    async upsertStatus(
+        profileId: string,
+        medicationId: string,
+        scheduledTime: string,
+        status: MedicationStatus,
+        actualTime?: string,
+        notes?: string
+    ): Promise<void> {
+        const db = await getDatabase();
+
+        // Check if entry exists
+        const existing = await db.getFirstAsync<{ id: string }>(
+            `SELECT id FROM medication_history 
+             WHERE medication_id = ? AND scheduled_time = ?`,
+            [medicationId, scheduledTime]
+        );
+
+        if (existing) {
+            // Update existing
+            await db.runAsync(
+                `UPDATE medication_history 
+                 SET status = ?, actual_time = ?, notes = ? 
+                 WHERE id = ?`,
+                [status, actualTime ?? null, notes ?? null, existing.id]
+            );
+        } else {
+            // Create new
+            const id = randomUUID();
+            const now = new Date().toISOString();
+            await db.runAsync(
+                `INSERT INTO medication_history (
+                    id, profile_id, medication_id, scheduled_time, actual_time, status, notes, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                    id,
+                    profileId,
+                    medicationId,
+                    scheduledTime,
+                    actualTime ?? null,
+                    status,
+                    notes ?? null,
+                    now
+                ]
+            );
+        }
+    },
+
+    /**
      * Calculate adherence percentage for a medication
      */
     async getAdherence(

@@ -136,7 +136,8 @@ export default function TimelineScreen() {
     };
 
     // Separate pending and completed events
-    const pendingEvents = events.filter(e => e.status === 'pending');
+    const overdueIds = new Set(overdueEvents.map(e => e.id));
+    const pendingEvents = events.filter(e => e.status === 'pending' && !overdueIds.has(e.id));
     const completedEvents = events.filter(e => e.status !== 'pending');
 
     const handleFabPress = () => {

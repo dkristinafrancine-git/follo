@@ -22,7 +22,8 @@
         "history": "History",
         "noUpcoming": "No upcoming medications or appointments",
         "noHistory": "No history yet. Start by adding a medication!",
-        "noData": "Start tracking to see your stats"
+        "noData": "Start tracking to see your stats",
+        "overdue": "Overdue"
     },
     "scanner": {
         "title": "Scan Medication",

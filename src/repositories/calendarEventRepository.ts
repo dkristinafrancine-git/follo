@@ -8,6 +8,7 @@ import {
     CalendarEventStatus
 } from '../types';
 import { widgetService } from '../services/widgetService';
+import { medicationHistoryRepository } from './medicationHistoryRepository';
 
 // Convert database row to CalendarEvent entity
 function rowToCalendarEvent(row: Record<string, unknown>): CalendarEvent {
@@ -235,6 +236,30 @@ export const calendarEventRepository = {
         // Update widget when event status changes
         if (event && result.changes > 0) {
             widgetService.updateWidget(event.profileId).catch(console.error);
+
+            // Sync with Medication History for adherence stats
+            if (event.eventType === 'medication_due' || event.eventType === 'supplement_due') {
+                const actualTime = (status === 'completed' || status === 'taken')
+                    ? (completedTime || now)
+                    : undefined;
+
+                // Map calendar status to medication history status
+                let historyStatus = status as string;
+                if (status === 'completed') historyStatus = 'taken';
+                if (status === 'pending') historyStatus = 'skipped'; // Reverting to pending usually means undoing? 
+                // Actually if reverting to pending, we should probably DELETE the history entry?
+                // For now, let's just handle terminal states (completed, taken, skipped, missed)
+
+                if (['completed', 'skipped', 'missed'].includes(status)) {
+                    await medicationHistoryRepository.upsertStatus(
+                        event.profileId,
+                        event.sourceId,
+                        event.scheduledTime,
+                        historyStatus as any,
+                        actualTime
+                    ).catch(console.error);
+                }
+            }
         }
 
         return result.changes > 0;
