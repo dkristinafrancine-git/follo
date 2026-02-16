@@ -1,4 +1,5 @@
 import { calendarEventRepository } from '../repositories/calendarEventRepository';
+import { medicationHistoryRepository } from '../repositories/medicationHistoryRepository';
 import { widgetService } from './widgetService';
 import { notificationService } from './notificationService';
 import notifee from '@notifee/react-native';
@@ -28,6 +29,18 @@ module.exports = async (taskData: any) => {
 
         if (action === ACTION_TAKE) {
             console.log('[WidgetHeadlessTask] Taking Medication', eventId);
+
+            // Record in medication_history
+            if (event.eventType === 'medication_due' || event.eventType === 'supplement_due') {
+                await medicationHistoryRepository.upsertStatus(
+                    event.profileId,
+                    event.sourceId,
+                    event.scheduledTime,
+                    'taken',
+                    new Date().toISOString()
+                );
+            }
+
             await calendarEventRepository.update(eventId, {
                 status: 'completed',
                 completedTime: new Date().toISOString()
@@ -37,6 +50,17 @@ module.exports = async (taskData: any) => {
 
         } else if (action === ACTION_SKIP) {
             console.log('[WidgetHeadlessTask] Skipping Medication', eventId);
+
+            // Record in medication_history
+            if (event.eventType === 'medication_due' || event.eventType === 'supplement_due') {
+                await medicationHistoryRepository.upsertStatus(
+                    event.profileId,
+                    event.sourceId,
+                    event.scheduledTime,
+                    'skipped'
+                );
+            }
+
             await calendarEventRepository.update(eventId, {
                 status: 'skipped'
             });

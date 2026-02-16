@@ -101,30 +101,39 @@ export default function TimelineScreen() {
         router.push('/onboarding/profile' as Href);
     };
 
-    const handleEventComplete = async (eventId: string) => {
+    const { markTaken, markSkipped, markPostponed } = useMedicationActions(activeProfile?.id || null);
+
+    const handleEventComplete = async (event: CalendarEvent) => {
         try {
-            const { calendarEventRepository } = await import('../../src/repositories');
-            await calendarEventRepository.update(eventId, {
-                status: 'completed',
-                completedTime: new Date().toISOString(),
-            });
+            if (event.eventType === 'medication_due' || event.eventType === 'supplement_due') {
+                await markTaken(event.sourceId, event.scheduledTime);
+            } else {
+                // For non-medication events (e.g., appointments, activities), just update calendar status
+                const { calendarEventRepository } = await import('../../src/repositories');
+                await calendarEventRepository.update(event.id, {
+                    status: 'completed',
+                    completedTime: new Date().toISOString(),
+                });
+            }
             await loadEvents();
         } catch (error) {
             console.error('Failed to complete event:', error);
         }
     };
 
-    const handleEventSkip = async (eventId: string) => {
+    const handleEventSkip = async (event: CalendarEvent) => {
         try {
-            const { calendarEventRepository } = await import('../../src/repositories');
-            await calendarEventRepository.update(eventId, { status: 'skipped' });
+            if (event.eventType === 'medication_due' || event.eventType === 'supplement_due') {
+                await markSkipped(event.sourceId, event.scheduledTime);
+            } else {
+                const { calendarEventRepository } = await import('../../src/repositories');
+                await calendarEventRepository.update(event.id, { status: 'skipped' });
+            }
             await loadEvents();
         } catch (error) {
             console.error('Failed to skip event:', error);
         }
     };
-
-    const { markPostponed } = useMedicationActions(activeProfile?.id || null);
 
     const handleEventPostpone = async (event: CalendarEvent, minutes: number) => {
         try {
@@ -205,6 +214,8 @@ export default function TimelineScreen() {
                     adherenceRate={stats.adherenceRate}
                     activitiesThisWeek={stats.activitiesThisWeek}
                     currentStreak={stats.currentStreak}
+                    todayTaken={stats.todayTaken}
+                    todayTotal={stats.todayTotal}
                     upcomingMeds={stats.upcomingMeds}
                 />
 
@@ -221,8 +232,8 @@ export default function TimelineScreen() {
                                 key={event.id}
                                 event={event}
                                 onPress={() => router.push(`/medication/${event.sourceId}`)}
-                                onComplete={() => handleEventComplete(event.id)}
-                                onSkip={() => handleEventSkip(event.id)}
+                                onComplete={() => handleEventComplete(event)}
+                                onSkip={() => handleEventSkip(event)}
                                 onPostpone={(minutes) => handleEventPostpone(event, minutes)}
                             />
                         ))}
@@ -246,8 +257,8 @@ export default function TimelineScreen() {
                                 key={event.id}
                                 event={event}
                                 onPress={() => router.push(`/medication/${event.sourceId}`)}
-                                onComplete={() => handleEventComplete(event.id)}
-                                onSkip={() => handleEventSkip(event.id)}
+                                onComplete={() => handleEventComplete(event)}
+                                onSkip={() => handleEventSkip(event)}
                                 onPostpone={(minutes) => handleEventPostpone(event, minutes)}
                             />
                         ))

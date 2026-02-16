@@ -15,7 +15,7 @@ import notifee, {
 } from '@notifee/react-native';
 import { Platform, DeviceEventEmitter } from 'react-native';
 import { CalendarEvent } from '../types';
-import { calendarEventRepository, settingsRepository } from '../repositories';
+import { calendarEventRepository, settingsRepository, medicationHistoryRepository } from '../repositories';
 import { NotificationMode } from '../repositories/settingsRepository';
 
 // Notification channel IDs
@@ -239,35 +239,54 @@ export const notificationService = {
                 console.log(`[NotificationService] Action ${pressAction.id} on event ${eventId}`);
 
                 if (pressAction.id === 'TAKE') {
-                    // ... existing logic ...
-                    // update inventory if it's a medication
                     console.log(`[NotificationService] Processing TAKE for event ${eventId}`);
                     const event = await calendarEventRepository.getById(eventId);
 
-                    if (event && event.eventType === 'medication_due') {
-                        console.log(`[NotificationService] Decrementing quantity for medication ${event.sourceId}`);
-                        const { medicationRepository } = await import('../repositories');
-                        await medicationRepository.decrementQuantity(event.sourceId);
-                        console.log(`[NotificationService] Quantity decremented`);
+                    if (event && (event.eventType === 'medication_due' || event.eventType === 'supplement_due')) {
+                        // Record in medication_history (mirrors useMedicationActions.markTaken)
+                        await medicationHistoryRepository.upsertStatus(
+                            event.profileId,
+                            event.sourceId,
+                            event.scheduledTime,
+                            'taken',
+                            new Date().toISOString()
+                        );
+                        console.log(`[NotificationService] Recorded TAKEN in medication_history`);
+
+                        if (event.eventType === 'medication_due') {
+                            const { medicationRepository } = await import('../repositories');
+                            await medicationRepository.decrementQuantity(event.sourceId);
+                            console.log(`[NotificationService] Quantity decremented`);
+                        }
                     }
 
-                    console.log(`[NotificationService] Updating event status to completed`);
                     await calendarEventRepository.update(eventId, {
                         status: 'completed',
                         completedTime: new Date().toISOString(),
                     });
-                    console.log(`[NotificationService] Event updated, cancelling notification`);
                     await notifee.cancelNotification(notification.id!);
-                    console.log(`[NotificationService] Notification cancelled`);
+                    console.log(`[NotificationService] TAKE complete for ${eventId}`);
                     DeviceEventEmitter.emit('REFRESH_TIMELINE');
                 } else if (pressAction.id === 'SKIP') {
-                    // ... existing logic ...
                     console.log(`[NotificationService] Processing SKIP for event ${eventId}`);
+                    const event = await calendarEventRepository.getById(eventId);
+
+                    if (event && (event.eventType === 'medication_due' || event.eventType === 'supplement_due')) {
+                        // Record in medication_history (mirrors useMedicationActions.markSkipped)
+                        await medicationHistoryRepository.upsertStatus(
+                            event.profileId,
+                            event.sourceId,
+                            event.scheduledTime,
+                            'skipped'
+                        );
+                        console.log(`[NotificationService] Recorded SKIPPED in medication_history`);
+                    }
+
                     await calendarEventRepository.update(eventId, {
                         status: 'skipped',
                     });
-                    console.log(`[NotificationService] Event updated to skipped`);
                     await notifee.cancelNotification(notification.id!);
+                    console.log(`[NotificationService] SKIP complete for ${eventId}`);
                     DeviceEventEmitter.emit('REFRESH_TIMELINE');
                 } else if (pressAction.id === 'default' && notification.data?.type === 'reminder') {
                     // Just log for now. Navigation is handled by the UI listener.

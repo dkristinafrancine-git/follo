@@ -239,7 +239,8 @@ export const medicationHistoryRepository = {
             `SELECT COUNT(*) as count FROM medication_history 
        WHERE medication_id = ? 
        AND scheduled_time >= ? 
-       AND scheduled_time < ?`,
+       AND scheduled_time < ?
+       AND status != 'postponed'`,
             [medicationId, startDate, endDate]
         );
 
@@ -273,10 +274,10 @@ export const medicationHistoryRepository = {
             `SELECT COUNT(*) as count FROM medication_history 
        WHERE profile_id = ? 
        AND scheduled_time >= ? 
-       AND scheduled_time < ?`,
+       AND scheduled_time < ?
+       AND status != 'postponed'`,
             [profileId, startDate, endDate]
         );
-        console.log(`[Repo] getProfileAdherence: Start=${startDate}, End=${endDate}, Total=${totalResult?.count}`);
 
         const takenResult = await db.getFirstAsync<{ count: number }>(
             `SELECT COUNT(*) as count FROM medication_history 
@@ -295,21 +296,28 @@ export const medicationHistoryRepository = {
     },
 
     /**
-     * Get streak (consecutive days with all doses taken)
+     * Get streak (consecutive days with all doses taken).
+     *
+     * - Excludes today (incomplete day would prematurely break the streak).
+     * - Excludes 'postponed' entries (rescheduled doses get a new 'taken' entry;
+     *   keeping the old 'postponed' row would inflate `total` and break the count).
+     * - scheduled_time uses "Floating Local Time" convention (stored as local),
+     *   so bare date() extracts the correct local date without a modifier.
      */
     async getStreak(profileId: string): Promise<number> {
         const db = await getDatabase();
 
-        // Get all history ordered by date
         const result = await db.getAllAsync<{ day: string; total: number; taken: number }>(
             `SELECT 
-        date(scheduled_time) as day,
-        COUNT(*) as total,
-        SUM(CASE WHEN status = 'taken' THEN 1 ELSE 0 END) as taken
-       FROM medication_history 
-       WHERE profile_id = ?
-       GROUP BY date(scheduled_time)
-       ORDER BY day DESC`,
+                date(scheduled_time) as day,
+                COUNT(*) as total,
+                SUM(CASE WHEN status = 'taken' THEN 1 ELSE 0 END) as taken
+             FROM medication_history 
+             WHERE profile_id = ?
+               AND status != 'postponed'
+               AND date(scheduled_time) < date('now', 'localtime')
+             GROUP BY date(scheduled_time)
+             ORDER BY day DESC`,
             [profileId]
         );
 
@@ -323,6 +331,30 @@ export const medicationHistoryRepository = {
         }
 
         return streak;
+    },
+
+    /**
+     * Get today's dose progress (how many doses taken vs total scheduled).
+     * Excludes 'postponed' entries (same rationale as getStreak).
+     */
+    async getTodayProgress(profileId: string): Promise<{ taken: number; total: number }> {
+        const db = await getDatabase();
+
+        const result = await db.getFirstAsync<{ total: number; taken: number }>(
+            `SELECT 
+                COUNT(*) as total,
+                SUM(CASE WHEN status = 'taken' THEN 1 ELSE 0 END) as taken
+             FROM medication_history 
+             WHERE profile_id = ?
+               AND status != 'postponed'
+               AND date(scheduled_time) = date('now', 'localtime')`,
+            [profileId]
+        );
+
+        return {
+            taken: result?.taken ?? 0,
+            total: result?.total ?? 0,
+        };
     },
 
     /**

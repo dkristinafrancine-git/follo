@@ -1,3 +1,4 @@
+import { calendarEventRepository } from '../repositories/calendarEventRepository';
 import { medicationHistoryRepository } from '../repositories/medicationHistoryRepository';
 import { activityRepository } from '../repositories/activityRepository';
 import { startOfDay, endOfDay, subDays, format } from 'date-fns';
@@ -16,35 +17,39 @@ export interface AdherenceDataPoint {
 export const myFlowService = {
     /**
      * Get aggregated stats for the dashboard
+     * Uses calendar_events (SSOT) for adherence, not medication_history
      */
     async getDashboardStats(profileId: string): Promise<MyFlowStats> {
         const now = new Date();
         const todayStart = startOfDay(now).toISOString();
         const todayEnd = endOfDay(now).toISOString();
 
-        // Calculate adherence for the last 7 days
+        // Calculate adherence for the last 7 days using calendar_events (SSOT)
         const sevenDaysAgo = subDays(now, 6); // Includes today
-        const adherenceStart = startOfDay(sevenDaysAgo).toISOString();
-        const adherenceEnd = todayEnd;
+        const startDateStr = format(sevenDaysAgo, 'yyyy-MM-dd');
+        const endDateStr = format(now, 'yyyy-MM-dd');
 
-        const adherence = await medicationHistoryRepository.getProfileAdherence(
+        const stats = await calendarEventRepository.getStats(
             profileId,
-            adherenceStart,
-            adherenceEnd
+            startDateStr,
+            endDateStr
         );
 
+        // Adherence = completed / (total - pending)
+        // We exclude pending because those haven't come due yet
+        const actionable = stats.total - stats.pending;
+        const adherencePercentage = actionable > 0
+            ? Math.round((stats.completed / actionable) * 100)
+            : 0;
+
         // Get activities logged today
-        const activitiesCount = await activityRepository.getWeeklyCount(profileId, todayStart); // Using getWeeklyCount but with today's range implies daily count if we pass today's start/end? No, getWeeklyCount takes startDate and adds 7 days. I should use getByDateRange or count manually.
-        // Wait, activityRepository.getWeeklyCount calculates end date as start + 7 days. 
-        // I should use a direct count query or fetch all for today and count.
-        // activityRepository.getByDateRange is available.
         const todaysActivities = await activityRepository.getByDateRange(profileId, todayStart, todayEnd);
 
         // Get streak
         const streak = await medicationHistoryRepository.getStreak(profileId);
 
         return {
-            adherencePercentage: adherence.percentage,
+            adherencePercentage,
             activitiesLogged: todaysActivities.length,
             streakDays: streak,
         };
@@ -52,6 +57,7 @@ export const myFlowService = {
 
     /**
      * Get adherence history for charts
+     * Uses calendar_events (SSOT) for accurate data
      */
     async getAdherenceHistory(profileId: string, days: number = 7): Promise<AdherenceDataPoint[]> {
         const now = new Date();
@@ -59,15 +65,23 @@ export const myFlowService = {
 
         for (let i = days - 1; i >= 0; i--) {
             const date = subDays(now, i);
-            const start = startOfDay(date).toISOString();
-            const end = endOfDay(date).toISOString();
+            const dateStr = format(date, 'yyyy-MM-dd');
 
-            const stats = await medicationHistoryRepository.getProfileAdherence(profileId, start, end);
-            console.log(`[MyFlowService] Day ${i} (${format(date, 'yyyy-MM-dd')}): Start=${start}, End=${end}, Stats=`, stats);
+            const stats = await calendarEventRepository.getStats(
+                profileId,
+                dateStr,
+                dateStr // same day for single-day stats
+            );
+
+            // Adherence = completed / (total - pending)
+            const actionable = stats.total - stats.pending;
+            const percentage = actionable > 0
+                ? Math.round((stats.completed / actionable) * 100)
+                : 0;
 
             history.push({
-                date: format(date, 'yyyy-MM-dd'),
-                percentage: stats.percentage,
+                date: dateStr,
+                percentage,
             });
         }
 

@@ -28,6 +28,8 @@ interface StatsSliderProps {
     adherenceRate: number;
     activitiesThisWeek: number;
     currentStreak: number;
+    todayTaken: number;
+    todayTotal: number;
     upcomingMeds: number;
 }
 
@@ -35,6 +37,8 @@ export function StatsSlider({
     adherenceRate,
     activitiesThisWeek,
     currentStreak,
+    todayTaken,
+    todayTotal,
     upcomingMeds,
 }: StatsSliderProps) {
     const { t } = useTranslation();
@@ -66,7 +70,9 @@ export function StatsSlider({
             titleKey: 'myFlow.streak',
             value: currentStreak,
             unit: ` ${t('myFlow.days')}`,
-            subtitle: t('stats.keepItUp'),
+            subtitle: todayTotal > 0
+                ? `${t('stats.today')}: ${todayTaken} / ${todayTotal}`
+                : t('stats.keepItUp'),
             color: '#f59e0b',
             icon: '🔥',
         },
