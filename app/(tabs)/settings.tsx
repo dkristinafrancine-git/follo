@@ -445,7 +445,7 @@ export default function SettingsScreen() {
                         style={[styles.settingRow, { backgroundColor: colors.card }]}
                         onPress={() => router.push('/settings/about' as Href)}
                     >
-                        <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.aboutUs') || 'About Us'}</Text>
+                        <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.aboutUs')}</Text>
                         <Text style={[styles.arrow, { color: colors.subtext }]}>→</Text>
                     </TouchableOpacity>
 
@@ -453,7 +453,7 @@ export default function SettingsScreen() {
                         style={[styles.settingRow, { backgroundColor: colors.card }]}
                         onPress={() => router.push('/settings/privacy' as Href)}
                     >
-                        <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.privacyPolicy') || 'Privacy Policy'}</Text>
+                        <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.privacyPolicy')}</Text>
                         <Text style={[styles.arrow, { color: colors.subtext }]}>→</Text>
                     </TouchableOpacity>
 
@@ -461,7 +461,7 @@ export default function SettingsScreen() {
                         style={[styles.settingRow, { backgroundColor: colors.card }]}
                         onPress={() => router.push('/settings/terms' as Href)}
                     >
-                        <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.termsOfService') || 'Terms of Service'}</Text>
+                        <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.termsOfService')}</Text>
                         <Text style={[styles.arrow, { color: colors.subtext }]}>→</Text>
                     </TouchableOpacity>
                 </View>

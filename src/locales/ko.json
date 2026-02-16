@@ -110,7 +110,13 @@
         "darkMode": "다크 모드",
         "healthConnect": "헬스 커넥트",
         "syncHealthConnect": "헬스 커넥트 동기화",
-        "healthConnectDesc": "걸음 수, 수면 및 기타 건강 데이터 동기화"
+        "healthConnectDesc": "걸음 수, 수면 및 기타 건강 데이터 동기화",
+        "aboutUs": "소개",
+        "privacyPolicy": "개인정보 처리방침",
+        "termsOfService": "이용약관",
+        "homeModeDesc": "일반 알림",
+        "heavySleeperModeDesc": "전체 화면 알람",
+        "selectMode": "모드 선택"
     },
     "emergency": {
         "title": "응급 신분증",
@@ -173,7 +179,8 @@
         "yes": "예",
         "no": "아니요",
         "notes": "메모",
-        "notesPlaceholder": "메모 추가..."
+        "notesPlaceholder": "메모 추가...",
+        "logged": "기록됨"
     },
     "medication": {
         "name": "약 이름",
@@ -336,6 +343,30 @@
         "addImage": "사진 추가",
         "enterContent": "감사한 내용을 입력해 주세요.",
         "noData": "아직 작성된 감사 일기가 없습니다"
+    },
+    "export": {
+        "title": "건강 데이터 내보내기",
+        "reportType": "보고서 유형",
+        "dateRange": "기간",
+        "format": "형식",
+        "generate": "생성 및 공유",
+        "generating": "생성 중...",
+        "healthSummary": "건강 요약",
+        "healthSummaryDesc": "복용 준수율, 약, 활동 개요",
+        "medicationLog": "약 복용 기록",
+        "medicationLogDesc": "상세 복용 이력",
+        "emergencyCard": "응급 카드",
+        "emergencyCardDesc": "지갑용 응급 의료 ID",
+        "last7Days": "최근 7일",
+        "last30Days": "최근 30일",
+        "last90Days": "최근 90일",
+        "allTime": "전체",
+        "pdf": "PDF",
+        "csv": "CSV",
+        "noProfile": "활성 프로필을 찾을 수 없습니다.",
+        "exportSuccess": "보고서가 생성되었습니다!",
+        "exportError": "보고서 생성에 실패했습니다.",
+        "privacyNote": "보고서는 기기에서 로컬로 생성되며 서버에 업로드되지 않습니다."
     },
     "accessibility": {
         "title": "접근성",

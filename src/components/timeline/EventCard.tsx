@@ -51,10 +51,12 @@ export function EventCard({ event, subtitle, onPress, onComplete, onSkip, onPost
     const eventStyle = getEventStyle();
 
     const getStatusStyle = () => {
+        const isLogType = ['activity', 'gratitude', 'symptom'].includes(event.eventType);
+
         if (isHighContrast) {
             // Simplified status text for High Contrast
             const statusText = {
-                completed: t('medication.status.taken'),
+                completed: isLogType ? t('common.logged') : t('medication.status.taken'),
                 missed: t('medication.status.missed'),
                 skipped: t('medication.status.skipped'),
                 pending: ''
@@ -64,8 +66,8 @@ export function EventCard({ event, subtitle, onPress, onComplete, onSkip, onPost
 
         switch (event.status) {
             case 'completed':
-                if (['activity', 'gratitude', 'symptom'].includes(event.eventType)) {
-                    return { color: '#10b981', text: t('common.logged') || 'Logged' };
+                if (isLogType) {
+                    return { color: '#10b981', text: t('common.logged') };
                 }
                 return { color: '#10b981', text: t('medication.status.taken') };
             case 'missed':

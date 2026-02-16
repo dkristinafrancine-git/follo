@@ -119,7 +119,13 @@
         "darkMode": "Dark Mode",
         "healthConnect": "Health Connect",
         "syncHealthConnect": "Sync with Health Connect",
-        "healthConnectDesc": "Sync steps, sleep, and other health data"
+        "healthConnectDesc": "Sync steps, sleep, and other health data",
+        "aboutUs": "About Us",
+        "privacyPolicy": "Privacy Policy",
+        "termsOfService": "Terms of Service",
+        "homeModeDesc": "Standard notifications",
+        "heavySleeperModeDesc": "Full-screen loud alarms",
+        "selectMode": "Select Mode"
     },
     "supplement": {
         "namePlaceholder": "e.g., Vitamin C",
@@ -152,7 +158,8 @@
         "close": "Close",
         "done": "Done",
         "yes": "Yes",
-        "no": "No"
+        "no": "No",
+        "logged": "Logged"
     },
     "appointment": {
         "title": "Title",
@@ -397,6 +404,30 @@
         "history": "History of Gratitude",
         "empty": "No gratitude entries yet.\nStart by adding one!",
         "addFirst": "Log Gratitude"
+    },
+    "export": {
+        "title": "Export Health Data",
+        "reportType": "Report Type",
+        "dateRange": "Date Range",
+        "format": "Format",
+        "generate": "Generate & Share",
+        "generating": "Generating...",
+        "healthSummary": "Health Summary",
+        "healthSummaryDesc": "Overview with adherence, medications, and activities",
+        "medicationLog": "Medication Log",
+        "medicationLogDesc": "Detailed dose-by-dose history",
+        "emergencyCard": "Emergency Card",
+        "emergencyCardDesc": "Wallet-sized emergency medical ID",
+        "last7Days": "Last 7 Days",
+        "last30Days": "Last 30 Days",
+        "last90Days": "Last 90 Days",
+        "allTime": "All Time",
+        "pdf": "PDF",
+        "csv": "CSV",
+        "noProfile": "No active profile found.",
+        "exportSuccess": "Report generated!",
+        "exportError": "Failed to generate report.",
+        "privacyNote": "Reports are generated locally on your device and are never uploaded."
     },
     "accessibility": {
         "title": "Accessibility",

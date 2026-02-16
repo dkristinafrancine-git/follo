@@ -59,7 +59,7 @@ export const NotificationModeModal: React.FC<NotificationModeModalProps> = ({
                                             {t('settings.homeMode')}
                                         </Text>
                                         <Text style={[styles.optionDescription, { color: colors.subtext }]}>
-                                            {t('settings.homeModeDesc') || "Standard notifications"}
+                                            {t('settings.homeModeDesc')}
                                         </Text>
                                     </View>
                                     {currentMode === 'home' && (
@@ -85,7 +85,7 @@ export const NotificationModeModal: React.FC<NotificationModeModalProps> = ({
                                             {t('settings.heavySleeperMode')}
                                         </Text>
                                         <Text style={[styles.optionDescription, { color: colors.subtext }]}>
-                                            {t('settings.heavySleeperModeDesc') || "Full-screen loud alarms"}
+                                            {t('settings.heavySleeperModeDesc')}
                                         </Text>
                                     </View>
                                     {currentMode === 'heavy_sleeper' && (

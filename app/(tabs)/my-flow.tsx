@@ -236,25 +236,7 @@ export default function MyFlowScreen() {
                     </View>
                 )}
 
-                {/* Activity Section */}
-                <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: colors.subtext }]}>{t('myFlow.activities')}</Text>
-                    <View style={[styles.card, { backgroundColor: colors.card }]}>
-                        <Text style={styles.count}>{stats?.activitiesLogged ?? 0}</Text>
-                        <Text style={[styles.cardLabel, { color: colors.text }]}>{t('myFlow.activitiesLogged')}</Text>
-                        <Text style={[styles.subtext, { color: colors.subtext }]}>{t('myFlow.today')}</Text>
-                    </View>
-                </View>
 
-                {/* Streak Section */}
-                <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: colors.subtext }]}>{t('myFlow.streak')}</Text>
-                    <View style={[styles.card, { backgroundColor: colors.card }]}>
-                        <Text style={[styles.count, { color: colors.warning }]}>{stats?.streakDays ?? 0}</Text>
-                        <Text style={[styles.cardLabel, { color: colors.text }]}>{t('myFlow.days')}</Text>
-                        <Text style={[styles.subtext, { color: colors.subtext }]}>{t('myFlow.currentStreak')}</Text>
-                    </View>
-                </View>
 
                 {/* Symptom Tracker Section */}
                 <View style={styles.section}>
@@ -350,11 +332,7 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#6366f1',
     },
-    count: {
-        fontSize: 48,
-        fontWeight: '700',
-        color: '#10b981',
-    },
+
     cardLabel: {
         fontSize: 14,
         color: '#ffffff',
