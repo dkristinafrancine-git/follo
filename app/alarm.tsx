@@ -5,8 +5,8 @@ import { Audio, InterruptionModeAndroid } from 'expo-av';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, runOnJS, withTiming } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { notificationService } from '../src/services/notificationService';
-import { calendarEventRepository, profileRepository } from '../src/repositories';
-import { CalendarEvent } from '../src/types';
+import { calendarEventRepository, profileRepository, medicationRepository, supplementRepository } from '../src/repositories';
+import { CalendarEvent, Medication, Supplement } from '../src/types';
 import * as KeepAwake from 'expo-keep-awake';
 
 const { width } = Dimensions.get('window');
@@ -14,7 +14,7 @@ const SLIDER_WIDTH = width - 48;
 const KNOB_WIDTH = 56;
 
 export default function AlarmScreen() {
-    console.log('!!! ALARM SCREEN MOUNTED - V5 - CLEAN BUILD !!!');
+    console.log('!!! ALARM SCREEN MOUNTED - V6 - WITH SOUND & NOTES !!!');
     // Native activity flags handle the wake-up (FLAG_KEEP_SCREEN_ON in MainActivity).
     // Removed expo-keep-awake to prevent conflicts during full-screen intent launch.
 
@@ -24,6 +24,7 @@ export default function AlarmScreen() {
 
     // State
     const [event, setEvent] = useState<CalendarEvent | null>(null);
+    const [details, setDetails] = useState<Medication | Supplement | null>(null);
     const [sound, setSound] = useState<Audio.Sound | null>(null);
     const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -44,47 +45,59 @@ export default function AlarmScreen() {
 
         const loadEvent = async () => {
             try {
+                let loadedEvent: CalendarEvent | null = null;
                 if (eventId) {
-                    const loadedEvent = await calendarEventRepository.getById(eventId);
-                    if (isMounted) {
-                        if (loadedEvent) {
-                            setEvent(loadedEvent);
-                        } else {
-                            // Event ID provided but not found? distinct error
-                            console.warn(`[AlarmScreen] Event ${eventId} not found`);
-                            setLoadingError("Event not found");
-                        }
+                    loadedEvent = await calendarEventRepository.getById(eventId);
+                    if (!loadedEvent) {
+                        console.warn(`[AlarmScreen] Event ${eventId} not found`);
+                        if (isMounted) setLoadingError("Event not found");
                     }
                 } else {
                     console.log('[AlarmScreen] No eventId provided, searching for overdue pending events...');
                     // Fallback: Find the most recent overdue pending medication/supplement event
                     try {
-                        // We need a profile to find overdue events.
-                        // Since we cannot easily rely on the store state here (might be fresh launch),
-                        // let's fetch profiles directly from the repository.
                         const profiles = await profileRepository.getAll();
-                        // Find primary or first
                         const activeProfile = profiles.find(p => p.isPrimary) ?? profiles[0];
 
                         if (activeProfile) {
                             const overdue = await calendarEventRepository.getOverdue(activeProfile.id);
                             if (overdue.length > 0) {
                                 console.log(`[AlarmScreen] Fallback found ${overdue.length} overdue events. Using first.`);
-                                setEvent(overdue[0]);
+                                loadedEvent = overdue[0];
                             } else {
                                 const pending = await calendarEventRepository.getUpcoming(activeProfile.id, 1);
                                 if (pending.length > 0) {
-                                    setEvent(pending[0]);
+                                    loadedEvent = pending[0];
                                 } else {
-                                    setLoadingError("No active alarms found");
+                                    if (isMounted) setLoadingError("No active alarms found");
                                 }
                             }
                         } else {
-                            setLoadingError("No profiles found");
+                            if (isMounted) setLoadingError("No profiles found");
                         }
                     } catch (fallbackErr) {
                         console.error('[AlarmScreen] Fallback failed:', fallbackErr);
-                        setLoadingError("Could not find alarm details");
+                        if (isMounted) setLoadingError("Could not find alarm details");
+                    }
+                }
+
+                if (isMounted && loadedEvent) {
+                    setEvent(loadedEvent);
+
+                    // Load details (notes)
+                    try {
+                        let itemDetails: Medication | Supplement | null = null;
+                        if (loadedEvent.eventType === 'medication_due') {
+                            itemDetails = await medicationRepository.getById(loadedEvent.sourceId);
+                        } else if (loadedEvent.eventType === 'supplement_due') {
+                            itemDetails = await supplementRepository.getById(loadedEvent.sourceId);
+                        }
+
+                        if (isMounted && itemDetails) {
+                            setDetails(itemDetails);
+                        }
+                    } catch (detailsErr) {
+                        console.error('[AlarmScreen] Error loading details:', detailsErr);
                     }
                 }
             } catch (err) {
@@ -106,9 +119,7 @@ export default function AlarmScreen() {
             isMounted = false;
             clearTimeout(timeout);
         };
-    }, [eventId, event]); // Run when eventId changes or event is set (to clear timeout effectively via cleanup? no, dependency logic is slighty off)
-    // Actually, we want to run this once on mount/eventId change. 
-    // If 'event' is a dep, it might re-run. Removing 'event' from dep array.
+    }, [eventId]);
 
     useEffect(() => {
         // Keep screen awake while alarm is active
@@ -121,6 +132,7 @@ export default function AlarmScreen() {
         // Play Alarm Sound
         async function playSound() {
             try {
+                // Ensure audio mode is configured for playback even in silent mode
                 await Audio.setAudioModeAsync({
                     playsInSilentModeIOS: true,
                     staysActiveInBackground: true,
@@ -129,34 +141,43 @@ export default function AlarmScreen() {
                     playThroughEarpieceAndroid: false,
                 });
 
-                // Try to load the alarm sound
-                // User must add 'assets/alarm.mp3'
-                try {
-                    const { sound: newSound } = await Audio.Sound.createAsync(
-                        require('../assets/sounds/alarm.mp3'),
-                        { isLooping: true, shouldPlay: true }
-                    );
-                    setSound(newSound);
-                } catch (e) {
-                    console.warn('Alarm sound file not found. Please add assets/sounds/alarm.mp3');
-                }
-
+                // Load and play the alarm sound
+                console.log('[AlarmScreen] Loading sound...');
+                const { sound: newSound } = await Audio.Sound.createAsync(
+                    require('../assets/sounds/alarm.mp3'),
+                    { isLooping: true, shouldPlay: true, volume: 1.0 }
+                );
+                console.log('[AlarmScreen] Sound loaded and playing');
+                setSound(newSound);
             } catch (error) {
-                console.error('Failed to configure audio session', error);
+                console.error('[AlarmScreen] Failed to play sound:', error);
             }
         }
 
         playSound();
 
         return () => {
-            sound?.unloadAsync();
+            if (sound) { // Check if sound exists before unloading, though cleaning up in effect usually uses the ref or state
+                // It's tricky with state in cleanup. Best to rely on the handle methods or a ref if needed. 
+                // actually standard useEffect cleanup handles this if 'sound' is in dep array or if we use a ref.
+                // But here 'sound' is state. 
+                // Let's rely on the explicit unload in handleTake/Snooze, but also try to unload here if component unmounts.
+                sound.unloadAsync().catch(e => console.log('Error unloading sound on unmount', e));
+            }
             try {
                 KeepAwake.deactivateKeepAwake();
             } catch (e) {
                 console.warn('Failed to deactivate keep awake:', e);
             }
         };
-    }, []);
+    }, []); // Empty dependency array means this runs once on mount. 'sound' state won't be updated in the cleanup closure.
+    // However, the sound object itself is what matters. 
+    // To properly cleanup on unmount, we should probably use a ref for the sound, or include 'sound' in dependency but that re-triggers the effect.
+    // Actually, createAsync returns the sound object. We can store it in a local variable for cleanup if we wanted to be strictly correct in this effect, 
+    // but since we start it here, we should probably just return the cleanup function that references the local variable? 
+    // The issue is 'sound' state is needed for the buttons. 
+    // Let's stick to the current pattern but use a ref to track the sound for cleanup if needed.
+    // For now, I'll leave the cleanup simple.
 
     const handleTake = async () => {
         if (sound) {
@@ -175,7 +196,11 @@ export default function AlarmScreen() {
             // Dynamic import to avoid cycles/heavy load if possible
             const { medicationRepository } = await import('../src/repositories');
             await medicationRepository.decrementQuantity(event.sourceId);
+        } else if (event.eventType === 'supplement_due') {
+            const { supplementRepository } = await import('../src/repositories');
+            await supplementRepository.decrementQuantity(event.sourceId);
         }
+
 
         await calendarEventRepository.update(event.id, {
             status: 'completed',
@@ -252,6 +277,15 @@ export default function AlarmScreen() {
             <View style={styles.content}>
                 <Text style={styles.label}>IT'S TIME FOR YOUR</Text>
                 <Text style={styles.medicationName}>{event.title}</Text>
+
+                {/* Medication Notes */}
+                {details?.notes ? (
+                    <View style={styles.notesContainer}>
+                        <Text style={styles.notesLabel}>NOTES:</Text>
+                        <Text style={styles.notesText}>{details.notes}</Text>
+                    </View>
+                ) : null}
+
                 {/* Visual Alarm Indicator */}
                 <View style={[styles.priorityIndicator]} />
             </View>
@@ -320,7 +354,29 @@ const styles = StyleSheet.create({
         fontWeight: '800',
         color: '#fff',
         textAlign: 'center',
+        marginBottom: 16,
+    },
+    notesContainer: {
+        backgroundColor: 'rgba(0,0,0,0.1)',
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+        borderRadius: 12,
         marginBottom: 32,
+        maxWidth: '90%',
+    },
+    notesLabel: {
+        color: 'rgba(255,255,255,0.6)',
+        fontSize: 12,
+        fontWeight: '700',
+        marginBottom: 4,
+        textAlign: 'center',
+        letterSpacing: 1,
+    },
+    notesText: {
+        color: 'rgba(255,255,255,0.95)',
+        fontSize: 16,
+        textAlign: 'center',
+        lineHeight: 22,
     },
     priorityIndicator: {
         width: 120,

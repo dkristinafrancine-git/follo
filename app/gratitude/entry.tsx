@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Image, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Platform, Alert, Dimensions, KeyboardAvoidingView } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -9,10 +9,126 @@ import { useActiveProfile } from '../../src/hooks/useProfiles';
 import { useCreateGratitude } from '../../src/hooks/useGratitudes';
 import * as Haptics from 'expo-haptics';
 import { QuoteCarousel } from '../../src/components/ui/QuoteCarousel';
-import Animated, { FadeIn, FadeOut, Keyframe } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import Matter from 'matter-js';
+
+// Screen Dimensions for Physics World
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const HEART_RADIUS = 20;
+
+const PhysicsWorld = ({ trigger }: { trigger: number }) => {
+    const { colors } = useTheme();
+    // Use a ref to store text input layout to dynamic positioning if needed, 
+    // but for now we'll use fixed positioning relative to the container.
+
+    // Physics State
+    const [hearts, setHearts] = useState<any[]>([]);
+    const engineRef = useRef<Matter.Engine | null>(null);
+    const requestRef = useRef<number | null>(null);
+
+    // Initialize Physics Engine
+    useEffect(() => {
+        const engine = Matter.Engine.create();
+        engine.gravity.y = -0.3; // Negative gravity for floating up (balloons)
+        engineRef.current = engine;
+
+        // Create Constraints/Walls
+        // Ceiling: The bottom of the text input area. 
+        // Let's assume the input area ends around Y=250.
+        // We will pass the ceiling Y position as a prop ideally, or hardcode for now based on layout.
+        const ceilingY = 0;
+
+        const ceiling = Matter.Bodies.rectangle(SCREEN_WIDTH / 2, ceilingY - 10, SCREEN_WIDTH, 20, {
+            isStatic: true,
+            label: 'Ceiling',
+            restitution: 0.2
+        });
+
+        const leftWall = Matter.Bodies.rectangle(-10, 200, 20, 600, { isStatic: true });
+        const rightWall = Matter.Bodies.rectangle(SCREEN_WIDTH + 10, 200, 20, 600, { isStatic: true });
+
+        Matter.World.add(engine.world, [ceiling, leftWall, rightWall]);
+
+        // Animation Loop
+        const updateLoop = () => {
+            Matter.Engine.update(engine, 1000 / 60);
+
+            // Sync physics bodies to React state
+            const bodies = Matter.Composite.allBodies(engine.world);
+            const heartBodies = bodies.filter(b => b.label === 'Heart');
+
+            setHearts(heartBodies.map(b => ({
+                id: b.id,
+                position: b.position,
+                angle: b.angle
+            })));
+
+            requestRef.current = requestAnimationFrame(updateLoop);
+        };
+
+        updateLoop();
+
+        return () => {
+            if (requestRef.current) cancelAnimationFrame(requestRef.current);
+            Matter.Engine.clear(engine);
+        };
+    }, []);
+
+    // Add Heart on Trigger
+    useEffect(() => {
+        if (trigger > 0 && engineRef.current) {
+            // Spawn heart at the bottom center (where the button is approximately)
+            // Relative to the PhysicsWorld view
+            const startX = SCREEN_WIDTH / 2 + (Math.random() * 40 - 20);
+            const startY = 300;
+
+            const heart = Matter.Bodies.circle(startX, startY, HEART_RADIUS, {
+                label: 'Heart',
+                restitution: 0.8, // Bouncy
+                friction: 0.005,
+                frictionAir: 0.02,
+                density: 0.04
+            });
+
+            // Add some initial random force/velocity for "jostling"
+            Matter.Body.setVelocity(heart, {
+                x: (Math.random() - 0.5) * 4,
+                y: -3 - Math.random() * 2
+            });
+
+            Matter.World.add(engineRef.current.world, heart);
+
+            // Cleanup heart after 10 seconds? or let them accumulate?
+            // "do not show number" implies we just want the visual effect.
+            // Let's keep them heavily for the fun interaction unless performance drops.
+        }
+    }, [trigger]);
+
+    return (
+        <View style={styles.physicsContainer} pointerEvents="none">
+            {hearts.map((heart) => (
+                <View
+                    key={heart.id}
+                    style={{
+                        position: 'absolute',
+                        left: heart.position.x - HEART_RADIUS,
+                        top: heart.position.y - HEART_RADIUS,
+                        width: HEART_RADIUS * 2,
+                        height: HEART_RADIUS * 2,
+                        transform: [{ rotate: `${heart.angle}rad` }],
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
+                    <Ionicons name="heart" size={HEART_RADIUS * 2} color={colors.primary} />
+                </View>
+            ))}
+        </View>
+    );
+};
 
 // Animated Placeholder Component
-const AnimatedPlaceholderInput = ({ value, onChangeText, placeholder: defaultPlaceholder }: { value: string, onChangeText: (text: string) => void, placeholder: string }) => {
+const AnimatedPlaceholderInput = ({ value, onChangeText }: { value: string, onChangeText: (text: string) => void }) => {
     const { colors } = useTheme();
     const [placeholderIndex, setPlaceholderIndex] = useState(0);
     const placeholders = [
@@ -54,207 +170,6 @@ const AnimatedPlaceholderInput = ({ value, onChangeText, placeholder: defaultPla
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-    },
-    backButton: {
-        padding: 8,
-    },
-    title: {
-        fontSize: 18,
-        fontWeight: '600',
-    },
-    saveButton: {
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    content: {
-        padding: 24,
-    },
-    imageCueContainer: {
-        marginBottom: 32,
-        alignItems: 'center',
-    },
-    imagePlaceholder: {
-        width: '100%',
-        height: 180,
-        borderRadius: 16,
-        justifyContent: 'center',
-        alignItems: 'center',
-        overflow: 'hidden',
-    },
-    imagePlaceholderText: {
-        marginTop: 8,
-        fontSize: 14,
-    },
-    question: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 24,
-        textAlign: 'center',
-    },
-    inputContainer: {
-        position: 'relative',
-        marginBottom: 32,
-    },
-    animatedPlaceholder: {
-        position: 'absolute',
-        top: 16,
-        left: 16,
-        right: 16,
-        fontSize: 16,
-        fontStyle: 'italic',
-        zIndex: 1,
-        pointerEvents: 'none',
-    },
-    input: {
-        height: 150,
-        borderRadius: 16,
-        padding: 16,
-        fontSize: 16,
-        borderWidth: 1,
-        zIndex: 2,
-    },
-    heartContainer: {
-        alignItems: 'center',
-        marginBottom: 40,
-        position: 'relative', // Context for absolute particles
-        zIndex: 10,
-    },
-    particleLayer: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 20,
-    },
-    particle: {
-        position: 'absolute',
-    },
-    heartButton: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 4,
-        },
-        shadowOpacity: 0.30,
-        shadowRadius: 4.65,
-        elevation: 8,
-        zIndex: 10,
-    },
-    heartBadge: {
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: [{ translateX: -10 }, { translateY: -12 }], // Center roughly over heart visual center
-    },
-    heartCount: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#fff',
-        textAlign: 'center',
-    },
-    heartLabel: {
-        marginTop: 16,
-        fontSize: 14,
-        textAlign: 'center',
-    }
-});
-
-// Heart Particle Component
-const HeartParticle = ({ id, onComplete }: { id: string, onComplete: (id: string) => void }) => {
-    const { colors } = useTheme();
-    const randomX = Math.random() * 60 - 30; // -30 to 30
-    const randomRotate = Math.random() * 60 - 30; // -30deg to 30deg
-    const randomScale = 0.5 + Math.random() * 0.5; // 0.5 to 1.0
-
-    useEffect(() => {
-        // Cleanup after animation duration (1000ms)
-        const timeout = setTimeout(() => {
-            onComplete(id);
-        }, 1000);
-        return () => clearTimeout(timeout);
-    }, []);
-
-    return (
-        <Animated.View
-            entering={FadeIn.duration(200)}
-            exiting={FadeOut.duration(500)}
-            style={[
-                styles.particle,
-                {
-                    transform: [
-                        { translateX: randomX },
-                        { rotate: `${randomRotate}deg` },
-                        { scale: randomScale }
-                    ]
-                }
-            ]}
-        >
-            <Animated.View
-                entering={FadeIn.duration(200).withInitialValues({ transform: [{ translateY: 0 }] })}
-                style={{
-                    // ...
-                }}
-            >
-                <Ionicons name="heart" size={24} color={colors.primary} style={{ opacity: 0.8 }} />
-            </Animated.View>
-        </Animated.View>
-    );
-};
-
-// Define Keyframe for rising smoke
-const SmokeRising = new Keyframe({
-    0: {
-        transform: [{ translateY: 0 }, { scale: 0.5 }],
-        opacity: 0.8,
-    },
-    100: {
-        transform: [{ translateY: -150 }, { scale: 1.2 }], // Float up 150px
-        opacity: 0,
-    },
-});
-
-const HeartSmoke = ({ id, onComplete }: { id: string, onComplete: (id: string) => void }) => {
-    const { colors } = useTheme();
-    // Randomize initial horizontal offset slightly
-    const randomX = useRef(Math.random() * 80 - 40).current;
-
-    return (
-        <Animated.View
-            entering={SmokeRising.duration(1000)}
-            style={[
-                styles.particle,
-                {
-                    left: '50%',
-                    top: '50%',
-                    marginLeft: randomX,
-                    marginTop: -20, // Start slightly above center
-                }
-            ]}
-        >
-            <Ionicons name="heart" size={24} color={colors.primary} />
-        </Animated.View>
-    );
-};
-
-
 export default function GratitudeEntryScreen() {
     const { t } = useTranslation();
     const { colors } = useTheme();
@@ -263,26 +178,8 @@ export default function GratitudeEntryScreen() {
     const { create, isLoading } = useCreateGratitude();
 
     const [content, setContent] = useState('');
-    const [positivityLevel, setPositivityLevel] = useState(3);
-    const [imageUri, setImageUri] = useState<string | undefined>(undefined);
-
-    // Particle System State
-    const [particles, setParticles] = useState<{ id: string }[]>([]);
-
-    const addParticle = () => {
-        const id = Math.random().toString(36).substr(2, 9);
-        setParticles(prev => [...prev, { id }]);
-
-        // Auto-cleanup limit to prevent memory issues if spamming
-        if (particles.length > 20) {
-            setParticles(prev => prev.slice(1));
-        }
-
-        // Cleanup individual particle after animation
-        setTimeout(() => {
-            setParticles(prev => prev.filter(p => p.id !== id));
-        }, 1000);
-    };
+    const [heartTrigger, setHeartTrigger] = useState(0);
+    const [positivityLevel, setPositivityLevel] = useState(1);
 
     const handleSave = async () => {
         if (!content.trim()) {
@@ -296,8 +193,8 @@ export default function GratitudeEntryScreen() {
             await create({
                 profileId: activeProfile.id,
                 content: content.trim(),
-                positivityLevel,
-                imageUri,
+                positivityLevel: positivityLevel,
+                imageUri: undefined,
             });
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             router.back();
@@ -306,15 +203,6 @@ export default function GratitudeEntryScreen() {
             Alert.alert(t('common.error'), 'Failed to save gratitude entry.');
         }
     };
-
-    const emojis = ['😐', '🙂', '😊', '😁', '🤩'];
-    const descriptions = [
-        'Okay',
-        'Good',
-        'Great',
-        'Amazing',
-        'Incredible'
-    ];
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
@@ -345,51 +233,130 @@ export default function GratitudeEntryScreen() {
                 style={{ flex: 1 }}
             >
                 <ScrollView contentContainerStyle={styles.content}>
-                    {/* Wellness Animation Cue - Replaced with Quote Carousel */}
-                    <QuoteCarousel />
-
-                    {/* Question Prompt */}
                     <Text style={[styles.question, { color: colors.text }]}>
                         {t('gratitude.question') || "Today, I'm grateful for..."}
                     </Text>
 
-                    {/* Text Input with Animated Placeholder */}
-                    <AnimatedPlaceholderInput
-                        value={content}
-                        onChangeText={setContent}
-                        placeholder={t('gratitude.placeholder') || "I am grateful for..."}
-                    />
+                    <QuoteCarousel />
 
-                    {/* Positivity Level (Heart Button) with Smoke Effect */}
-                    <View style={styles.heartContainer}>
-                        {/* Particles Render Layer - Behind or Over button? Over looks like smoke coming out. */}
-                        <View style={styles.particleLayer} pointerEvents="none">
-                            {particles.map(p => (
-                                <HeartSmoke key={p.id} id={p.id} onComplete={() => { }} />
-                            ))}
-                        </View>
-
-                        <TouchableOpacity
-                            onPress={() => {
-                                setPositivityLevel(prev => prev + 1);
-                                addParticle();
-                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                            }}
-                            style={[styles.heartButton, { backgroundColor: colors.card }]}
-                            activeOpacity={0.8}
-                        >
-                            <Ionicons name="heart" size={80} color={colors.primary} />
-                            <View style={styles.heartBadge}>
-                                <Text style={styles.heartCount}>{positivityLevel}</Text>
-                            </View>
-                        </TouchableOpacity>
-                        <Text style={[styles.heartLabel, { color: colors.subtext }]}>
-                            {t('gratitude.tapHeart') || 'Tap the heart to show how grateful you are!'}
-                        </Text>
+                    {/* Input Area */}
+                    <View style={{ zIndex: 20 }}>
+                        <AnimatedPlaceholderInput
+                            value={content}
+                            onChangeText={setContent}
+                        />
                     </View>
 
+                    {/* Physics Area (Hearts) - Placed below Input */}
+                    <View style={styles.interactiveArea}>
+                        {/* Physics World inside this container */}
+                        <PhysicsWorld trigger={heartTrigger} />
+
+                        {/* Heart Button */}
+                        <TouchableOpacity
+                            onPress={() => {
+                                setHeartTrigger(prev => prev + 1);
+                                setPositivityLevel(prev => Math.min(prev + 1, 10)); // Cap level just in case
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+                            }}
+                            style={styles.heartButton}
+                            activeOpacity={0.7}
+                        >
+                            <Ionicons name="heart" size={80} color={colors.primary} />
+                        </TouchableOpacity>
+                        <Text style={[styles.heartLabel, { color: colors.subtext }]}>
+                            {t('gratitude.tapHeartInstruction', 'Tap the heart as many times as you want to show your gratitude.')}
+                        </Text>
+                    </View>
                 </ScrollView>
             </KeyboardAvoidingView>
         </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        zIndex: 50,
+    },
+    backButton: {
+        padding: 8,
+    },
+    title: {
+        fontSize: 18,
+        fontWeight: '600',
+    },
+    saveButton: {
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    content: {
+        padding: 24,
+    },
+    question: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 24,
+        textAlign: 'center',
+    },
+    inputContainer: {
+        position: 'relative',
+        marginBottom: 0, // No margin bottom, physics area starts right after
+        zIndex: 20,
+    },
+    animatedPlaceholder: {
+        position: 'absolute',
+        top: 16,
+        left: 16,
+        right: 16,
+        fontSize: 16,
+        fontStyle: 'italic',
+        zIndex: 1,
+        pointerEvents: 'none',
+    },
+    input: {
+        height: 150,
+        borderRadius: 16,
+        padding: 16,
+        fontSize: 16,
+        borderWidth: 1,
+        zIndex: 2,
+        backgroundColor: 'white', // Ensure opaque background to cover hearts if they go under
+    },
+    interactiveArea: {
+        height: 350, // Fixed height for the physics area
+        width: '100%',
+        alignItems: 'center',
+        justifyContent: 'flex-end', // Button at bottom
+        paddingBottom: 20,
+        position: 'relative',
+        overflow: 'hidden', // Clip hearts that might go outside?
+        // borderStyle: 'dashed', borderWidth: 1, borderColor: 'red' // debug
+    },
+    physicsContainer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+    },
+    heartButton: {
+        // Borderless, flat
+        padding: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 30,
+    },
+    heartLabel: {
+        marginTop: 8,
+        fontSize: 14,
+        textAlign: 'center',
+    }
+});

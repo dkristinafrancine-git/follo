@@ -7,6 +7,13 @@ import { notificationService } from './src/services/notificationService';
 
 // Register background handler for Notifee
 notifee.onBackgroundEvent(async (event) => {
+    // Ensure DB is ready for background actions
+    try {
+        const { initDatabase } = require('./src/database/index');
+        await initDatabase();
+    } catch (e) {
+        console.error('[Background] Failed to init DB:', e);
+    }
     await notificationService.handleNotificationEvent(event);
 });
 

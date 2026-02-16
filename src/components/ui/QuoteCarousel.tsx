@@ -22,14 +22,6 @@ const quotes = [
     { text: "Start each day with a positive thought and a grateful heart.", author: "Roy T. Bennett" }
 ];
 
-const backgrounds = [
-    require('../../../assets/images/quote_bg_forest.png'),
-    require('../../../assets/images/quote_bg_ocean.png'),
-    require('../../../assets/images/quote_bg_sky.png'),
-    require('../../../assets/images/quote_bg_leaves.png'),
-    require('../../../assets/images/quote_bg_abstract.png')
-];
-
 export const QuoteCarousel = () => {
     const { colors } = useTheme();
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -59,22 +51,15 @@ export const QuoteCarousel = () => {
     });
 
     const currentQuote = quotes[currentIndex];
-    const currentBg = backgrounds[currentIndex % backgrounds.length];
 
     return (
         <View style={styles.container}>
             <Animated.View style={[styles.slide, animatedStyle]}>
-                <Image
-                    source={currentBg}
-                    style={styles.backgroundImage}
-                    resizeMode="cover"
-                />
-                <View style={styles.overlay} />
                 <View style={styles.contentContainer}>
-                    <Text style={styles.quoteText}>
+                    <Text style={[styles.quoteText, { color: colors.subtext }]}>
                         "{currentQuote.text}"
                     </Text>
-                    <Text style={styles.authorText}>
+                    <Text style={[styles.authorText, { color: colors.subtext }]}>
                         - {currentQuote.author}
                     </Text>
                 </View>
@@ -86,52 +71,32 @@ export const QuoteCarousel = () => {
 const styles = StyleSheet.create({
     container: {
         width: '100%',
-        height: 200,
-        borderRadius: 16,
-        overflow: 'hidden',
+        height: 100, // Fixed small height to prevent layout shifts
+        justifyContent: 'center',
+        alignItems: 'center',
         marginBottom: 24,
-        backgroundColor: '#f0f0f0', // Placeholder color while loading
     },
     slide: {
         width: '100%',
-        height: '100%',
         justifyContent: 'center',
         alignItems: 'center',
     },
-    backgroundImage: {
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-    },
-    overlay: {
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-        backgroundColor: 'rgba(0,0,0,0.4)', // Dark overlay for text readability
-    },
     contentContainer: {
-        padding: 24,
+        paddingHorizontal: 24,
         alignItems: 'center',
         justifyContent: 'center',
     },
     quoteText: {
-        color: '#ffffff',
-        fontSize: 18,
-        fontWeight: '600',
+        fontSize: 14,
         fontStyle: 'italic',
         textAlign: 'center',
-        marginBottom: 12,
-        lineHeight: 26,
-        textShadowColor: 'rgba(0, 0, 0, 0.75)',
-        textShadowOffset: { width: -1, height: 1 },
-        textShadowRadius: 10
+        marginBottom: 4,
+        lineHeight: 20,
     },
     authorText: {
-        color: 'rgba(255, 255, 255, 0.9)',
-        fontSize: 14,
+        fontSize: 12,
         fontWeight: '500',
-        textShadowColor: 'rgba(0, 0, 0, 0.75)',
-        textShadowOffset: { width: -1, height: 1 },
-        textShadowRadius: 10
+        textAlign: 'center',
+        opacity: 0.8,
     }
 });

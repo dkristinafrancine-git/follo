@@ -391,6 +391,7 @@
         "positivityLevel": "Positivity Level",
         "addImage": "Add Image",
         "enterContent": "Please write something you are grateful for.",
+        "tapHeartInstruction": "Tap to release hearts",
         "noData": "No gratitude entries yet"
     },
     "accessibility": {

@@ -155,6 +155,9 @@ export const notificationService = {
                             { title: 'Skip', pressAction: { id: 'SKIP' } },
                         ]
                         : undefined,
+                    // Link to the category that defines these actions as background actions
+                    // @ts-ignore: categoryId is valid in Notifee Android but missing in strict types
+                    categoryId: (event.eventType === 'medication_due' || event.eventType === 'supplement_due') ? 'medication' : undefined,
                     pressAction: {
                         id: 'default',
                     },
