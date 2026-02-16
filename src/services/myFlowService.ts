@@ -63,6 +63,7 @@ export const myFlowService = {
             const end = endOfDay(date).toISOString();
 
             const stats = await medicationHistoryRepository.getProfileAdherence(profileId, start, end);
+            console.log(`[MyFlowService] Day ${i} (${format(date, 'yyyy-MM-dd')}): Start=${start}, End=${end}, Stats=`, stats);
 
             history.push({
                 date: format(date, 'yyyy-MM-dd'),

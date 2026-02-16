@@ -23,25 +23,52 @@ export default function GratitudeListScreen() {
         }, [refetch])
     );
 
-    const getEmojiForLevel = (level: number) => {
-        const emojis = ['😐', '🙂', '😊', '😁', '🤩'];
-        return emojis[Math.max(0, Math.min(level - 1, 4))];
+    const renderHearts = (level: number) => {
+        // Safe guard if level is missing or invalid
+        const safeLevel = typeof level === 'number' ? level : 0;
+        return (
+            <View style={{ flexDirection: 'row', gap: 2 }}>
+                {[...Array(5)].map((_, index) => (
+                    <Ionicons
+                        key={index}
+                        name={index < safeLevel ? "heart" : "heart-outline"}
+                        size={14}
+                        color={index < safeLevel ? "#A855F7" : colors.subtext} // Purple color
+                    />
+                ))}
+            </View>
+        );
+    };
+
+    const formatDateSafe = (dateString: string) => {
+        try {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return '';
+            return format(date, 'MMM d, h:mm a');
+        } catch (e) {
+            return '';
+        }
     };
 
     const renderItem = ({ item }: { item: import('../../src/types').Gratitude }) => (
         <TouchableOpacity
-            style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}
+            style={[styles.card, { borderBottomColor: colors.border }]} // Removed bg and border, kept bottom border for list item feel
             onPress={() => router.push({ pathname: '/gratitude/[id]', params: { id: item.id } })}
         >
-            <View style={styles.cardHeader}>
-                <Text style={styles.emoji}>{getEmojiForLevel(item.positivityLevel)}</Text>
-                <Text style={[styles.date, { color: colors.subtext }]}>
-                    {format(new Date(item.createdAt), 'MMM d, yyyy h:mm a')}
-                </Text>
+            <View style={styles.row}>
+                <View style={styles.textContainer}>
+                    <Text style={[styles.content, { color: colors.text }]} numberOfLines={1}>
+                        {item.content}
+                    </Text>
+                    <Text style={[styles.date, { color: colors.subtext }]}>
+                        {formatDateSafe(item.createdAt)}
+                    </Text>
+                </View>
+                <View style={styles.heartsContainer}>
+                    {renderHearts(item.positivityLevel)}
+                </View>
             </View>
-            <Text style={[styles.content, { color: colors.text }]} numberOfLines={3}>
-                {item.content}
-            </Text>
         </TouchableOpacity>
     );
 
@@ -123,26 +150,32 @@ const styles = StyleSheet.create({
         padding: 16,
     },
     card: {
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 12,
-        borderWidth: 1,
+        paddingVertical: 12,
+        paddingHorizontal: 4,
+        marginBottom: 0,
+        borderBottomWidth: 1,
+        borderWidth: 0, // Ensure no full border
+        borderRadius: 0, // Remove radius
     },
-    cardHeader: {
+    row: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 8,
     },
-    emoji: {
-        fontSize: 24,
+    textContainer: {
+        flex: 1,
+        marginRight: 12,
+    },
+    heartsContainer: {
+        justifyContent: 'center',
     },
     date: {
-        fontSize: 12,
+        fontSize: 11,
+        marginTop: 4,
     },
     content: {
-        fontSize: 16,
-        lineHeight: 22,
+        fontSize: 14,
+        fontWeight: '500',
     },
     emptyText: {
         fontSize: 16,

@@ -55,9 +55,47 @@ export const PositivityChart: React.FC<PositivityChartProps> = ({
         return padding + chartHeight - ((value - minY) / (maxY - minY)) * chartHeight;
     };
 
-    const pathD = chartData.length > 1 ? chartData.map((point, index) =>
-        `${index === 0 ? 'M' : 'L'} ${getX(index)} ${getY(point.positivityLevel)}`
-    ).join(' ') : '';
+    // Cubic Bezier Curve generation
+    const controlPoint = (current: any, previous: any, next: any, reverse?: boolean) => {
+        const p = previous || current;
+        const n = next || current;
+        const smoothing = 0.2;
+        const o = {
+            x: n.x - p.x,
+            y: n.y - p.y,
+        };
+        const angle = Math.atan2(o.y, o.x) + (reverse ? Math.PI : 0);
+        const length = Math.sqrt(Math.pow(o.x, 2) + Math.pow(o.y, 2)) * smoothing;
+        const x = current.x + Math.cos(angle) * length;
+        const y = current.y + Math.sin(angle) * length;
+        return { x, y };
+    };
+
+    const bezierCommand = (point: any, i: number, a: any[]) => {
+        const { x: endX, y: endY } = point;
+        if (i === 0) return `M ${endX} ${endY}`;
+
+        const eps = 0.001;
+        // Check for duplicate points to avoid calculation errors
+        if (Math.abs(point.x - a[i - 1].x) < eps && Math.abs(point.y - a[i - 1].y) < eps) {
+            return `L ${endX} ${endY}`;
+        }
+
+        const cpsX = controlPoint(a[i - 1], a[i - 2], point).x;
+        const cpsY = controlPoint(a[i - 1], a[i - 2], point).y;
+        const cpeX = controlPoint(point, a[i - 1], a[i + 1], true).x;
+        const cpeY = controlPoint(point, a[i - 1], a[i + 1], true).y;
+        return `C ${cpsX},${cpsY} ${cpeX},${cpeY} ${endX},${endY}`;
+    };
+
+    const points = chartData.map((point, index) => ({
+        x: getX(index),
+        y: getY(point.positivityLevel),
+        // keep original value for potential debugging or specific logic usage
+        val: point.positivityLevel
+    }));
+
+    const pathD = points.map((point, i, a) => bezierCommand(point, i, a)).join(' ');
 
     return (
         <View style={styles.container}>

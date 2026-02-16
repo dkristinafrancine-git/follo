@@ -9,22 +9,76 @@ import { useActiveProfile } from '../../src/hooks/useProfiles';
 import { useCreateGratitude } from '../../src/hooks/useGratitudes';
 import * as Haptics from 'expo-haptics';
 import { QuoteCarousel } from '../../src/components/ui/QuoteCarousel';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut, useSharedValue, useAnimatedStyle, withSpring, SharedValue } from 'react-native-reanimated';
 import Matter from 'matter-js';
 
 // Screen Dimensions for Physics World
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const HEART_RADIUS = 20;
 
-const PhysicsWorld = ({ trigger }: { trigger: number }) => {
+// Individual Heart Component for optimized rendering
+const Heart = ({ id, engineRef, onRegister, onUnregister }: {
+    id: string,
+    engineRef: React.MutableRefObject<Matter.Engine | null>,
+    onRegister: (id: string, svs: any) => void,
+    onUnregister: (id: string) => void
+}) => {
     const { colors } = useTheme();
-    // Use a ref to store text input layout to dynamic positioning if needed, 
-    // but for now we'll use fixed positioning relative to the container.
 
-    // Physics State
-    const [hearts, setHearts] = useState<any[]>([]);
+    // SharedValues for high-performance animation
+    const x = useSharedValue(SCREEN_WIDTH / 2); // Default center
+    const y = useSharedValue(300); // Default bottom
+    const r = useSharedValue(0);
+
+    useEffect(() => {
+        // Find the body corresponding to this Heart (by React ID)
+        if (!engineRef.current) return;
+
+        const bodies = Matter.Composite.allBodies(engineRef.current.world);
+        const body = bodies.find((b: any) => b.reactId === id);
+
+        if (body) {
+            // Sync initial position
+            x.value = body.position.x;
+            y.value = body.position.y;
+            r.value = body.angle;
+
+            // Register SharedValues for updates
+            onRegister(id, { x, y, r });
+        }
+
+        return () => {
+            onUnregister(id);
+        };
+    }, []);
+
+    const style = useAnimatedStyle(() => {
+        return {
+            transform: [
+                { translateX: x.value - HEART_RADIUS },
+                { translateY: y.value - HEART_RADIUS },
+                { rotate: `${r.value}rad` }
+            ]
+        };
+    });
+
+    return (
+        <Animated.View style={[styles.heartParticle, style]}>
+            <Ionicons name="heart" size={HEART_RADIUS * 2} color={colors.primary} />
+        </Animated.View>
+    );
+};
+
+const PhysicsWorld = ({ trigger }: { trigger: number }) => {
+    // Physics State - Refs for stability in loop
     const engineRef = useRef<Matter.Engine | null>(null);
     const requestRef = useRef<number | null>(null);
+
+    // List of heart/body IDs to render
+    const [heartIds, setHeartIds] = useState<string[]>([]);
+
+    // Map of heart ID -> SharedValues
+    const heartSharedValues = useRef<{ [key: string]: { x: SharedValue<number>, y: SharedValue<number>, r: SharedValue<number> } }>({});
 
     // Initialize Physics Engine
     useEffect(() => {
@@ -33,9 +87,6 @@ const PhysicsWorld = ({ trigger }: { trigger: number }) => {
         engineRef.current = engine;
 
         // Create Constraints/Walls
-        // Ceiling: The bottom of the text input area. 
-        // Let's assume the input area ends around Y=250.
-        // We will pass the ceiling Y position as a prop ideally, or hardcode for now based on layout.
         const ceilingY = 0;
 
         const ceiling = Matter.Bodies.rectangle(SCREEN_WIDTH / 2, ceilingY - 10, SCREEN_WIDTH, 20, {
@@ -49,19 +100,25 @@ const PhysicsWorld = ({ trigger }: { trigger: number }) => {
 
         Matter.World.add(engine.world, [ceiling, leftWall, rightWall]);
 
-        // Animation Loop
+        // Animation Loop - Runs on JS thread
         const updateLoop = () => {
-            Matter.Engine.update(engine, 1000 / 60);
+            if (!engineRef.current) return;
 
-            // Sync physics bodies to React state
-            const bodies = Matter.Composite.allBodies(engine.world);
-            const heartBodies = bodies.filter(b => b.label === 'Heart');
+            Matter.Engine.update(engineRef.current, 1000 / 60);
 
-            setHearts(heartBodies.map(b => ({
-                id: b.id,
-                position: b.position,
-                angle: b.angle
-            })));
+            // Sync physics bodies to SharedValues directly
+            const bodies = Matter.Composite.allBodies(engineRef.current.world);
+
+            bodies.forEach(b => {
+                if (b.label === 'Heart' && (b as any).reactId) {
+                    const sv = heartSharedValues.current[(b as any).reactId];
+                    if (sv) {
+                        sv.x.value = b.position.x;
+                        sv.y.value = b.position.y;
+                        sv.r.value = b.angle;
+                    }
+                }
+            });
 
             requestRef.current = requestAnimationFrame(updateLoop);
         };
@@ -77,51 +134,57 @@ const PhysicsWorld = ({ trigger }: { trigger: number }) => {
     // Add Heart on Trigger
     useEffect(() => {
         if (trigger > 0 && engineRef.current) {
-            // Spawn heart at the bottom center (where the button is approximately)
-            // Relative to the PhysicsWorld view
             const startX = SCREEN_WIDTH / 2 + (Math.random() * 40 - 20);
             const startY = 300;
 
+            // Create physics body
             const heart = Matter.Bodies.circle(startX, startY, HEART_RADIUS, {
                 label: 'Heart',
-                restitution: 0.8, // Bouncy
+                restitution: 0.8,
                 friction: 0.005,
                 frictionAir: 0.02,
                 density: 0.04
             });
 
-            // Add some initial random force/velocity for "jostling"
+            // Unique ID for React mapping
+            const reactId = `heart-${Date.now()}-${Math.random()}`;
+            (heart as any).reactId = reactId;
+
             Matter.Body.setVelocity(heart, {
-                x: (Math.random() - 0.5) * 4,
-                y: -3 - Math.random() * 2
+                x: (Math.random() - 0.5) * 6, // Slightly more randomness
+                y: -4 - Math.random() * 3
             });
 
             Matter.World.add(engineRef.current.world, heart);
 
-            // Cleanup heart after 10 seconds? or let them accumulate?
-            // "do not show number" implies we just want the visual effect.
-            // Let's keep them heavily for the fun interaction unless performance drops.
+            // Add to React state to mount the visual component
+            setHeartIds(prev => [...prev, reactId]);
+
+            // Cleanup logic (optional): Remove old hearts to prevent memory leaks if thousands are added
+            if (heartIds.length > 50) {
+                // We could implement FIFO cleanup here, but for now let's trust the user won't tap 1000 times
+            }
         }
     }, [trigger]);
 
+    const registerHeart = (id: string, svs: any) => {
+        heartSharedValues.current[id] = svs;
+    };
+
+    const unregisterHeart = (id: string) => {
+        delete heartSharedValues.current[id];
+    };
+
     return (
         <View style={styles.physicsContainer} pointerEvents="none">
-            {hearts.map((heart) => (
-                <View
-                    key={heart.id}
-                    style={{
-                        position: 'absolute',
-                        left: heart.position.x - HEART_RADIUS,
-                        top: heart.position.y - HEART_RADIUS,
-                        width: HEART_RADIUS * 2,
-                        height: HEART_RADIUS * 2,
-                        transform: [{ rotate: `${heart.angle}rad` }],
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                    }}
-                >
-                    <Ionicons name="heart" size={HEART_RADIUS * 2} color={colors.primary} />
-                </View>
+            {heartIds.map(id => (
+                <Heart
+                    key={id}
+                    id={id}
+                    engineRef={engineRef}
+                    onRegister={registerHeart}
+                    onUnregister={unregisterHeart}
+                />
             ))}
         </View>
     );
@@ -256,8 +319,8 @@ export default function GratitudeEntryScreen() {
                         <TouchableOpacity
                             onPress={() => {
                                 setHeartTrigger(prev => prev + 1);
-                                setPositivityLevel(prev => Math.min(prev + 1, 10)); // Cap level just in case
-                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+                                setPositivityLevel(prev => Math.min(prev + 1, 10));
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); // Lighter feedback for rapid tapping
                             }}
                             style={styles.heartButton}
                             activeOpacity={0.7}
@@ -265,7 +328,7 @@ export default function GratitudeEntryScreen() {
                             <Ionicons name="heart" size={80} color={colors.primary} />
                         </TouchableOpacity>
                         <Text style={[styles.heartLabel, { color: colors.subtext }]}>
-                            {t('gratitude.tapHeartInstruction', 'Tap the heart as many times as you want to show your gratitude.')}
+                            {t('gratitude.tapHeartInstruction', 'Tap to release hearts')}
                         </Text>
                     </View>
                 </ScrollView>
@@ -308,7 +371,7 @@ const styles = StyleSheet.create({
     },
     inputContainer: {
         position: 'relative',
-        marginBottom: 0, // No margin bottom, physics area starts right after
+        marginBottom: 0,
         zIndex: 20,
     },
     animatedPlaceholder: {
@@ -328,17 +391,16 @@ const styles = StyleSheet.create({
         fontSize: 16,
         borderWidth: 1,
         zIndex: 2,
-        backgroundColor: 'white', // Ensure opaque background to cover hearts if they go under
+        backgroundColor: 'white',
     },
     interactiveArea: {
-        height: 350, // Fixed height for the physics area
+        height: 350,
         width: '100%',
         alignItems: 'center',
-        justifyContent: 'flex-end', // Button at bottom
+        justifyContent: 'flex-end',
         paddingBottom: 20,
         position: 'relative',
-        overflow: 'hidden', // Clip hearts that might go outside?
-        // borderStyle: 'dashed', borderWidth: 1, borderColor: 'red' // debug
+        overflow: 'visible', // Changed to visible so hearts don't get clipped weirdly if boundary is slightly off
     },
     physicsContainer: {
         position: 'absolute',
@@ -347,8 +409,16 @@ const styles = StyleSheet.create({
         right: 0,
         bottom: 0,
     },
+    heartParticle: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: HEART_RADIUS * 2,
+        height: HEART_RADIUS * 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     heartButton: {
-        // Borderless, flat
         padding: 10,
         justifyContent: 'center',
         alignItems: 'center',

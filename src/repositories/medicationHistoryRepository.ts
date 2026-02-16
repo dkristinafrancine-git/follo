@@ -276,6 +276,7 @@ export const medicationHistoryRepository = {
        AND scheduled_time < ?`,
             [profileId, startDate, endDate]
         );
+        console.log(`[Repo] getProfileAdherence: Start=${startDate}, End=${endDate}, Total=${totalResult?.count}`);
 
         const takenResult = await db.getFirstAsync<{ count: number }>(
             `SELECT COUNT(*) as count FROM medication_history 

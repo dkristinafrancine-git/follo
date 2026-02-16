@@ -392,7 +392,10 @@
         "addImage": "Add Image",
         "enterContent": "Please write something you are grateful for.",
         "tapHeartInstruction": "Tap to release hearts",
-        "noData": "No gratitude entries yet"
+        "noData": "No gratitude entries yet",
+        "history": "History of Gratitude",
+        "empty": "No gratitude entries yet.\nStart by adding one!",
+        "addFirst": "Log Gratitude"
     },
     "accessibility": {
         "title": "Accessibility",

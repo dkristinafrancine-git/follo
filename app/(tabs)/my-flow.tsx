@@ -274,7 +274,7 @@ export default function MyFlowScreen() {
                     <View style={styles.sectionHeaderRow}>
                         <Text style={[styles.sectionTitle, { color: colors.subtext, marginBottom: 0 }]}>{t('gratitude.chartTitle') || 'Positivity Flow'}</Text>
                         <View style={{ flexDirection: 'row', gap: 16 }}>
-                            <TouchableOpacity onPress={() => router.push('/gratitude/index')}>
+                            <TouchableOpacity onPress={() => router.push('/gratitude/')}>
                                 <Ionicons name="list-outline" size={24} color={colors.primary} />
                             </TouchableOpacity>
                             <TouchableOpacity onPress={() => router.push('/gratitude/entry')}>
