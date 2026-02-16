@@ -2,16 +2,20 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Switch
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import QRCode from 'react-native-qrcode-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { useActiveProfile } from '../../src/hooks/useProfiles';
 import { emergencyService, exportService } from '../../src/services';
 import { EmergencyData, EmergencyContact } from '../../src/types';
+import { useTheme } from '../../src/context/ThemeContext';
+import { ThemeColors } from '../../src/constants/Colors';
 
 export default function EmergencyScreen() {
     const router = useRouter();
     const { t } = useTranslation();
+    const { colors } = useTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
     const { activeProfile } = useActiveProfile();
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
@@ -135,9 +139,9 @@ export default function EmergencyScreen() {
     if (loading && !data && !isEditing) {
         return (
             <SafeAreaView style={styles.container}>
-                <Stack.Screen options={{ headerShown: true, title: t('settings.emergencyId') }} />
+                <Stack.Screen options={{ headerShown: true, title: t('settings.emergencyId'), headerStyle: { backgroundColor: colors.background }, headerTintColor: colors.text }} />
                 <View style={styles.centered}>
-                    <ActivityIndicator size="large" color="#6366f1" />
+                    <ActivityIndicator size="large" color={colors.primary} />
                 </View>
             </SafeAreaView>
         );
@@ -149,8 +153,8 @@ export default function EmergencyScreen() {
                 options={{
                     headerShown: true,
                     title: t('settings.emergencyId'),
-                    headerStyle: { backgroundColor: '#1a1a2e' },
-                    headerTintColor: '#fff',
+                    headerStyle: { backgroundColor: colors.background },
+                    headerTintColor: colors.text,
                     headerRight: () => (
                         <TouchableOpacity onPress={() => isEditing ? handleSave() : setIsEditing(true)}>
                             <Text style={styles.headerButton}>
@@ -172,7 +176,7 @@ export default function EmergencyScreen() {
                                 value={bloodType}
                                 onChangeText={setBloodType}
                                 placeholder={t('emergency.bloodTypePlaceholder')}
-                                placeholderTextColor="#6b7280"
+                                placeholderTextColor={colors.subtext}
                             />
                         </View>
 
@@ -206,8 +210,8 @@ export default function EmergencyScreen() {
                                 <Switch
                                     value={organDonor}
                                     onValueChange={setOrganDonor}
-                                    trackColor={{ false: '#3e3e5e', true: '#6366f1' }}
-                                    thumbColor="#ffffff"
+                                    trackColor={{ false: colors.border || colors.card, true: colors.primary }}
+                                    thumbColor={colors.text}
                                 />
                             </View>
                         </View>
@@ -276,11 +280,12 @@ export default function EmergencyScreen() {
                         <View style={styles.actionRow}>
                             <TouchableOpacity style={styles.actionButton} onPress={() => router.push('/emergency/scan-emergency' as any)}>
                                 <Ionicons name="qr-code-outline" size={20} color="#fff" />
+
                                 <Text style={styles.actionButtonText}>{t('emergency.scanToImport')}</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity style={[styles.actionButton, styles.secondaryButton]} onPress={handleExportCard}>
-                                <Ionicons name="card-outline" size={20} color="#6366f1" />
+                                <Ionicons name="card-outline" size={20} color={colors.primary} />
                                 <Text style={[styles.actionButtonText, styles.secondaryButtonText]}>{t('emergency.exportCard')}</Text>
                             </TouchableOpacity>
                         </View>
@@ -320,10 +325,10 @@ export default function EmergencyScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#1a1a2e',
+        backgroundColor: colors.background,
     },
     centered: {
         flex: 1,
@@ -335,7 +340,7 @@ const styles = StyleSheet.create({
         padding: 16,
     },
     headerButton: {
-        color: '#6366f1',
+        color: colors.primary,
         fontSize: 16,
         fontWeight: '600',
         marginRight: 16,
@@ -348,15 +353,15 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     label: {
-        color: '#9ca3af',
+        color: colors.subtext,
         fontSize: 14,
         fontWeight: '500',
     },
     input: {
-        backgroundColor: '#252542',
+        backgroundColor: colors.card,
         borderRadius: 12,
         padding: 16,
-        color: '#fff',
+        color: colors.text,
         fontSize: 16,
     },
     textArea: {
@@ -367,39 +372,39 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        backgroundColor: '#252542',
+        backgroundColor: colors.card,
         padding: 16,
         borderRadius: 12,
     },
     sectionTitle: {
-        color: '#fff',
+        color: colors.text,
         fontSize: 18,
         fontWeight: '600',
         marginTop: 16,
         marginBottom: 8,
     },
     contactCard: {
-        backgroundColor: '#252542',
+        backgroundColor: colors.card,
         padding: 12,
         borderRadius: 12,
         gap: 8,
     },
     contactInput: {
-        backgroundColor: '#1a1a2e',
+        backgroundColor: colors.background,
         borderRadius: 8,
         padding: 12,
-        color: '#fff',
+        color: colors.text,
     },
     removeButton: {
         alignItems: 'center',
         padding: 8,
     },
     removeButtonText: {
-        color: '#ef4444',
+        color: colors.danger,
         fontSize: 14,
     },
     addButton: {
-        backgroundColor: '#6366f1',
+        backgroundColor: colors.primary,
         padding: 12,
         borderRadius: 12,
         alignItems: 'center',
@@ -425,45 +430,45 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     },
     emptyText: {
-        color: '#6b7280',
+        color: colors.subtext,
     },
     infoCard: {
-        backgroundColor: '#252542',
+        backgroundColor: colors.card,
         padding: 24,
         borderRadius: 16,
         gap: 12,
     },
     infoLabel: {
-        color: '#9ca3af',
+        color: colors.subtext,
         fontSize: 12,
         textTransform: 'uppercase',
         letterSpacing: 1,
     },
     infoValue: {
-        color: '#fff',
+        color: colors.text,
         fontSize: 16,
         fontWeight: '500',
         marginBottom: 8,
     },
     cardHeader: {
-        color: '#fff',
+        color: colors.text,
         fontSize: 18,
         fontWeight: '600',
         marginBottom: 12,
     },
     contactItem: {
         borderBottomWidth: 1,
-        borderBottomColor: '#3e3e5e',
+        borderBottomColor: colors.border || colors.card,
         paddingBottom: 12,
         marginBottom: 12,
     },
     contactName: {
-        color: '#fff',
+        color: colors.text,
         fontSize: 16,
         fontWeight: '500',
     },
     contactPhone: {
-        color: '#6366f1',
+        color: colors.primary,
         fontSize: 14,
         marginTop: 4,
     },
@@ -474,7 +479,7 @@ const styles = StyleSheet.create({
     },
     actionButton: {
         flex: 1,
-        backgroundColor: '#6366f1',
+        backgroundColor: colors.primary,
         padding: 16,
         borderRadius: 16,
         flexDirection: 'row',
@@ -488,11 +493,11 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
     secondaryButton: {
-        backgroundColor: '#252542',
+        backgroundColor: colors.card,
         borderWidth: 1,
-        borderColor: '#6366f1',
+        borderColor: colors.primary,
     },
     secondaryButtonText: {
-        color: '#6366f1',
+        color: colors.primary,
     },
 });
