@@ -16,62 +16,62 @@ export default function PrivacyScreen() {
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </TouchableOpacity>
-                <Text style={[styles.title, { color: colors.text }]}>Privacy Policy</Text>
+                <Text style={[styles.title, { color: colors.text }]}>{t('privacy.title')}</Text>
             </View>
 
             <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
                 <View style={[styles.card, { backgroundColor: colors.card }]}>
-                    <Text style={[styles.sectionTitle, { color: colors.primary }]}>Your Data Stays With You</Text>
+                    <Text style={[styles.sectionTitle, { color: colors.primary }]}>{t('privacy.heroTitle')}</Text>
                     <Text style={[styles.text, { color: colors.text }]}>
-                        Follo is designed with a "Local First" architecture. This means:
+                        {t('privacy.heroIntro')}
                     </Text>
                     <View style={styles.bulletPoint}>
                         <Text style={[styles.bullet, { color: colors.text }]}>•</Text>
-                        <Text style={[styles.text, { color: colors.text }]}>All your health data, logs, and settings are stored ONLY on your device.</Text>
+                        <Text style={[styles.text, { color: colors.text }]}>{t('privacy.heroBullet1')}</Text>
                     </View>
                     <View style={styles.bulletPoint}>
                         <Text style={[styles.bullet, { color: colors.text }]}>•</Text>
-                        <Text style={[styles.text, { color: colors.text }]}>We do not have a remote server or database that stores your personal information.</Text>
+                        <Text style={[styles.text, { color: colors.text }]}>{t('privacy.heroBullet2')}</Text>
                     </View>
                     <View style={styles.bulletPoint}>
                         <Text style={[styles.bullet, { color: colors.text }]}>•</Text>
-                        <Text style={[styles.text, { color: colors.text }]}>Data never leaves your device unless you explicitly choose to export or share it.</Text>
+                        <Text style={[styles.text, { color: colors.text }]}>{t('privacy.heroBullet3')}</Text>
                     </View>
                 </View>
 
                 <View style={[styles.section, { borderTopColor: colors.border }]}>
-                    <Text style={[styles.heading, { color: colors.text }]}>1. Information Collection</Text>
+                    <Text style={[styles.heading, { color: colors.text }]}>{t('privacy.section1Title')}</Text>
                     <Text style={[styles.text, { color: colors.subtext }]}>
-                        We do not collect, transmit, or store any personal information on external servers. The app operates entirely offline regarding data storage.
+                        {t('privacy.section1Text')}
                     </Text>
                 </View>
 
                 <View style={[styles.section, { borderTopColor: colors.border }]}>
-                    <Text style={[styles.heading, { color: colors.text }]}>2. App Permissions</Text>
+                    <Text style={[styles.heading, { color: colors.text }]}>{t('privacy.section2Title')}</Text>
                     <Text style={[styles.text, { color: colors.subtext }]}>
-                        Follo requests permissions solely for functionality:
+                        {t('privacy.section2Text')}
                     </Text>
-                    <Text style={[styles.listItem, { color: colors.subtext }]}>• Notifications: To send you medication reminders.</Text>
-                    <Text style={[styles.listItem, { color: colors.subtext }]}>• Camera/Gallery: For medication image recognition (processed locally).</Text>
-                    <Text style={[styles.listItem, { color: colors.subtext }]}>• Health Connect: To sync steps or other metrics (optional, processed locally).</Text>
+                    <Text style={[styles.listItem, { color: colors.subtext }]}>• {t('privacy.section2Notifications')}</Text>
+                    <Text style={[styles.listItem, { color: colors.subtext }]}>• {t('privacy.section2Camera')}</Text>
+                    <Text style={[styles.listItem, { color: colors.subtext }]}>• {t('privacy.section2HealthConnect')}</Text>
                 </View>
 
                 <View style={[styles.section, { borderTopColor: colors.border }]}>
-                    <Text style={[styles.heading, { color: colors.text }]}>3. Data Security</Text>
+                    <Text style={[styles.heading, { color: colors.text }]}>{t('privacy.section3Title')}</Text>
                     <Text style={[styles.text, { color: colors.subtext }]}>
-                        Since data is stored locally, the security of your data largely depends on the security of your device. We recommend using a device PIN or biometric lock. Follo also offers an optional in-app PIN lock for added privacy.
+                        {t('privacy.section3Text')}
                     </Text>
                 </View>
 
                 <View style={[styles.section, { borderTopColor: colors.border }]}>
-                    <Text style={[styles.heading, { color: colors.text }]}>4. Changes to This Policy</Text>
+                    <Text style={[styles.heading, { color: colors.text }]}>{t('privacy.section4Title')}</Text>
                     <Text style={[styles.text, { color: colors.subtext }]}>
-                        We may update our Privacy Policy from time to time. Thus, you are advised to review this page periodically for any changes.
+                        {t('privacy.section4Text')}
                     </Text>
                 </View>
 
                 <View style={styles.footer}>
-                    <Text style={[styles.footerText, { color: colors.subtext }]}>Last updated: February 2026</Text>
+                    <Text style={[styles.footerText, { color: colors.subtext }]}>{t('privacy.lastUpdated')}</Text>
                 </View>
             </ScrollView>
         </SafeAreaView>

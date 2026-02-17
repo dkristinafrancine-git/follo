@@ -16,42 +16,42 @@ export default function TermsScreen() {
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </TouchableOpacity>
-                <Text style={[styles.title, { color: colors.text }]}>Terms of Service</Text>
+                <Text style={[styles.title, { color: colors.text }]}>{t('terms.title')}</Text>
             </View>
 
             <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
                 <View style={[styles.section, { borderBottomColor: colors.border }]}>
-                    <Text style={[styles.heading, { color: colors.text }]}>1. Acceptance of Terms</Text>
+                    <Text style={[styles.heading, { color: colors.text }]}>{t('terms.section1Title')}</Text>
                     <Text style={[styles.text, { color: colors.subtext }]}>
-                        By downloading or using the Follo app, these terms will automatically apply to you – you should make sure therefore that you read them carefully before using the app.
+                        {t('terms.section1Text')}
                     </Text>
                 </View>
 
                 <View style={[styles.section, { borderBottomColor: colors.border }]}>
-                    <Text style={[styles.heading, { color: colors.text }]}>2. Medical Disclaimer</Text>
+                    <Text style={[styles.heading, { color: colors.text }]}>{t('terms.section2Title')}</Text>
                     <Text style={[styles.text, { color: colors.subtext }]}>
-                        Follo is designed to assist in tracking medications and health metrics. It is NOT a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition or medication.
+                        {t('terms.section2Text')}
                     </Text>
                 </View>
 
                 <View style={[styles.section, { borderBottomColor: colors.border }]}>
-                    <Text style={[styles.heading, { color: colors.text }]}>3. User Responsibility</Text>
+                    <Text style={[styles.heading, { color: colors.text }]}>{t('terms.section3Title')}</Text>
                     <Text style={[styles.text, { color: colors.subtext }]}>
-                        You are responsible for ensuring the accuracy of the data you input into the App. We are not responsible for any missed doses or health consequences resulting from reliance on the App's notifications, which may be affected by device settings, battery life, or software issues.
+                        {t('terms.section3Text')}
                     </Text>
                 </View>
 
                 <View style={[styles.section, { borderBottomColor: colors.border }]}>
-                    <Text style={[styles.heading, { color: colors.text }]}>4. Intellectual Property</Text>
+                    <Text style={[styles.heading, { color: colors.text }]}>{t('terms.section4Title')}</Text>
                     <Text style={[styles.text, { color: colors.subtext }]}>
-                        The app itself, and all the trade marks, copyright, database rights and other intellectual property rights related to it, belong to OneDollarApps.
+                        {t('terms.section4Text')}
                     </Text>
                 </View>
 
                 <View style={[styles.section, { borderBottomColor: colors.border }]}>
-                    <Text style={[styles.heading, { color: colors.text }]}>5. Changes to Terms</Text>
+                    <Text style={[styles.heading, { color: colors.text }]}>{t('terms.section5Title')}</Text>
                     <Text style={[styles.text, { color: colors.subtext }]}>
-                        We may update our Terms and Conditions from time to time. Thus, you are advised to review this page periodically for any changes.
+                        {t('terms.section5Text')}
                     </Text>
                 </View>
             </ScrollView>

@@ -20,7 +20,7 @@ export default function AboutScreen() {
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </TouchableOpacity>
-                <Text style={[styles.title, { color: colors.text }]}>About Us</Text>
+                <Text style={[styles.title, { color: colors.text }]}>{t('about.title')}</Text>
             </View>
 
             <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
@@ -29,22 +29,22 @@ export default function AboutScreen() {
                     <View style={[styles.logoPlaceholder, { backgroundColor: colors.primary }]}>
                         <Text style={styles.logoText}>$1</Text>
                     </View>
-                    <Text style={[styles.brandName, { color: colors.text }]}>OneDollarApps</Text>
-                    <Text style={[styles.version, { color: colors.subtext }]}>Version 1.0.0</Text>
+                    <Text style={[styles.brandName, { color: colors.text }]}>{t('about.brandName')}</Text>
+                    <Text style={[styles.version, { color: colors.subtext }]}>{t('about.version')}</Text>
                 </View>
 
                 <View style={[styles.card, { backgroundColor: colors.card }]}>
                     <Text style={[styles.storyText, { color: colors.text }]}>
-                        Hi, I'm just one developer on a mission.
+                        {t('about.story1')}
                     </Text>
                     <Text style={[styles.storyText, { color: colors.text }]}>
-                        In a world of endless monthly subscriptions, managing your health shouldn't be another financial burden. I built Follo to be a simple, honest, and affordable solution for people navigating medication and health tracking.
+                        {t('about.story2')}
                     </Text>
                     <Text style={[styles.storyText, { color: colors.text }]}>
-                        My goal is to create software that just makes sense—private, effective, and accessible to everyone. No hidden data selling, no complex corporate agendas. Just a useful tool to help you feel better.
+                        {t('about.story3')}
                     </Text>
                     <Text style={[styles.storyText, { color: colors.text }]}>
-                        Thank you for supporting independent development.
+                        {t('about.story4')}
                     </Text>
                 </View>
 

@@ -123,6 +123,7 @@
         "aboutUs": "About Us",
         "privacyPolicy": "Privacy Policy",
         "termsOfService": "Terms of Service",
+        "aboutLegal": "About & Legal",
         "homeModeDesc": "Standard notifications",
         "heavySleeperModeDesc": "Full-screen loud alarms",
         "selectMode": "Select Mode"
@@ -456,6 +457,48 @@
         "exportSuccess": "Report generated!",
         "exportError": "Failed to generate report.",
         "privacyNote": "Reports are generated locally on your device and are never uploaded."
+    },
+    "about": {
+        "title": "About Us",
+        "brandName": "OneDollarApps",
+        "version": "Version 1.0.0",
+        "story1": "Hi, I'm just one developer on a mission.",
+        "story2": "In a world of endless monthly subscriptions, managing your health shouldn't be another financial burden. I built Follo to be a simple, honest, and affordable solution for people navigating medication and health tracking.",
+        "story3": "My goal is to create software that just makes sense—private, effective, and accessible to everyone. No hidden data selling, no complex corporate agendas. Just a useful tool to help you feel better.",
+        "story4": "Thank you for supporting independent development."
+    },
+    "privacy": {
+        "title": "Privacy Policy",
+        "heroTitle": "Your Data Stays With You",
+        "heroIntro": "Follo is designed with a \"Local First\" architecture. This means:",
+        "heroBullet1": "All your health data, logs, and settings are stored ONLY on your device.",
+        "heroBullet2": "We do not have a remote server or database that stores your personal information.",
+        "heroBullet3": "Data never leaves your device unless you explicitly choose to export or share it.",
+        "section1Title": "1. Information Collection",
+        "section1Text": "We do not collect, transmit, or store any personal information on external servers. The app operates entirely offline regarding data storage.",
+        "section2Title": "2. App Permissions",
+        "section2Text": "Follo requests permissions solely for functionality:",
+        "section2Notifications": "Notifications: To send you medication reminders.",
+        "section2Camera": "Camera/Gallery: For medication image recognition (processed locally).",
+        "section2HealthConnect": "Health Connect: To sync steps or other metrics (optional, processed locally).",
+        "section3Title": "3. Data Security",
+        "section3Text": "Since data is stored locally, the security of your data largely depends on the security of your device. We recommend using a device PIN or biometric lock. Follo also offers an optional in-app PIN lock for added privacy.",
+        "section4Title": "4. Changes to This Policy",
+        "section4Text": "We may update our Privacy Policy from time to time. Thus, you are advised to review this page periodically for any changes.",
+        "lastUpdated": "Last updated: February 2026"
+    },
+    "terms": {
+        "title": "Terms of Service",
+        "section1Title": "1. Acceptance of Terms",
+        "section1Text": "By downloading or using the Follo app, these terms will automatically apply to you – you should make sure therefore that you read them carefully before using the app.",
+        "section2Title": "2. Medical Disclaimer",
+        "section2Text": "Follo is designed to assist in tracking medications and health metrics. It is NOT a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition or medication.",
+        "section3Title": "3. User Responsibility",
+        "section3Text": "You are responsible for ensuring the accuracy of the data you input into the App. We are not responsible for any missed doses or health consequences resulting from reliance on the App's notifications, which may be affected by device settings, battery life, or software issues.",
+        "section4Title": "4. Intellectual Property",
+        "section4Text": "The app itself, and all the trade marks, copyright, database rights and other intellectual property rights related to it, belong to OneDollarApps.",
+        "section5Title": "5. Changes to Terms",
+        "section5Text": "We may update our Terms and Conditions from time to time. Thus, you are advised to review this page periodically for any changes."
     },
     "reminder": {
         "title": "Reminders",

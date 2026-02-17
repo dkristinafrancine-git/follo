@@ -200,7 +200,15 @@ export default function SettingsScreen() {
             <ScrollView style={styles.content}>
                 <View style={styles.header}>
                     <Text style={[styles.title, { color: colors.text }]}>{t('settings.title')}</Text>
-                    <Image source={require('../../assets/favicon.png')} style={styles.logo} />
+                    <View style={styles.logoContainer}>
+                        <Image
+                            source={themeMode === 'dark'
+                                ? require('../../assets/settings-logo-dark-theme.png.png')
+                                : require('../../assets/settings-logo-light-theme.png.png')
+                            }
+                            style={styles.logo}
+                        />
+                    </View>
                 </View>
 
                 {/* Appearance Section */}
@@ -424,17 +432,7 @@ export default function SettingsScreen() {
                     </TouchableOpacity>
                 </View>
 
-                {/* Help Section */}
-                <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: colors.subtext }]}>{t('settings.help') || 'Help'}</Text>
-                    <TouchableOpacity
-                        style={[styles.settingRow, { backgroundColor: colors.card }]}
-                        onPress={() => router.push('/onboarding/welcome?mode=tutorial' as Href)}
-                    >
-                        <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.replayTutorial') || 'Replay Tutorial'}</Text>
-                        <Text style={[styles.arrow, { color: colors.subtext }]}>→</Text>
-                    </TouchableOpacity>
-                </View>
+
 
 
                 {/* About & Legal Section */}
@@ -503,11 +501,18 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
     },
-    logo: {
-        width: 40,
+    logoContainer: {
+        width: 120,
         height: 40,
-        borderRadius: 0,
+        borderRadius: 10,
+        overflow: 'hidden',
+    },
+    logo: {
+        width: '100%',
+        height: '100%',
         resizeMode: 'contain',
+        borderRadius: 20,
+        overflow: 'hidden',
     },
     title: {
         fontSize: 28,
