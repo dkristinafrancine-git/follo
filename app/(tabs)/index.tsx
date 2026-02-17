@@ -159,6 +159,25 @@ export default function TimelineScreen() {
         router.push(path);
     };
 
+    /** Route to the correct detail screen based on event type */
+    const navigateToEvent = (event: CalendarEvent) => {
+        switch (event.eventType) {
+            case 'medication_due':
+                router.push(`/medication/${event.sourceId}`);
+                break;
+            case 'supplement_due':
+                router.push(`/supplement/${event.sourceId}`);
+                break;
+            case 'appointment':
+                router.push(`/medication/${event.sourceId}`);
+                break;
+            default:
+                // activity, gratitude, symptom → generic summary
+                router.push({ pathname: '/event-summary', params: { id: event.id } });
+                break;
+        }
+    };
+
     const { colors, isHighContrast } = useTheme();
 
     const dynamicStyles = {
@@ -231,7 +250,7 @@ export default function TimelineScreen() {
                             <EventCard
                                 key={event.id}
                                 event={event}
-                                onPress={() => router.push(`/medication/${event.sourceId}`)}
+                                onPress={() => navigateToEvent(event)}
                                 onComplete={() => handleEventComplete(event)}
                                 onSkip={() => handleEventSkip(event)}
                                 onPostpone={(minutes) => handleEventPostpone(event, minutes)}
@@ -256,7 +275,7 @@ export default function TimelineScreen() {
                             <EventCard
                                 key={event.id}
                                 event={event}
-                                onPress={() => router.push(`/medication/${event.sourceId}`)}
+                                onPress={() => navigateToEvent(event)}
                                 onComplete={() => handleEventComplete(event)}
                                 onSkip={() => handleEventSkip(event)}
                                 onPostpone={(minutes) => handleEventPostpone(event, minutes)}
@@ -279,7 +298,7 @@ export default function TimelineScreen() {
                             <EventCard
                                 key={event.id}
                                 event={event}
-                                onPress={() => router.push(`/medication/${event.sourceId}`)}
+                                onPress={() => navigateToEvent(event)}
                             />
                         ))}
                     </View>

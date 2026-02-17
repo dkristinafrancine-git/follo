@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useEffect } from 'react';
 import { router, Href } from 'expo-router';
-import { healthConnectService } from '../../src/services';
+
 import { useSecurity } from '../../src/hooks/useSecurity';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as SecureStore from 'expo-secure-store';
@@ -18,8 +18,7 @@ export default function SettingsScreen() {
     const { t, i18n } = useTranslation();
     const { themeMode, toggleTheme, colors } = useTheme();
     const [isKorean, setIsKorean] = useState(i18n.language === 'ko');
-    const [hcAvailable, setHcAvailable] = useState(false);
-    const [hcConnected, setHcConnected] = useState(false);
+
     const [hasBiometrics, setHasBiometrics] = useState(false);
 
     // Security Context
@@ -48,13 +47,6 @@ export default function SettingsScreen() {
 
     useEffect(() => {
         const checkHardware = async () => {
-            const available = await healthConnectService.isAvailable();
-            setHcAvailable(available);
-            if (available) {
-                const connected = await healthConnectService.checkPermissions();
-                setHcConnected(connected);
-            }
-
             // Check Biometrics
             const bio = await LocalAuthentication.hasHardwareAsync();
             setHasBiometrics(bio);
@@ -68,22 +60,7 @@ export default function SettingsScreen() {
         setIsKorean(!isKorean);
     };
 
-    const handleHealthConnectToggle = async () => {
-        if (!hcAvailable) return;
 
-        if (!hcConnected) {
-            const success = await healthConnectService.requestPermissions();
-            if (success) {
-                setHcConnected(true);
-                Alert.alert(t('common.success'), t('settings.healthConnectConnected'));
-            } else {
-                Alert.alert(t('common.error'), t('settings.healthConnectFailed'));
-            }
-        } else {
-            // Provide instruction on how to disconnect (usually via system settings)
-            Alert.alert(t('settings.healthConnect'), t('settings.healthConnectDisconnect'));
-        }
-    };
 
     const handleDeleteAllData = () => {
         Alert.alert(
@@ -340,22 +317,7 @@ export default function SettingsScreen() {
                     </View>
                 </View>
 
-                {/* Health Connect Section */}
-                {hcAvailable && (
-                    <View style={styles.section}>
-                        <Text style={[styles.sectionTitle, { color: colors.subtext }]}>{t('settings.healthConnect')}</Text>
-                        <View style={[styles.settingRow, { backgroundColor: colors.card }]}>
-                            <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.syncHealthConnect')}</Text>
-                            <Switch
-                                value={hcConnected}
-                                onValueChange={handleHealthConnectToggle}
-                                trackColor={{ false: '#d1d5db', true: colors.primary }}
-                                thumbColor="#ffffff"
-                            />
-                        </View>
-                        <Text style={[styles.description, { color: colors.subtext }]}>{t('settings.healthConnectDesc')}</Text>
-                    </View>
-                )}
+
 
                 {/* Notifications Section */}
                 <View style={styles.section}>

@@ -545,5 +545,12 @@
             "doubleTapToEdit": "Double tap to edit",
             "doubleTapToToggle": "Double tap to toggle"
         }
+    },
+    "eventSummary": {
+        "title": "Event Details",
+        "notFound": "Event not found",
+        "content": "Entry",
+        "value": "Value",
+        "details": "Details"
     }
 }
