@@ -10,21 +10,51 @@
  */
 import * as ExpoCrypto from 'expo-crypto';
 
-if (typeof globalThis.crypto === 'undefined') {
-    // @ts-ignore – intentional partial shim
-    globalThis.crypto = {};
-}
-
-if (typeof globalThis.crypto === 'undefined') {
-    // @ts-ignore – intentional partial shim
-    globalThis.crypto = {};
-}
-
-// Force overwrite to ensure we use expo-crypto, even if something else shimmed it brokenly
-// @ts-ignore
-globalThis.crypto.getRandomValues = function <T extends ArrayBufferView>(array: T): T {
-    // console.log('[CryptoPolyfill] Calling expo-crypto getRandomValues'); // Uncomment for deep debug
+// 1. Define the polyfill function
+const polyfillGetRandomValues = function <T extends ArrayBufferView>(array: T): T {
+    if (!array) {
+        throw new Error('crypto.getRandomValues: array cannot be null or undefined');
+    }
+    // console.log('[CryptoPolyfill] Calling expo-crypto getRandomValues with array size:', array.byteLength);
     return ExpoCrypto.getRandomValues(array as any) as unknown as T;
 };
 
-console.log('[CryptoPolyfill] Polyfill applied successfully, forcing ExpoCrypto');
+// 2. Define the crypto object
+const cryptoPolyfill = {
+    getRandomValues: polyfillGetRandomValues,
+    // Add other crypto methods here if needed in the future
+};
+
+// 3. Apply to ALL possible global scopes to ensure crypto-js finds it
+const globalScopes = [
+    typeof globalThis !== 'undefined' ? globalThis : undefined,
+    typeof window !== 'undefined' ? window : undefined,
+    typeof self !== 'undefined' ? self : undefined,
+    typeof global !== 'undefined' ? global : undefined,
+];
+
+let appliedCount = 0;
+
+globalScopes.forEach(scope => {
+    if (!scope) return;
+
+    if (!scope.crypto) {
+        // @ts-ignore
+        scope.crypto = {};
+    }
+
+    // @ts-ignore
+    if (!scope.crypto.getRandomValues) {
+        // @ts-ignore
+        scope.crypto.getRandomValues = polyfillGetRandomValues;
+        appliedCount++;
+    } else {
+        // Force overwrite just in case a bad shim exists
+        // @ts-ignore
+        scope.crypto.getRandomValues = polyfillGetRandomValues;
+        appliedCount++;
+    }
+});
+
+
+console.log(`[CryptoPolyfill] Polyfill applied to ${appliedCount} scopes. Crypto is ready.`);

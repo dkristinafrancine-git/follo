@@ -1,4 +1,5 @@
 
+import '../src/utils/cryptoPolyfill'; // MUST be first to polyfill crypto.getRandomValues
 import { Stack, router, Href } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';

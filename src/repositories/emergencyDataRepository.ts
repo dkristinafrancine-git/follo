@@ -1,6 +1,5 @@
+import * as SecureStore from 'expo-secure-store';
 import { randomUUID } from 'expo-crypto';
-import { getDatabase } from '../database';
-import { encryptionService } from '../services/encryptionService';
 import {
     EmergencyData,
     CreateEmergencyDataInput,
@@ -8,127 +7,58 @@ import {
     EmergencyContact
 } from '../types';
 
-// Convert database row to EmergencyData entity
-function rowToEmergencyData(row: Record<string, unknown>): EmergencyData {
-    let allergies: string[] = [];
-    if (row.allergies) {
-        try {
-            // Decrypt first
-            const decrypted = encryptionService.decrypt(row.allergies as string);
-            allergies = JSON.parse(decrypted);
-        } catch {
-            allergies = [];
-        }
-    }
-
-    let medicalConditions: string[] = [];
-    if (row.medical_conditions) {
-        try {
-            medicalConditions = JSON.parse(row.medical_conditions as string);
-        } catch {
-            medicalConditions = [];
-        }
-    }
-
-    let emergencyContacts: EmergencyContact[] = [];
-    if (row.emergency_contacts) {
-        try {
-            emergencyContacts = JSON.parse(row.emergency_contacts as string);
-        } catch {
-            emergencyContacts = [];
-        }
-    }
-
-    return {
-        id: row.id as string,
-        profileId: row.profile_id as string,
-        bloodType: row.blood_type as string | undefined,
-        allergies,
-        medicalConditions,
-        emergencyContacts,
-        organDonor: (row.organ_donor as number) === 1,
-        notes: row.notes as string | undefined,
-        updatedAt: row.updated_at as string,
-    };
-}
+const STORAGE_KEY_PREFIX = 'follo_emergency_v1_';
 
 export const emergencyDataRepository = {
     /**
-     * Get emergency data for a profile
+     * Get emergency data for a profile from SecureStore
      */
     async getByProfile(profileId: string): Promise<EmergencyData | null> {
-        await encryptionService.initialize();
-        const db = await getDatabase();
-        const result = await db.getFirstAsync<Record<string, unknown>>(
-            'SELECT * FROM emergency_data WHERE profile_id = ?',
-            [profileId]
-        );
-        return result ? rowToEmergencyData(result) : null;
+        try {
+            const key = `${STORAGE_KEY_PREFIX}${profileId}`;
+            const jsonString = await SecureStore.getItemAsync(key);
+
+            if (!jsonString) {
+                return null;
+            }
+
+            return JSON.parse(jsonString) as EmergencyData;
+        } catch (error) {
+            console.error('[EmergencyRepo] Failed to load data:', error);
+            return null;
+        }
     },
 
     /**
      * Create or update emergency data (upsert)
      */
     async upsert(input: CreateEmergencyDataInput): Promise<EmergencyData> {
-        const db = await getDatabase();
-        const existing = await this.getByProfile(input.profileId);
+        const key = `${STORAGE_KEY_PREFIX}${input.profileId}`;
         const now = new Date().toISOString();
 
-        if (existing) {
-            // Update existing
-            await db.runAsync(
-                `UPDATE emergency_data SET 
-          blood_type = ?,
-          allergies = ?,
-          medical_conditions = ?,
-          emergency_contacts = ?,
-          organ_donor = ?,
-          notes = ?,
-          updated_at = ?
-         WHERE profile_id = ?`,
-                [
-                    input.bloodType ?? null,
-                    encryptionService.encrypt(JSON.stringify(input.allergies)),
-                    JSON.stringify(input.medicalConditions),
-                    JSON.stringify(input.emergencyContacts),
-                    input.organDonor ? 1 : 0,
-                    input.notes ?? null,
-                    now,
-                    input.profileId,
-                ]
-            );
+        // Check if exists to preserve ID, or generate new one
+        const existing = await this.getByProfile(input.profileId);
+        const id = existing?.id || randomUUID();
 
-            return {
-                ...existing,
-                ...input,
-                updatedAt: now,
-            };
-        } else {
-            // Create new
-            const id = randomUUID();
-            await db.runAsync(
-                `INSERT INTO emergency_data (
-          id, profile_id, blood_type, allergies, medical_conditions,
-          emergency_contacts, organ_donor, notes, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [
-                    id,
-                    input.profileId,
-                    input.bloodType ?? null,
-                    encryptionService.encrypt(JSON.stringify(input.allergies)),
-                    JSON.stringify(input.medicalConditions),
-                    JSON.stringify(input.emergencyContacts),
-                    input.organDonor ? 1 : 0,
-                    input.notes ?? null,
-                    now,
-                ]
-            );
+        // Construct the full object
+        const newData: EmergencyData = {
+            id,
+            profileId: input.profileId,
+            bloodType: input.bloodType,
+            allergies: input.allergies || [],
+            medicalConditions: input.medicalConditions || [],
+            emergencyContacts: input.emergencyContacts || [],
+            organDonor: input.organDonor || false,
+            notes: input.notes,
+            updatedAt: now,
+        };
 
-            return {
-                id,
-                ...input,
-                updatedAt: now,
-            };
+        try {
+            await SecureStore.setItemAsync(key, JSON.stringify(newData));
+            return newData;
+        } catch (error) {
+            console.error('[EmergencyRepo] Failed to save data:', error);
+            throw new Error('Failed to securely save emergency data');
         }
     },
 
@@ -136,58 +66,38 @@ export const emergencyDataRepository = {
      * Update emergency data
      */
     async update(profileId: string, input: UpdateEmergencyDataInput): Promise<EmergencyData | null> {
-        const db = await getDatabase();
         const existing = await this.getByProfile(profileId);
         if (!existing) return null;
 
         const now = new Date().toISOString();
-        const updates: string[] = [];
-        const values: (string | number | null)[] = [];
+        const updatedData: EmergencyData = {
+            ...existing,
+            ...input,
+            updatedAt: now,
+        };
 
-        if (input.bloodType !== undefined) {
-            updates.push('blood_type = ?');
-            values.push(input.bloodType ?? null);
+        const key = `${STORAGE_KEY_PREFIX}${profileId}`;
+        try {
+            await SecureStore.setItemAsync(key, JSON.stringify(updatedData));
+            return updatedData;
+        } catch (error) {
+            console.error('[EmergencyRepo] Failed to update data:', error);
+            throw new Error('Failed to securely update emergency data');
         }
-        if (input.allergies !== undefined) {
-            updates.push('allergies = ?');
-            values.push(JSON.stringify(input.allergies));
-        }
-        if (input.medicalConditions !== undefined) {
-            updates.push('medical_conditions = ?');
-            values.push(JSON.stringify(input.medicalConditions));
-        }
-        if (input.emergencyContacts !== undefined) {
-            updates.push('emergency_contacts = ?');
-            values.push(JSON.stringify(input.emergencyContacts));
-        }
-        if (input.organDonor !== undefined) {
-            updates.push('organ_donor = ?');
-            values.push(input.organDonor ? 1 : 0);
-        }
-        if (input.notes !== undefined) {
-            updates.push('notes = ?');
-            values.push(input.notes ?? null);
-        }
-
-        updates.push('updated_at = ?');
-        values.push(now);
-        values.push(profileId);
-
-        await db.runAsync(
-            `UPDATE emergency_data SET ${updates.join(', ')} WHERE profile_id = ?`,
-            values
-        );
-
-        return this.getByProfile(profileId);
     },
 
     /**
      * Delete emergency data for a profile
      */
     async delete(profileId: string): Promise<boolean> {
-        const db = await getDatabase();
-        const result = await db.runAsync('DELETE FROM emergency_data WHERE profile_id = ?', [profileId]);
-        return result.changes > 0;
+        const key = `${STORAGE_KEY_PREFIX}${profileId}`;
+        try {
+            await SecureStore.deleteItemAsync(key);
+            return true;
+        } catch (error) {
+            console.error('[EmergencyRepo] Failed to delete data:', error);
+            return false;
+        }
     },
 
     /**
