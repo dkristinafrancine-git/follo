@@ -69,7 +69,7 @@ const Heart = ({ id, engineRef, onRegister, onUnregister }: {
     );
 };
 
-const PhysicsWorld = ({ trigger }: { trigger: number }) => {
+const PhysicsWorld = ({ trigger, height }: { trigger: number, height: number }) => {
     // Physics State - Refs for stability in loop
     const engineRef = useRef<Matter.Engine | null>(null);
     const requestRef = useRef<number | null>(null);
@@ -88,6 +88,8 @@ const PhysicsWorld = ({ trigger }: { trigger: number }) => {
 
         // Create Constraints/Walls
         const ceilingY = 0;
+        const wallHeight = height * 2; // Make walls tall enough
+        const centerY = height / 2;
 
         const ceiling = Matter.Bodies.rectangle(SCREEN_WIDTH / 2, ceilingY - 10, SCREEN_WIDTH, 20, {
             isStatic: true,
@@ -95,8 +97,8 @@ const PhysicsWorld = ({ trigger }: { trigger: number }) => {
             restitution: 0.2
         });
 
-        const leftWall = Matter.Bodies.rectangle(-10, 200, 20, 600, { isStatic: true });
-        const rightWall = Matter.Bodies.rectangle(SCREEN_WIDTH + 10, 200, 20, 600, { isStatic: true });
+        const leftWall = Matter.Bodies.rectangle(-10, centerY, 20, wallHeight, { isStatic: true });
+        const rightWall = Matter.Bodies.rectangle(SCREEN_WIDTH + 10, centerY, 20, wallHeight, { isStatic: true });
 
         Matter.World.add(engine.world, [ceiling, leftWall, rightWall]);
 
@@ -129,13 +131,13 @@ const PhysicsWorld = ({ trigger }: { trigger: number }) => {
             if (requestRef.current) cancelAnimationFrame(requestRef.current);
             Matter.Engine.clear(engine);
         };
-    }, []);
+    }, [height]); // Re-init on height change (though unlikely to change dynamically often)
 
     // Add Heart on Trigger
     useEffect(() => {
         if (trigger > 0 && engineRef.current) {
             const startX = SCREEN_WIDTH / 2 + (Math.random() * 40 - 20);
-            const startY = 300;
+            const startY = height - 50; // Dynamic spawn point near bottom
 
             // Create physics body
             const heart = Matter.Bodies.circle(startX, startY, HEART_RADIUS, {
@@ -165,7 +167,7 @@ const PhysicsWorld = ({ trigger }: { trigger: number }) => {
                 // We could implement FIFO cleanup here, but for now let's trust the user won't tap 1000 times
             }
         }
-    }, [trigger]);
+    }, [trigger, height]);
 
     const registerHeart = (id: string, svs: any) => {
         heartSharedValues.current[id] = svs;
@@ -193,11 +195,12 @@ const PhysicsWorld = ({ trigger }: { trigger: number }) => {
 // Animated Placeholder Component
 const AnimatedPlaceholderInput = ({ value, onChangeText }: { value: string, onChangeText: (text: string) => void }) => {
     const { colors } = useTheme();
+    const { t } = useTranslation();
     const [placeholderIndex, setPlaceholderIndex] = useState(0);
     const placeholders = [
-        "my red pen, it's making me excited to write something again.",
-        "the smell of rain on improved soil.",
-        "a warm cup of coffee on a cold morning."
+        t('gratitude.placeholders.p1'),
+        t('gratitude.placeholders.p2'),
+        t('gratitude.placeholders.p3'),
     ];
 
     useEffect(() => {
@@ -233,6 +236,8 @@ const AnimatedPlaceholderInput = ({ value, onChangeText }: { value: string, onCh
     );
 };
 
+
+
 export default function GratitudeEntryScreen() {
     const { t } = useTranslation();
     const { colors } = useTheme();
@@ -243,6 +248,7 @@ export default function GratitudeEntryScreen() {
     const [content, setContent] = useState('');
     const [heartTrigger, setHeartTrigger] = useState(0);
     const [positivityLevel, setPositivityLevel] = useState(1);
+    const [interactiveHeight, setInteractiveHeight] = useState(250);
 
     const handleSave = async () => {
         if (!content.trim()) {
@@ -268,7 +274,7 @@ export default function GratitudeEntryScreen() {
     };
 
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={24} color={colors.text} />
@@ -295,7 +301,7 @@ export default function GratitudeEntryScreen() {
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={{ flex: 1 }}
             >
-                <ScrollView contentContainerStyle={styles.content}>
+                <ScrollView contentContainerStyle={styles.content} bounces={false}>
                     <Text style={[styles.question, { color: colors.text }]}>
                         {t('gratitude.question') || "Today, I'm grateful for..."}
                     </Text>
@@ -311,25 +317,32 @@ export default function GratitudeEntryScreen() {
                     </View>
 
                     {/* Physics Area (Hearts) - Placed below Input */}
-                    <View style={styles.interactiveArea}>
+                    <View
+                        style={styles.interactiveArea}
+                        onLayout={(e) => setInteractiveHeight(e.nativeEvent.layout.height)}
+                    >
                         {/* Physics World inside this container */}
-                        <PhysicsWorld trigger={heartTrigger} />
+                        <PhysicsWorld trigger={heartTrigger} height={interactiveHeight} />
 
-                        {/* Heart Button */}
+                        {/* Centered subtext in physics area */}
+                        <View style={styles.centeredLabel} pointerEvents="none">
+                            <Text style={[styles.heartLabel, { color: colors.subtext }]}>
+                                {t('gratitude.tapHeartInstruction') || 'Tap as many times as you need to celebrate this moment.'}
+                            </Text>
+                        </View>
+
+                        {/* Heart Button pinned to bottom */}
                         <TouchableOpacity
                             onPress={() => {
                                 setHeartTrigger(prev => prev + 1);
                                 setPositivityLevel(prev => Math.min(prev + 1, 10));
-                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); // Lighter feedback for rapid tapping
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                             }}
                             style={styles.heartButton}
                             activeOpacity={0.7}
                         >
                             <Ionicons name="heart" size={80} color={colors.primary} />
                         </TouchableOpacity>
-                        <Text style={[styles.heartLabel, { color: colors.subtext }]}>
-                            {t('gratitude.tapHeartInstruction', 'Tap to release hearts')}
-                        </Text>
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
@@ -361,6 +374,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     content: {
+        flexGrow: 1,
         padding: 24,
     },
     question: {
@@ -394,13 +408,24 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
     },
     interactiveArea: {
-        height: 350,
+        flex: 1,
+        minHeight: 200,
         width: '100%',
         alignItems: 'center',
         justifyContent: 'flex-end',
-        paddingBottom: 20,
+        paddingBottom: 10,
         position: 'relative',
-        overflow: 'visible', // Changed to visible so hearts don't get clipped weirdly if boundary is slightly off
+        overflow: 'visible',
+    },
+    centeredLabel: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1,
     },
     physicsContainer: {
         position: 'absolute',
@@ -425,7 +450,7 @@ const styles = StyleSheet.create({
         zIndex: 30,
     },
     heartLabel: {
-        marginTop: 8,
+        marginTop: 0,
         fontSize: 14,
         textAlign: 'center',
     }

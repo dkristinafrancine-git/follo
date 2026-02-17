@@ -342,7 +342,38 @@
         "positivityLevel": "긍정 지수",
         "addImage": "사진 추가",
         "enterContent": "감사한 내용을 입력해 주세요.",
-        "noData": "아직 작성된 감사 일기가 없습니다"
+        "tapHeartInstruction": "이 순간을 축하하고 싶은 만큼 탭하세요.",
+        "noData": "아직 작성된 감사 일기가 없습니다",
+        "history": "감사 기록",
+        "empty": "아직 작성된 감사 일기가 없습니다.\n하나를 추가해 보세요!",
+        "addFirst": "감사 일기 쓰기",
+        "quotes": {
+            "q1": {
+                "text": "감사는 우리가 가진 것을 충분하게 만듭니다.",
+                "author": "Melody Beattie"
+            },
+            "q2": {
+                "text": "작은 것들을 즐기세요. 언젠가 돌아보면 그것이 큰 것이었음을 깨닫게 될 테니까요.",
+                "author": "Robert Brault"
+            },
+            "q3": {
+                "text": "감사를 망토처럼 입으면 삶의 모든 구석을 채워줄 것입니다.",
+                "author": "Rumi"
+            },
+            "q4": {
+                "text": "기쁨이 우리를 감사하게 하는 것이 아니라, 감사가 우리를 기쁘게 합니다.",
+                "author": "David Steindl-Rast"
+            },
+            "q5": {
+                "text": "매일을 긍정적인 생각과 감사한 마음으로 시작하세요.",
+                "author": "Roy T. Bennett"
+            }
+        },
+        "placeholders": {
+            "p1": "빨간 펜, 다시 뭔가를 쓰고 싶게 만들어요.",
+            "p2": "따뜻한 흙 위에 내리는 비 냄새.",
+            "p3": "추운 아침에 마시는 따뜻한 커피 한 잔."
+        }
     },
     "export": {
         "title": "건강 데이터 내보내기",

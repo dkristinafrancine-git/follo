@@ -399,11 +399,38 @@
         "positivityLevel": "Positivity Level",
         "addImage": "Add Image",
         "enterContent": "Please write something you are grateful for.",
-        "tapHeartInstruction": "Tap to release hearts",
+        "tapHeartInstruction": "Tap as many times as you need to celebrate this moment.",
         "noData": "No gratitude entries yet",
         "history": "History of Gratitude",
         "empty": "No gratitude entries yet.\nStart by adding one!",
-        "addFirst": "Log Gratitude"
+        "addFirst": "Log Gratitude",
+        "quotes": {
+            "q1": {
+                "text": "Gratitude turns what we have into enough.",
+                "author": "Melody Beattie"
+            },
+            "q2": {
+                "text": "Enjoy the little things, for one day you may look back and realize they were the big things.",
+                "author": "Robert Brault"
+            },
+            "q3": {
+                "text": "Wear gratitude like a cloak, and it will feed every corner of your life.",
+                "author": "Rumi"
+            },
+            "q4": {
+                "text": "It is not joy that makes us grateful; it is gratitude that makes us joyful.",
+                "author": "David Steindl-Rast"
+            },
+            "q5": {
+                "text": "Start each day with a positive thought and a grateful heart.",
+                "author": "Roy T. Bennett"
+            }
+        },
+        "placeholders": {
+            "p1": "my red pen, it's making me excited to write something again.",
+            "p2": "the smell of rain on warm soil.",
+            "p3": "a warm cup of coffee on a cold morning."
+        }
     },
     "export": {
         "title": "Export Health Data",

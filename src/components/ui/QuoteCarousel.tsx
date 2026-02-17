@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, Image, Dimensions } from 'react-native';
 import Animated, {
     useSharedValue,
@@ -11,26 +11,30 @@ import Animated, {
     runOnJS
 } from 'react-native-reanimated';
 import { useTheme } from '../../context/ThemeContext';
+import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
 
-const quotes = [
-    { text: "Gratitude turns what we have into enough.", author: "Melody Beattie" },
-    { text: "Enjoy the little things, for one day you may look back and realize they were the big things.", author: "Robert Brault" },
-    { text: "Wear gratitude like a cloak, and it will feed every corner of your life.", author: "Rumi" },
-    { text: "It is not joy that makes us grateful; it is gratitude that makes us joyful.", author: "David Steindl-Rast" },
-    { text: "Start each day with a positive thought and a grateful heart.", author: "Roy T. Bennett" }
-];
+const QUOTE_KEYS = ['q1', 'q2', 'q3', 'q4', 'q5'];
 
 export const QuoteCarousel = () => {
     const { colors } = useTheme();
+    const { t } = useTranslation();
     const [currentIndex, setCurrentIndex] = useState(0);
     const opacity = useSharedValue(1);
+
+    const quotes = useMemo(() =>
+        QUOTE_KEYS.map(key => ({
+            text: t(`gratitude.quotes.${key}.text`),
+            author: t(`gratitude.quotes.${key}.author`),
+        })),
+        [t]
+    );
 
     const nextSlide = useCallback(() => {
         setCurrentIndex((prev) => (prev + 1) % quotes.length);
         opacity.value = withTiming(1, { duration: 1000 });
-    }, [opacity]);
+    }, [opacity, quotes.length]);
 
     useEffect(() => {
         const interval = setInterval(() => {
