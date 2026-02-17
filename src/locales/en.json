@@ -57,7 +57,7 @@
         "today": "Today",
         "careInsights": "Care Insights",
         "history": "History",
-        "consistencyMap": "Consistency Map",
+        "consistencyMap": "Activity Map",
         "lastWeeks": "Last {{count}} weeks"
     },
     "careInsights": {

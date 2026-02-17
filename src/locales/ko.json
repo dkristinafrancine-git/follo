@@ -56,7 +56,7 @@
         "today": "오늘",
         "careInsights": "케어 인사이트",
         "history": "기록",
-        "consistencyMap": "일관성 지도",
+        "consistencyMap": "활동 지도",
         "lastWeeks": "최근 {{count}}주"
     },
     "careInsights": {
