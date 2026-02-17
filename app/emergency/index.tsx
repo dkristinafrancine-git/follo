@@ -75,7 +75,7 @@ export default function EmergencyScreen() {
 
             setData(updated);
             setIsEditing(false);
-            Alert.alert(t('common.success'), t('settings.saved'));
+            Alert.alert(t('common.success'), t('common.saved'));
         } catch (error) {
             console.error('Failed to save emergency data:', error);
             Alert.alert(t('common.error'), t('common.failedToSave'));
@@ -171,13 +171,29 @@ export default function EmergencyScreen() {
                     <View style={styles.form}>
                         <View style={styles.inputGroup}>
                             <Text style={styles.label}>{t('emergency.bloodType')}</Text>
-                            <TextInput
-                                style={styles.input}
-                                value={bloodType}
-                                onChangeText={setBloodType}
-                                placeholder={t('emergency.bloodTypePlaceholder')}
-                                placeholderTextColor={colors.subtext}
-                            />
+                            <ScrollView
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                contentContainerStyle={styles.bloodTypeContainer}
+                            >
+                                {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((type) => (
+                                    <TouchableOpacity
+                                        key={type}
+                                        style={[
+                                            styles.bloodTypeChip,
+                                            bloodType === type && { backgroundColor: colors.primary, borderColor: colors.primary }
+                                        ]}
+                                        onPress={() => setBloodType(type)}
+                                    >
+                                        <Text style={[
+                                            styles.bloodTypeText,
+                                            bloodType === type && { color: '#fff' }
+                                        ]}>
+                                            {type}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </ScrollView>
                         </View>
 
                         <View style={styles.inputGroup}>
@@ -499,5 +515,24 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     },
     secondaryButtonText: {
         color: colors.primary,
+    },
+    bloodTypeContainer: {
+        gap: 8,
+        paddingVertical: 4,
+    },
+    bloodTypeChip: {
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        backgroundColor: colors.card,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: colors.border || colors.card,
+        minWidth: 48,
+        alignItems: 'center',
+    },
+    bloodTypeText: {
+        color: colors.text,
+        fontWeight: '600',
+        fontSize: 16,
     },
 });

@@ -161,7 +161,11 @@
         "yes": "Yes",
         "no": "No",
         "inactive": "Inactive",
-        "logged": "Logged"
+        "logged": "Logged",
+        "success": "Success",
+        "saved": "Saved successfully",
+        "failedToSave": "Failed to save changes",
+        "failedToLoad": "Failed to load data"
     },
     "appointment": {
         "title": "Title",
