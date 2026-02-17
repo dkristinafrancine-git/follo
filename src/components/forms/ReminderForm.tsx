@@ -8,6 +8,7 @@ import {
     Platform,
     Switch,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Reminder, CreateReminderInput, ReminderType, RecurrenceRule } from '../../types';
@@ -98,114 +99,117 @@ export function ReminderForm({
     };
 
     return (
-        <ScrollView
-            style={[styles.container, { backgroundColor: colors.background }]}
-            contentContainerStyle={styles.content}
-        >
-            {/* Reminder Type Selection */}
-            <View style={styles.field}>
-                <Text style={[styles.label, { color: colors.subtext }]}>{t('reminder.type')}</Text>
-                <View style={styles.typeContainer}>
-                    {REMINDER_TYPES.map((item) => (
-                        <TouchableOpacity
-                            key={item.key}
-                            style={[
-                                styles.typeButton,
-                                { backgroundColor: colors.card, borderColor: colors.border },
-                                type === item.key && { backgroundColor: `${colors.primary}20`, borderColor: colors.primary }
-                            ]}
-                            onPress={() => setType(item.key)}
-                        >
-                            <Text
-                                style={[
-                                    styles.typeText,
-                                    { color: colors.text },
-                                    type === item.key && { color: colors.primary, fontWeight: '600' }
-                                ]}
-                            >
-                                {t(`reminder.types.${item.key}`, { defaultValue: item.label })}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
-                </View>
-            </View>
-
-            {/* Frequency Selector */}
-            <FrequencySelector
-                frequency={frequency}
-                onChange={setFrequency}
-                label={t('reminder.frequency')}
-            />
-
-            {/* Time of Day */}
-            <View style={styles.field}>
-                <Text style={[styles.label, { color: colors.subtext }]}>{t('reminder.times')}</Text>
-                {timeOfDay.map((time, index) => (
-                    <View key={index} style={styles.timeRow}>
-                        <TouchableOpacity
-                            style={[styles.timeButton, { backgroundColor: colors.card }]}
-                            onPress={() => openTimePicker(index)}
-                        >
-                            <Text style={[styles.timeButtonText, { color: colors.primary }]}>{time}</Text>
-                        </TouchableOpacity>
-                        {timeOfDay.length > 1 && (
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['bottom']}>
+            <ScrollView
+                style={styles.container}
+                contentContainerStyle={styles.content}
+                keyboardShouldPersistTaps="handled"
+            >
+                {/* Reminder Type Selection */}
+                <View style={styles.field}>
+                    <Text style={[styles.label, { color: colors.subtext }]}>{t('reminder.type')}</Text>
+                    <View style={styles.typeContainer}>
+                        {REMINDER_TYPES.map((item) => (
                             <TouchableOpacity
-                                style={[styles.removeTimeButton, { backgroundColor: colors.border }]}
-                                onPress={() => removeTime(index)}
+                                key={item.key}
+                                style={[
+                                    styles.typeButton,
+                                    { backgroundColor: colors.card, borderColor: colors.border },
+                                    type === item.key && { backgroundColor: `${colors.primary}20`, borderColor: colors.primary }
+                                ]}
+                                onPress={() => setType(item.key)}
                             >
-                                <Text style={[styles.removeTimeButtonText, { color: colors.danger }]}>✕</Text>
+                                <Text
+                                    style={[
+                                        styles.typeText,
+                                        { color: colors.text },
+                                        type === item.key && { color: colors.primary, fontWeight: '600' }
+                                    ]}
+                                >
+                                    {t(`reminder.types.${item.key}`, { defaultValue: item.label })}
+                                </Text>
                             </TouchableOpacity>
-                        )}
+                        ))}
                     </View>
-                ))}
-                <TouchableOpacity style={styles.addTimeButton} onPress={addTime}>
-                    <Text style={[styles.addTimeButtonText, { color: colors.primary }]}>+ {t('common.addTime')}</Text>
-                </TouchableOpacity>
-            </View>
+                </View>
 
-            {/* Active Toggle */}
-            <View style={[styles.field, styles.rowBetween]}>
-                <Text style={[styles.label, { color: colors.text, marginBottom: 0 }]}>
-                    {t('reminder.isActive')}
-                </Text>
-                <Switch
-                    value={isActive}
-                    onValueChange={setIsActive}
-                    trackColor={{ false: colors.border, true: colors.primary }}
+                {/* Frequency Selector */}
+                <FrequencySelector
+                    frequency={frequency}
+                    onChange={setFrequency}
+                    label={t('reminder.frequency')}
                 />
-            </View>
 
-            {/* Action Buttons */}
-            <View style={styles.actions}>
-                <TouchableOpacity
-                    style={[styles.cancelButton, { backgroundColor: colors.border }]}
-                    onPress={onCancel}
-                    disabled={isLoading}
-                >
-                    <Text style={[styles.cancelButtonText, { color: colors.text }]}>{t('common.cancel')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[styles.submitButton, { backgroundColor: colors.primary }, isLoading && styles.submitButtonDisabled]}
-                    onPress={handleSubmit}
-                    disabled={isLoading}
-                >
-                    <Text style={styles.submitButtonText}>
-                        {isLoading ? t('common.loading') : t('common.save')}
+                {/* Time of Day */}
+                <View style={styles.field}>
+                    <Text style={[styles.label, { color: colors.subtext }]}>{t('reminder.times')}</Text>
+                    {timeOfDay.map((time, index) => (
+                        <View key={index} style={styles.timeRow}>
+                            <TouchableOpacity
+                                style={[styles.timeButton, { backgroundColor: colors.card }]}
+                                onPress={() => openTimePicker(index)}
+                            >
+                                <Text style={[styles.timeButtonText, { color: colors.primary }]}>{time}</Text>
+                            </TouchableOpacity>
+                            {timeOfDay.length > 1 && (
+                                <TouchableOpacity
+                                    style={[styles.removeTimeButton, { backgroundColor: colors.border }]}
+                                    onPress={() => removeTime(index)}
+                                >
+                                    <Text style={[styles.removeTimeButtonText, { color: colors.danger }]}>✕</Text>
+                                </TouchableOpacity>
+                            )}
+                        </View>
+                    ))}
+                    <TouchableOpacity style={styles.addTimeButton} onPress={addTime}>
+                        <Text style={[styles.addTimeButtonText, { color: colors.primary }]}>+ {t('common.addTime')}</Text>
+                    </TouchableOpacity>
+                </View>
+
+                {/* Active Toggle */}
+                <View style={[styles.field, styles.rowBetween]}>
+                    <Text style={[styles.label, { color: colors.text, marginBottom: 0 }]}>
+                        {t('reminder.isActive')}
                     </Text>
-                </TouchableOpacity>
-            </View>
+                    <Switch
+                        value={isActive}
+                        onValueChange={setIsActive}
+                        trackColor={{ false: colors.border, true: colors.primary }}
+                    />
+                </View>
 
-            {/* Time Picker */}
-            {showTimePicker && editingTimeIndex !== null && (
-                <DateTimePicker
-                    value={getTimeAsDate(timeOfDay[editingTimeIndex])}
-                    mode="time"
-                    is24Hour={true}
-                    display="default"
-                    onChange={handleTimeChange}
-                />
-            )}
-        </ScrollView>
+                {/* Action Buttons */}
+                <View style={styles.actions}>
+                    <TouchableOpacity
+                        style={[styles.cancelButton, { backgroundColor: colors.border }]}
+                        onPress={onCancel}
+                        disabled={isLoading}
+                    >
+                        <Text style={[styles.cancelButtonText, { color: colors.text }]}>{t('common.cancel')}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.submitButton, { backgroundColor: colors.primary }, isLoading && styles.submitButtonDisabled]}
+                        onPress={handleSubmit}
+                        disabled={isLoading}
+                    >
+                        <Text style={styles.submitButtonText}>
+                            {isLoading ? t('common.loading') : t('common.save')}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+
+                {/* Time Picker */}
+                {showTimePicker && editingTimeIndex !== null && (
+                    <DateTimePicker
+                        value={getTimeAsDate(timeOfDay[editingTimeIndex])}
+                        mode="time"
+                        is24Hour={true}
+                        display="default"
+                        onChange={handleTimeChange}
+                    />
+                )}
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 

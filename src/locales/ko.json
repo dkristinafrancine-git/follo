@@ -169,6 +169,7 @@
         "delete": "삭제",
         "edit": "수정",
         "add": "추가",
+        "addTime": "시간 추가",
         "loading": "로딩 중...",
         "error": "문제가 발생했습니다",
         "retry": "다시 시도",
@@ -180,6 +181,7 @@
         "no": "아니요",
         "notes": "메모",
         "notesPlaceholder": "메모 추가...",
+        "inactive": "비활성",
         "logged": "기록됨"
     },
     "medication": {
@@ -398,6 +400,23 @@
         "exportSuccess": "보고서가 생성되었습니다!",
         "exportError": "보고서 생성에 실패했습니다.",
         "privacyNote": "보고서는 기기에서 로컬로 생성되며 서버에 업로드되지 않습니다."
+    },
+    "reminder": {
+        "title": "알림",
+        "add": "알림 추가",
+        "edit": "알림 수정",
+        "type": "알림 유형",
+        "frequency": "빈도",
+        "times": "알림 시간",
+        "isActive": "활성화",
+        "deleteConfirmation": "이 알림을 삭제하시겠습니까?",
+        "noReminders": "아직 알림이 없습니다",
+        "types": {
+            "supplement": "영양제",
+            "activity": "활동",
+            "gratitude": "감사",
+            "symptom": "증상"
+        }
     },
     "accessibility": {
         "title": "접근성",

@@ -159,6 +159,7 @@
         "done": "Done",
         "yes": "Yes",
         "no": "No",
+        "inactive": "Inactive",
         "logged": "Logged"
     },
     "appointment": {
@@ -455,6 +456,23 @@
         "exportSuccess": "Report generated!",
         "exportError": "Failed to generate report.",
         "privacyNote": "Reports are generated locally on your device and are never uploaded."
+    },
+    "reminder": {
+        "title": "Reminders",
+        "add": "Add Reminder",
+        "edit": "Edit Reminder",
+        "type": "Reminder Type",
+        "frequency": "Frequency",
+        "times": "Reminder Times",
+        "isActive": "Active",
+        "deleteConfirmation": "Are you sure you want to delete this reminder?",
+        "noReminders": "No reminders yet",
+        "types": {
+            "supplement": "Supplement",
+            "activity": "Activity",
+            "gratitude": "Gratitude",
+            "symptom": "Symptom"
+        }
     },
     "accessibility": {
         "title": "Accessibility",

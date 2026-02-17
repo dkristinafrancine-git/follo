@@ -171,6 +171,12 @@ function ThemedStack() {
                     }}
                 />
                 <Stack.Screen
+                    name="reminders"
+                    options={{
+                        headerShown: false,
+                    }}
+                />
+                <Stack.Screen
                     name="alarm"
                     options={{
                         headerShown: false,
