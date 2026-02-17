@@ -1,4 +1,4 @@
-import 'react-native-get-random-values';
+import './src/utils/cryptoPolyfill';
 import { AppRegistry } from 'react-native';
 import 'expo-router/entry';
 
